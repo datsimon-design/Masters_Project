@@ -1,0 +1,693 @@
+---
+title: "Survey Design"
+author: "Simon Gendrisch"
+date: "2026-03-05"
+output: html_document
+---
+
+```{r, Load packages}
+
+library(mrds)
+library(Distance)
+library(dssd)
+library(tidyverse)
+library(sf)
+library(dplyr)
+library(ggplot2)
+
+
+
+```
+
+
+
+
+```{r, importing data}
+
+shape_split <- st_read("data/GTW_split_acc.gpkg")
+
+# Transform degree in meter
+split_tr <- st_transform(shape_split, crs = 32630)
+
+split_tr
+
+
+region_split <- make.region(region.name = "Gibraltar",
+                      shape = split_tr,
+                      units = "m")
+
+plot(region_split)
+
+
+```
+
+The rule is strict: spacing must always be ≥ 2 × truncation to avoid overlap. For a zigzag it should be even larger because the angled legs cover more ground than straight parallel lines.
+
+
+```{r, Study Design}
+
+study_design <- make.design(
+  region = region_split,
+  transect.type =  "line",
+  design = "eszigzag",
+  spacing = c(1500, 1500, 1500),
+  design.angle = c(90, 0, 0),
+  edge.protocol = "minus",
+  truncation = 300
+)
+
+transects_c <- generate.transects(study_design)
+
+plot(region_split, transects_c)
+
+coverage <- run.coverage(
+              design = study_design,
+              reps = 15
+)
+
+plot(coverage)
+
+
+
+summary(coverage@coverage.scores)
+summary(transects_c@line.length)
+
+summary(transects_c@samplers)
+
+
+
+
+### Using seeds to create "random" transects each day -> make a list of days and asign seed to every day -> generate transects
+
+
+```
+
+Test for feasible Spacing for the area
+
+
+```{r, Spacing testing}
+
+spacings = c(550, 600, 650, 700)      # Spacing of 667 m is ideal for the area
+boat_speed = 10
+results = data.frame(spacing = spacings, mean_cov=NA, cv=NA, effort_km=NA, n_transects=NA, h_survey=NA)
+
+for (i in seq_along(spacings)){
+  
+  d <- make.design(
+  region = region_split,
+  transect.type =  "line",
+  design = "eszigzag",
+  spacing = spacings[i],
+  design.angle = c(90, 0, 0),
+  edge.protocol = "minus",
+  truncation = 300
+)
+  
+  t <- generate.transects(d)
+  effort <- sum(as.numeric(sf::st_length(t@samplers))) / 1000
+  
+  if (effort > 0) {
+    cov    <- run.coverage(d, reps=100)
+    scores <- unlist(cov@coverage.scores)  # unlist across all strata
+    
+    results$mean_cov[i]    <- round(mean(scores), 3)
+    results$cv[i]          <- round(sd(scores)/mean(scores), 3)
+    results$effort_km[i]   <- round(effort, 1)
+    results$n_transects[i] <- nrow(t@samplers)
+    results$h_survey[i]    <- round(sum(effort/(boat_speed*1.852)), 1)
+    
+  } else {
+    cat("Spacing", spacings[i], "— no transects generated, too large for region\n")
+  }
+  
+}
+
+print(results)
+
+
+plot(cov)
+
+
+
+```
+
+  spacing mean_cov    cv effort_km n_transects h_survey
+1     550    1.067 0.106     151.1          37      8.2
+2     600    0.978 0.118     139.5          34      7.5
+3     650    0.902 0.119     128.0          33      6.9
+4     700    0.840 0.122     115.9          30      6.3
+
+
+
+
+```{r}
+library(dssd)
+library(sf)
+
+# ── Step 1: Rebuild design at chosen spacing ──────────────────────────────────
+study_design <- make.design(
+  region        = region_split,
+  transect.type = "line",
+  design        = "eszigzag",
+  spacing       = c(650, 650, 650),
+  design.angle  = c(90, 0, 0),
+  edge.protocol = "minus",
+  truncation    = 300
+)
+
+trans <- generate.transects(study_design)
+
+plot(region_split, trans)
+
+cov <- run.coverage(study_design, reps = 10)
+plot(cov)
+
+# ── Step 2: Generate a large pool of candidate realisations ───────────────────
+# We'll screen these and pick the most spatially complementary ones
+set.seed(42)
+n_candidates  <- 200    # generate 200 candidates, pick best N from them
+n_survey_days <- 15     # how many field days you're planning
+
+candidate_seeds      <- sample(1:99999, n_candidates)
+candidate_transects  <- list()
+candidate_centroids  <- list()   # store mean Y position of transects per realisation
+
+cat("Generating", n_candidates, "candidate realisations...\n")
+
+for (i in seq_along(candidate_seeds)) {
+  set.seed(candidate_seeds[i])
+  t <- generate.transects(study_design)
+  
+  # Check it actually generated transects
+  effort <- sum(as.numeric(sf::st_length(t@samplers))) / 1000
+  
+  if (effort > 0) {
+    candidate_transects[[i]] <- t
+    
+    # Extract centroid of all transect lines — proxy for spatial position
+    centroids <- sf::st_centroid(sf::st_geometry(t@samplers))
+    coords    <- sf::st_coordinates(centroids)
+    candidate_centroids[[i]] <- c(mean(coords[,1]), mean(coords[,2]))
+  }
+}
+
+cat("Valid realisations:", sum(sapply(candidate_transects, \(x) !is.null(x))), "\n")
+
+# ── Step 3: Score realisations for spatial spread ─────────────────────────────
+# Extract X centroid (east-west position) for each realisation
+# In a zigzag design, the random start shifts the whole pattern laterally
+# We want to select seeds that are maximally spread across this axis
+
+valid_idx <- which(!sapply(candidate_transects, is.null))
+x_positions <- sapply(valid_idx, \(i) candidate_centroids[[i]][1])
+y_positions <- sapply(valid_idx, \(i) candidate_centroids[[i]][2])
+
+# Normalise positions to 0-1 range
+x_norm <- (x_positions - min(x_positions)) / diff(range(x_positions))
+
+# ── Step 4: Greedy selection — pick seeds that are maximally spread ────────────
+# Start with the median position, then iteratively pick the most distant remaining
+
+selected_idx <- integer(n_survey_days)
+remaining    <- seq_along(valid_idx)
+
+# First pick: closest to median spatial position (a "neutral" start)
+selected_idx[1] <- remaining[which.min(abs(x_norm[remaining] - 0.5))]
+remaining <- remaining[-selected_idx[1]]
+
+# Subsequent picks: always choose realisation furthest from already-selected ones
+for (k in 2:n_survey_days) {
+  # Distance from each remaining candidate to all already-selected
+  dists <- sapply(remaining, \(j) {
+    min(abs(x_norm[j] - x_norm[selected_idx[1:(k-1)]]))
+  })
+  best  <- remaining[which.max(dists)]
+  selected_idx[k] <- best
+  remaining <- remaining[-which(remaining == best)]
+}
+
+# ── Step 5: Build your survey schedule ────────────────────────────────────────
+selected_seeds <- candidate_seeds[valid_idx[selected_idx]]
+
+survey_schedule <- data.frame(
+  day         = 1:n_survey_days,
+  seed        = selected_seeds,
+  date        = NA,                # fill in as you go
+  completed   = FALSE,
+  effort_km   = NA,
+  n_sightings = NA,
+  notes       = NA
+)
+
+cat("\n=== Survey Schedule ===\n")
+print(survey_schedule[, c("day", "seed")])
+
+
+
+region_geom <- sf::st_geometry(region_split@region)
+
+# ── Build a single long dataframe of all selected transects ──────────────────
+transect_df <- lapply(1:n_survey_days, function(k) {
+  i <- valid_idx[selected_idx[k]]
+  t <- candidate_transects[[i]]
+  
+  geom <- sf::st_geometry(t@samplers)
+  df   <- sf::st_sf(geometry = geom)
+  df$day   <- paste0("Day ", sprintf("%02d", k))
+  df$seed  <- selected_seeds[k]
+  df
+}) |> bind_rows()
+
+# ── Region background as df ───────────────────────────────────────────────────
+region_df <- sf::st_sf(geometry = region_geom)
+
+# ── Facet plot ────────────────────────────────────────────────────────────────
+ggplot() +
+  geom_sf(data  = region_df,
+          colour = "#1e3a5f",
+          linewidth = 0.4) +
+  geom_sf(data      = transect_df,
+          colour    = transect_df$seed,
+          linewidth = 0.5,
+          alpha     = 0.9) +
+#  facet_wrap(~day, ncol = 5) +
+  labs(
+    title    = "Survey Transects per Field Day",
+    subtitle = paste0("Spacing = 650m | Truncation = 300m | Seed-optimised for spatial spread"),
+    caption  = paste0("Seeds: ", paste(selected_seeds, collapse = ", "))
+  ) +
+  theme_minimal(base_size = 10) 
+
+
+
+
+```
+
+
+
+## What This Does
+
+The key idea is that in a zigzag design, each random start **shifts the entire transect grid laterally** by a small amount. By selecting seeds whose shifts are maximally spread across the full range of possible positions, consecutive survey days fill in different "gaps" in the coverage grid:
+
+Day 1 seed:  transects at positions  0, 650, 1300, 1950...
+Day 2 seed:  transects at positions  325, 975, 1625, 2275...
+Day 3 seed:  transects at positions  160, 810, 1460, 2110...
+→ Together they tile the region much more evenly than random seeds would
+
+
+
+## Optimized Survey transects
+
+Here I optimized each transect per area instead of overall coverage to achieve better scores.
+
+
+```{r, optimized for each area}
+# ── Score each candidate seed per stratum separately ─────────────────────────
+
+# Extract per-stratum centroid X position for each candidate realisation
+stratum_positions <- lapply(region_split@strata.name, function(s) {
+  sapply(valid_idx, function(i) {
+    t <- candidate_transects[[i]]
+    lines <- t@samplers[t@samplers$strata == s, ]
+    
+    if (nrow(lines) == 0) return(NA)
+    
+    centroids <- sf::st_centroid(sf::st_geometry(lines))
+    coords    <- sf::st_coordinates(centroids)
+    mean(coords[, 1])   # X position (easting) per stratum
+  })
+})
+names(stratum_positions) <- region_split@strata.name
+
+# Normalise each stratum's positions to 0-1 independently
+stratum_norm <- lapply(stratum_positions, function(pos) {
+  rng <- range(pos, na.rm = TRUE)
+  if (diff(rng) == 0) return(rep(0.5, length(pos)))
+  (pos - rng[1]) / diff(rng)
+})
+
+# ── Greedy selection using per-stratum spread scores ─────────────────────────
+# At each step, pick the candidate that maximises the MINIMUM spread
+# across all three strata — forces balanced coverage everywhere
+
+selected_idx <- integer(n_survey_days)
+remaining    <- seq_along(valid_idx)
+
+# First pick: closest to median in ALL strata simultaneously
+first_scores <- sapply(remaining, function(j) {
+  mean(sapply(stratum_norm, function(sn) abs(sn[j] - 0.5)), na.rm = TRUE)
+})
+selected_idx[1] <- remaining[which.min(first_scores)]
+remaining <- remaining[-which(remaining == selected_idx[1])]
+
+for (k in 2:n_survey_days) {
+  
+  # For each remaining candidate, compute its minimum distance
+  # to already-selected seeds, separately per stratum
+  spread_scores <- sapply(remaining, function(j) {
+    
+    per_stratum_min_dist <- sapply(stratum_norm, function(sn) {
+      already <- sn[selected_idx[1:(k-1)]]
+      min(abs(sn[j] - already), na.rm = TRUE)
+    })
+    
+    # Score = minimum spread across strata — weakest stratum drives selection
+    min(per_stratum_min_dist, na.rm = TRUE)
+  })
+  
+  best <- remaining[which.max(spread_scores)]
+  selected_idx[k] <- best
+  remaining <- remaining[-which(remaining == best)]
+}
+
+# ── Rebuild schedule with new seeds ──────────────────────────────────────────
+selected_seeds <- candidate_seeds[valid_idx[selected_idx]]
+
+survey_schedule <- data.frame(
+  day       = 1:n_survey_days,
+  seed      = selected_seeds,
+  date      = NA,
+  completed = FALSE,
+  effort_km = NA,
+  notes     = NA
+)
+
+cat("=== Updated Survey Schedule ===\n")
+print(survey_schedule[, c("day", "seed")])
+
+# ── Verify per-stratum spread visually ───────────────────────────────────────
+# Show how evenly the selected seeds sample each stratum's positional range
+cat("\n=== Per-stratum positional spread of selected seeds ===\n")
+for (s in region_split@strata.name) {
+  positions <- stratum_norm[[s]][selected_idx]
+  cat("Stratum", s,
+      "| Range covered:", round(diff(range(positions, na.rm=TRUE)), 3),
+      "| SD:", round(sd(positions, na.rm=TRUE), 3), "\n")
+}
+# You want Range close to 1.0 and SD as even as possible across strata
+# If one stratum has Range << 1.0, increase n_candidates and rerun
+
+# ── Replot with new seeds ─────────────────────────────────────────────────────
+transect_df <- lapply(1:n_survey_days, function(k) {
+  i  <- valid_idx[selected_idx[k]]
+  t  <- candidate_transects[[i]]
+  df <- sf::st_sf(geometry = sf::st_geometry(t@samplers))
+  df$day     <- paste0("Day ", sprintf("%02d", k))
+  df$strata  <- t@samplers$strata
+  df
+}) |> dplyr::bind_rows()
+
+# Facet plot coloured by stratum so you can judge each area separately
+ggplot() +
+  geom_sf(data      = sf::st_sf(geometry = sf::st_geometry(region_split@region)),
+          colour = "#1e3a5f", linewidth = 0.4) +
+  geom_sf(data      = transect_df,
+          aes(colour = strata),
+          linewidth = 0.5, alpha = 0.85) +
+  scale_colour_manual(
+    values = c("A" = "#38bdf8", "B" = "#f59e0b", "C" = "#10b981"),
+    name   = "Stratum"
+  ) +
+  facet_wrap(~day, ncol = 5) +
+  labs(title    = "Survey Transects — Per-stratum Optimised Seeds",
+       subtitle = "Each stratum's shift is independently maximised across days",
+       caption  = paste0("Transect Lenght: ", paste(round(sum(candidate_transects[[1]]@line.length)/1000, 1), "km"))
+       ) +
+  theme_minimal(base_size = 10)
+
+
+transect_df %>% 
+  filter(day == "Day 01") %>% 
+  select(geometry) %>% 
+  plot()
+
+```
+
+
+
+# Adjusting spacing again for feasible on effort hours
+
+```{r}
+
+# ── Parameters ────────────────────────────────────────────────────────────────
+vessel_speed_kmh <- 15      # on-effort speed (~6.5 knots)
+max_hours        <- 5.0     # maximum feasible hours per day
+target_coverage  <- 0.85    # slightly relaxed — discuss with supervisor
+truncation_m     <- 300     # design truncation (field), analysis can differ
+
+max_effort_km    <- vessel_speed_kmh * max_hours
+cat("Max effort per day:", max_effort_km, "km\n\n")
+
+# ── Test spacings ─────────────────────────────────────────────────────────────
+spacings <- seq(700, 1500, by = 100)
+
+results <- data.frame(
+  spacing      = spacings,
+  expected_cov = round((2 * truncation_m) / spacings, 3),
+  effort_km    = NA,
+  hours        = NA,
+  n_transects  = NA,
+  mean_cov     = NA,
+  cv           = NA,
+  feasible     = NA
+)
+
+for (i in seq_along(spacings)) {
+  d <- make.design(
+    region        = region_split,
+    transect.type = "line",
+    design        = "eszigzag",
+    spacing       = rep(spacings[i], 3),
+    design.angle  = c(90, 0, 0),
+    edge.protocol = "minus",
+    truncation    = truncation_m
+  )
+  
+  t      <- generate.transects(d)
+  effort <- sum(as.numeric(sf::st_length(t@samplers))) / 1000
+  hours  <- effort / vessel_speed_kmh
+  
+  if (effort > 0) {
+    cov    <- run.coverage(d, reps = 15)
+    scores <- unlist(cov@coverage.scores)
+    
+    results$effort_km[i]   <- round(effort, 1)
+    results$hours[i]       <- round(hours, 2)
+    results$n_transects[i] <- nrow(t@samplers)
+    results$mean_cov[i]    <- round(mean(scores), 3)
+    results$cv[i]          <- round(sd(scores)/mean(scores), 3)
+    results$feasible[i]    <- ifelse(
+      hours <= max_hours & mean(scores) >= target_coverage, "✓", "✗"
+    )
+  }
+  
+  cat("Spacing", spacings[i], "| Effort:", round(effort,1), "km |",
+      round(hours, 1), "h | Coverage:", 
+      ifelse(effort > 0, round(mean(unlist(cov@coverage.scores)), 3), "fail"), "\n")
+}
+
+print(results)
+
+
+
+```
+
+
+Results:
+
+ spacing expected_cov effort_km hours n_transects mean_cov    cv feasible
+1     700        0.857     118.3  7.89          29    0.838 0.265        ✗
+2     800        0.750     105.4  7.03          26    0.735 0.289        ✗
+3     900        0.667      92.4  6.16          23    0.649 0.227        ✗
+4    1000        0.600      85.3  5.68          22    0.598 0.269        ✗
+5    1100        0.545      77.5  5.17          20    0.541 0.253        ✗
+6    1200        0.500      71.4  4.76          18    0.496 0.286        ✗
+7    1300        0.462      69.1  4.61          18    0.462 0.286        ✗
+8    1400        0.429      62.1  4.14          17    0.430 0.291        ✗
+9    1500        0.400      58.7  3.91          16    0.405 0.400        ✗
+
+
+
+## Run cummulative days with shifted starting points 
+
+
+```{r}
+
+simulate_cumulative_coverage <- function(design, n_days, n_sims = 200,
+                                         grid_size = 5000) {
+  
+  # Get region geometry for grid generation
+  region_bbox <- sf::st_bbox(region_split@region)
+  
+  # Generate a coverage grid
+  grid_pts <- sf::st_sample(
+    sf::st_as_sfc(region_bbox),
+    size = grid_size,
+    type = "regular"
+  )
+  grid_pts <- grid_pts[sf::st_within(grid_pts,
+                        sf::st_union(region_split@region),
+                        sparse = FALSE)[,1]]
+  
+  cat("Coverage grid:", length(grid_pts), "points\n")
+  
+  # For each simulation, stack n_days realisations
+  coverage_by_day <- matrix(NA, nrow = n_sims, ncol = n_days)
+  
+  for (sim in 1:n_sims) {
+    if (sim %% 50 == 0) cat("Simulation", sim, "/", n_sims, "\n")
+    
+    # Track which grid points have been covered
+    covered <- rep(FALSE, length(grid_pts))
+    
+    for (day in 1:n_days) {
+      # New random transect realisation each day
+      t <- generate.transects(design)
+      lines <- sf::st_geometry(t@samplers)
+      
+      # Buffer each line by truncation distance
+      lines_buffered <- sf::st_buffer(lines, dist = truncation_m)
+      union_buffer   <- sf::st_union(lines_buffered)
+      
+      # Update which points are now covered
+      newly_covered <- sf::st_within(grid_pts, union_buffer,
+                                      sparse = FALSE)[,1]
+      covered <- covered | newly_covered
+      
+      # Coverage = proportion of region covered at least once
+      coverage_by_day[sim, day] <- mean(covered)
+    }
+  }
+  
+  # Summarise across simulations
+  data.frame(
+    day      = 1:n_days,
+    mean_cov = round(colMeans(coverage_by_day), 3),
+    lower_95 = round(apply(coverage_by_day, 2,
+                            quantile, probs = 0.025), 3),
+    upper_95 = round(apply(coverage_by_day, 2,
+                            quantile, probs = 0.975), 3),
+    sd       = round(apply(coverage_by_day, 2, sd), 4)
+  )
+}
+
+# ── Run for your wide-spacing design ─────────────────────────────────────────
+cat("Simulating cumulative coverage...\n")
+cum_cov <- simulate_cumulative_coverage(
+  design  = d,
+  n_days  = 15,
+  n_sims  = 100
+)
+
+print(cum_cov)
+
+
+```
+
+Results:
+
+Used design with 1500 m of spacing:
+
+   day mean_cov lower_95 upper_95     sd
+1    1    0.390    0.373    0.406 0.0089
+2    2    0.628    0.525    0.688 0.0497
+3    3    0.758    0.599    0.841 0.0568
+4    4    0.847    0.741    0.925 0.0503
+5    5    0.905    0.818    0.964 0.0383  -> Point with almost 100 % coverage
+6    6    0.939    0.863    0.986 0.0319
+7    7    0.963    0.911    0.994 0.0239
+8    8    0.977    0.936    0.997 0.0189
+9    9    0.984    0.948    0.998 0.0167  
+10  10    0.991    0.963    1.000 0.0097
+11  11    0.994    0.976    1.000 0.0068
+12  12    0.996    0.979    1.000 0.0060
+13  13    0.997    0.983    1.000 0.0051
+14  14    0.998    0.988    1.000 0.0036
+15  15    0.999    0.994    1.000 0.0021
+
+
+
+```{r}
+
+cum_cov %>% 
+  ggplot(aes(
+    x = day,
+    y = mean_cov
+  )) +
+  geom_point(colour = "darkblue", size = 5) +
+  geom_line(colour = "darkblue", linewidth = 3)+
+  geom_hline(
+    yintercept = .9,
+    linetype =  "dashed",
+    linewidth = 2,
+    alpha = 0.3
+  ) +
+  geom_vline(
+    xintercept = 5,
+    linetype =  "dotted",
+    linewidth = 2,
+    alpha = 0.3
+  ) +
+  annotate("text", x = 2, y = .92, label = "90 % coverage line", alpha = 0.3)+
+  
+  scale_x_continuous(breaks = cum_cov$day) +
+  
+  
+  theme_minimal(base_size =  15)
+
+
+
+```
+
+
+
+# Compare covered area
+
+Calculate the covered area from line length * 2* truncation and use geometry to account for turning and areas outside the study area
+
+```{r}
+
+truncation_m = 300
+
+
+
+strips <- sf::st_buffer(
+  sf::st_geometry(transects_c@samplers),
+  dist = truncation_m
+)
+
+# Union all strips into one polygon (merges overlapping areas at turns)
+covered_polygon <- sf::st_union(strips)
+
+plot(covered_polygon)
+
+# Clip to study region so you don't count area outside your boundary
+covered_clipped <- sf::st_intersection(
+  covered_polygon,
+  sf::st_union(region_split@region)
+)
+
+plot(covered_clipped)
+
+region_split@region
+
+# True covered area (no double-counting of overlapping strips)
+true_covered_km2 <- as.numeric(sf::st_area(covered_clipped)) / 1e6
+cat("True covered area (clipped, no overlap):", 
+    round(true_covered_km2, 2), "km²\n")
+
+
+ggplot() +
+  geom_sf(data      = sf::st_sf(geometry = sf::st_geometry(region_split@region)),
+          colour = "#1e3a5f", linewidth = 0.4) +
+  geom_sf(data = sf::st_sf(geometry = sf::st_geometry(covered_clipped)),
+          fill = "darkred", alpha = .5)
+
+
+
+
+(true_covered_km2/(sum(region_split@area)/1e6))
+
+```
+
+
