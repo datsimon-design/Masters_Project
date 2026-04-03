@@ -3,4 +3,4 @@ This repo is part of my Masters Project at the University of Gibraltar. It invol
 within the Gibraltarian Territorial Waters to estimate the Distribution and Abundance of Cetaceans within them. 
 
 
-Within /data, all data especially a shapefile of the Gibraltarian Territorial Waters can be found.
+Within [data](/data), all data especially a shapefile of the Gibraltarian Territorial Waters can be found.
