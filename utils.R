@@ -10,12 +10,14 @@ get_weather <- function(past_days = 1, forecast_days = 0) {
   
     red <- GET(url)
     
-    weather_data <- fromJSON(content(red, "text", encoding = "UTF-8"))
+    df <- fromJSON(content(red, "text", encoding = "UTF-8"))
     
+    weather_data <- as.data.frame(df)
     
     summary(weather_data)
     
   
 
 }
+
 
