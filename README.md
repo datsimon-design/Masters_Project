@@ -4,3 +4,8 @@ within the Gibraltarian Territorial Waters to estimate the Distribution and Abun
 
 
 Within [data](/data), all data especially a shapefile of the Gibraltarian Territorial Waters can be found.
+
+
+
+
+© 2026 Simon Gendrisch. All Rights Reserved
