@@ -1,5 +1,5 @@
 ---
-title: "Data Analysis"
+title: "Data Visualisation"
 author: "Simon Gendrisch"
 format: html
 ---
