@@ -1,0 +1,131 @@
+---
+title: "GIS"
+author: "Simon Gendrisch"
+format: html
+editor: source
+---
+
+```{r, packages}
+library(tidyverse)
+library(sf)
+library(leaflet)
+library(units)
+```
+
+
+```{r, Load layers}
+qfield <- st_read("./data/qfield_test_15.04.gpkg")
+# QField points
+qfield_wp <- st_read("./data/survey_data.gpkg", layer = "survey_data")
+
+gaia <- st_read("./data/gaia_test_15.04.gpx", layer = "track_points")
+gaia_line <- st_read("./data/gaia_test_15.04.gpx", layer = "tracks")
+
+# Garmin track File
+garmin <- st_read("./data/Garmin_test_14.04.gpx", layer = "track_points")
+garmin_line <- st_read("./data/Garmin_test_14.04.gpx", layer = "tracks")
+
+#Garmin POI File
+garmin_wp <- st_read("./data/Waypoints_14-APR-26.gpx", layer = "waypoints")
+
+
+bbox_1 <- st_bbox(garmin)
+bbox_2 <- st_bbox(gaia)
+
+```
+
+```{r, cleaning qfield_wp for visualisation}
+
+wp_clean <- qfield_wp %>%
+  filter(species == "bottlenose_dolphin")
+
+
+```
+
+
+```{r, Plot test 1}
+
+test_1 <- ggplot() +
+  geom_sf(data = qfield, aes(color = "QField"), linewidth = .8) +
+  geom_sf(data = gaia_line, aes(color = "Gaia GPS"), linewidth = .8) +
+  geom_sf(data = garmin_line, aes(color = "Garmin"), linewidth = .8) +
+  geom_sf(data = garmin_wp, aes(color = "Garmin Waypoints"), size = 5) +
+  geom_sf(data = wp_clean, aes(color = "QField Waypoints"), size = 5) +
+  scale_color_manual(values = c("QField" = "blue", 
+                               #  "Gaia GPS" = "red", 
+                                 "Garmin" = "green",
+                                 "Garmin Waypoints" = "darkgreen",
+                                 "QField Waypoints" = "darkblue")) +
+  coord_sf(xlim = c(bbox_1["xmin"], bbox_1["xmax"]), ylim = c(bbox_1["ymin"], bbox_1["ymax"]+.0003)) +
+  labs(title = "GPS Track Comparison Test 1", color = "Source") +
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    legend.box.background = element_rect(fill = "transparent"),
+    legend.background = element_rect(fill = "transparent", colour = NA)
+  )
+
+
+
+```
+
+```{r, Plot test 2}
+
+test_2 <- ggplot() +
+  geom_sf(data = qfield, aes(color = "QField"), linewidth = .8) +
+  geom_sf(data = gaia_line, aes(color = "Gaia GPS"), linewidth = .8) +
+  geom_sf(data = garmin_line, aes(color = "Garmin"), linewidth = .8) +
+  scale_color_manual(values = c("QField" = "blue", 
+                                 "Gaia GPS" = "red")) +
+  coord_sf(xlim = c(bbox_2["xmin"], bbox_2["xmax"]), ylim = c(bbox_2["ymin"], bbox_2["ymax"]+.0003)) +
+  labs(title = "GPS Track Comparison Test 2", color = "Source") +
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    legend.box.background = element_rect(fill = "transparent"),
+    legend.background = element_rect(fill = "transparent", colour = NA)
+  )
+
+```
+
+```{r, interactive plot}
+leaflet() %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  addPolylines(data = st_transform(gaia_line, 4326),
+               color = "red", weight = 2, label = "Gaia GPS") %>%
+  addPolylines(data = st_transform(garmin_line, 4326),
+               color = "green", weight = 2, label = "Garmin") %>%
+  addPolylines(data = st_transform(qfield, 4326),
+               color = "blue", weight = 2, label = "QField") %>% 
+  addLegend(
+    position = "bottomright",        # topleft, topright, bottomleft, bottomright
+    colors   = c("red", "green", "blue"),
+    labels   = c("Gaia GPS", "Garmin", "QField"),
+    title    = "GPS Source",
+    opacity  = 1
+  )
+```
+
+```{r, Compare distance between points}
+
+q_wp <- st_as_sfc(wp_clean)
+
+g_wp <- st_as_sfc(garmin_wp)
+
+st_distance(q_wp, g_wp)
+
+```
+
+
+
+
+
+```{r, Export}
+
+ggsave(filename = "GPS_test_1.png", test_1, width = 1920, height = 1080, dpi = 200, units = "px")
+ggsave(filename = "GPS_test_2.png", test_2, width = 1920, height = 1080, dpi = 200, units = "px")
+
+```
+
