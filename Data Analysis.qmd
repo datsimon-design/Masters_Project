@@ -9,22 +9,28 @@ editor: source
 library(tidyverse)
 library(sf)
 library(dplyr)
+library(Distance)
+library(mrds)
 source("./utils.R")
 ```
-
 
 ```{r, Load layers}
 
 # QField points
 qfield_wp <- st_read("./data/GIS/test/survey_data.gpkg", layer = "survey_data")
+
+# Load test data
+test <- read.csv("./data/GIS/test/observations_filled.csv")
+
 ```
 
 Calculate distance from reticles or angle (in degree) and observer height (in m).
+
 ```{r}
 
 obs_height = 2    # Observer height in meters
 
-df <- qfield_wp %>%  
+qfield_obs <- qfield_wp %>%  
   mutate(
     distance = case_when(
       !is.na(reticles) ~ calculate_distance_bino(reticles = reticles, height = obs_height), # If reticles available reticles will be used to calculate distance
@@ -39,10 +45,74 @@ df <- qfield_wp %>%
     )
   )
 
-
-
-
-
+#### TEST #####
+test_dis <- test %>%  
+  mutate(
+    distance = case_when(
+      !is.na(reticles) ~ calculate_distance_bino(reticles = reticles, height = obs_height), # If reticles available reticles will be used to calculate distance
+      !is.na(vert_angle) ~ calculate_distance_inclino(angle = vert_angle, height = obs_height),
+      TRUE ~ NA_real_
+    ) ) %>% 
+   mutate(
+    method_used = case_when(
+      !is.na(reticles) ~ "reticle", 
+      !is.na(vert_angle) ~ "angle",
+      TRUE ~ "missing"
+    )
+  )
 
 ```
 
+Plot data as Histogram to see possible oberver biases.
+
+```{r}
+# Hist plot to see potential biases; should start high and drop after a broad shoulder
+test_dis %>% 
+  ggplot() +
+  geom_histogram(bins = 5, aes(     # Adjust bins to data
+    x = distance))
+  
+# Boxplot to identify biases for specific species (bigger species easier to detect)
+test_dis %>% 
+  ggplot(aes(
+    x = distance,
+    y = species,
+    fill = species
+  )) +
+  geom_boxplot(alpha = .5)
+
+```
+
+Using the `Distance` package to run different models and see which one works best. **Low `AIC` is better**. `Distance` needs ceratain information and dataframe format to run the model: Region.Label \| Area \| Sample.Label \| Effort \| object \| distance \| Study.Area.
+
+Drop Observer Column for models.
+
+```{r, Run Distance Models}
+
+test_new <-test_dis %>% 
+  select(!observer)
+
+
+model_hn <- ds(
+  data = test_new,
+  truncation = 30,
+  key = "hn"
+)
+
+
+summary(model_hn)
+plot(model_hn)
+
+model_hr <- ds(
+  data = test_new,
+  truncation = 30,
+  key = "hr"
+)
+
+summary(model_hr)
+plot(model_hr)
+
+
+AIC(model_hn, model_hr)    # Use to compare different models
+
+```
