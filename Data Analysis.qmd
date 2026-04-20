@@ -1,0 +1,48 @@
+---
+title: "Data Analysis"
+author: "Simon Gendrisch"
+format: html
+editor: source
+---
+
+```{r, packages}
+library(tidyverse)
+library(sf)
+library(dplyr)
+source("./utils.R")
+```
+
+
+```{r, Load layers}
+
+# QField points
+qfield_wp <- st_read("./data/GIS/test/survey_data.gpkg", layer = "survey_data")
+```
+
+Calculate distance from reticles or angle (in degree) and observer height (in m).
+```{r}
+
+obs_height = 2    # Observer height in meters
+
+df <- qfield_wp %>%  
+  mutate(
+    distance = case_when(
+      !is.na(reticles) ~ calculate_distance_bino(reticles = reticles, height = obs_height), # If reticles available reticles will be used to calculate distance
+      !is.na(vert_angle) ~ calculate_distance_inclino(angle = vert_angle, height = obs_height),
+      TRUE ~ NA_real_
+    ) ) %>% 
+   mutate(
+    method_used = case_when(
+      !is.na(reticles) ~ "reticle", 
+      !is.na(vert_angle) ~ "angle",
+      TRUE ~ "missing"
+    )
+  )
+
+
+
+
+
+
+```
+

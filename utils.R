@@ -87,6 +87,20 @@ get_full <- function(past_days = 1, forecast_days = 0) {
 
 
 # Calculate Distance from inclinometer angle and observer height
-calculate_distance <- function(angle, height) {
-  height/tan(angle* pi / 180)
+calculate_distance_inclino <- function(angle, height) {
+  di <- height/tan(angle* pi / 180)
+  return(di)
+}
+
+# Calculate Distance from reticles and observer height; factor needs to be adjusted for each binocular
+calculate_distance_bino <- function(reticles, height, factor = 0.05) {
+  R <- 6371000  # Earth radius in meters
+  
+  theta_ret <- reticles * factor
+  theta_horizon <- sqrt(2 * height / R)
+  
+  theta_total <- theta_ret + theta_horizon
+  
+  db <- height / tan(theta_total)
+  return(db)
 }
