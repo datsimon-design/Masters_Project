@@ -86,3 +86,7 @@ get_full <- function(past_days = 1, forecast_days = 0) {
 }
 
 
+# Calculate Distance from inclinometer angle and observer height
+calculate_distance <- function(angle, height) {
+  height/tan(angle* pi / 180)
+}

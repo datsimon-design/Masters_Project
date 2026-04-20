@@ -10,23 +10,24 @@ library(tidyverse)
 library(sf)
 library(leaflet)
 library(units)
+library(ggspatial)
 ```
 
 
 ```{r, Load layers}
-qfield <- st_read("./data/qfield_test_15.04.gpkg")
+qfield <- st_read("./data/GIS/test/qfield_test_17.04.gpkg")
 # QField points
-qfield_wp <- st_read("./data/survey_data.gpkg", layer = "survey_data")
+qfield_wp <- st_read("./data/GIS/test/survey_data.gpkg", layer = "survey_data")
 
-gaia <- st_read("./data/gaia_test_15.04.gpx", layer = "track_points")
-gaia_line <- st_read("./data/gaia_test_15.04.gpx", layer = "tracks")
+gaia <- st_read("./data/GIS/test/gaia_test_17.04.gpx", layer = "track_points")
+gaia_line <- st_read("./data/GIS/test/gaia_test_17.04.gpx", layer = "tracks")
 
 # Garmin track File
-garmin <- st_read("./data/Garmin_test_14.04.gpx", layer = "track_points")
-garmin_line <- st_read("./data/Garmin_test_14.04.gpx", layer = "tracks")
+garmin <- st_read("./data/GIS/test/Track_DB26-04-17 122035.gpx", layer = "track_points")
+garmin_line <- st_read("./data/GIS/test/Track_DB26-04-17 122035.gpx", layer = "tracks")
 
 #Garmin POI File
-garmin_wp <- st_read("./data/Waypoints_14-APR-26.gpx", layer = "waypoints")
+garmin_wp <- st_read("./data/GIS/test/Waypoints_17-APR-26.gpx", layer = "waypoints")
 
 
 bbox_1 <- st_bbox(garmin)
@@ -37,7 +38,7 @@ bbox_2 <- st_bbox(gaia)
 ```{r, cleaning qfield_wp for visualisation}
 
 wp_clean <- qfield_wp %>%
-  filter(species == "bottlenose_dolphin")
+  filter(id >= 5)
 
 
 ```
@@ -49,15 +50,16 @@ test_1 <- ggplot() +
   geom_sf(data = qfield, aes(color = "QField"), linewidth = .8) +
   geom_sf(data = gaia_line, aes(color = "Gaia GPS"), linewidth = .8) +
   geom_sf(data = garmin_line, aes(color = "Garmin"), linewidth = .8) +
-  geom_sf(data = garmin_wp, aes(color = "Garmin Waypoints"), size = 5) +
-  geom_sf(data = wp_clean, aes(color = "QField Waypoints"), size = 5) +
+  geom_sf(data = garmin_wp, aes(color = "Garmin Waypoints"), size = 5, alpha = .5) +
+  geom_sf(data = wp_clean, aes(color = "QField Waypoints"), size = 5, alpha = .5) +
+  annotation_scale(location = "bl", width_hint = .5) +
   scale_color_manual(values = c("QField" = "blue", 
-                               #  "Gaia GPS" = "red", 
+                                 "Gaia GPS" = "red", 
                                  "Garmin" = "green",
                                  "Garmin Waypoints" = "darkgreen",
                                  "QField Waypoints" = "darkblue")) +
   coord_sf(xlim = c(bbox_1["xmin"], bbox_1["xmax"]), ylim = c(bbox_1["ymin"], bbox_1["ymax"]+.0003)) +
-  labs(title = "GPS Track Comparison Test 1", color = "Source") +
+  labs(title = "GPS Track Comparison Test Dolphin Boat", color = "Source") +
   theme_minimal() +
   theme(
     plot.background = element_rect(fill = "transparent", colour = NA),
@@ -66,6 +68,7 @@ test_1 <- ggplot() +
     legend.background = element_rect(fill = "transparent", colour = NA)
   )
 
+test_1
 
 
 ```
@@ -124,7 +127,7 @@ st_distance(q_wp, g_wp)
 
 ```{r, Export}
 
-ggsave(filename = "GPS_test_1.png", test_1, width = 1920, height = 1080, dpi = 200, units = "px")
+ggsave(filename = "GPS_test_db.png", test_1, width = 1920, height = 1080, dpi = 200, units = "px")
 ggsave(filename = "GPS_test_2.png", test_2, width = 1920, height = 1080, dpi = 200, units = "px")
 
 ```

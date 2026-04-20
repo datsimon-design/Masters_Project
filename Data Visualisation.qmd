@@ -5,7 +5,7 @@ format: html
 ---
 
 
-```{r}
+```{r, output = F}
 library(tidyverse)
 library(sf)
 library(tibble)
@@ -21,7 +21,7 @@ library(tidyterra)
 
 ```
 
-```{r}
+```{r, output = F}
 
 survey_data <- st_read("./data/survey_data.gpkg")
 
@@ -110,12 +110,17 @@ df_long <- df_clean %>%
 ```
 
 ```{r}
-
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 
 bbox <- st_bbox(test_sf)
+```
 
+# Mapping
+
+
+
+```{r}
 xlims <- c(bbox["xmin"], bbox["xmax"])
 ylims <- c(bbox["ymin"], bbox["ymax"])
 
