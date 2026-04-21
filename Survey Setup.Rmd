@@ -36,6 +36,7 @@ split_tr
 
 region_split <- make.region(region.name = "Gibraltar",
                       shape = split_tr,
+                      strata.name = c("South", "West", "East"),
                       units = "m")
 
 plot(region_split)
@@ -60,7 +61,8 @@ study_design <- make.design(
 
 transects_c <- generate.transects(study_design)
 
-plot(region_split, transects_c)
+transects_c
+plot(region_split, transects_c, covered.area = TRUE)
 
 coverage <- run.coverage(
               design = study_design,
@@ -83,6 +85,32 @@ summary(transects_c@samplers)
 
 
 ```
+
+# Export transect line
+
+Export the above design to test it on GPS device. After this I will assign different seeds per day, if I want the transects for the ceratin day, including the seed I need to go into the loop and pull from there.
+
+```{r, Export transect line for this design}
+
+
+transect_export <- st_transform(transects_c@samplers, crs = 4326)
+
+transect_export_clean <- st_geometry(transect_export)
+
+
+st_write(transect_export_clean, "transects.gpx", layer = "tracks", driver = "GPX")
+
+
+
+export_transects_gpx(transects_c, "transects_garmin.gpx")
+
+# With a date/seed prefix for daily runs:
+# export_transects_gpx(transects_c,
+#                      path        = "transects_2026-04-21.gpx",
+#                      name_prefix = "2026-04-21")
+
+```
+
 
 Test for feasible Spacing for the area
 
