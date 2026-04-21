@@ -104,3 +104,47 @@ calculate_distance_bino <- function(reticles, height, factor = 0.05) {
   db <- height / tan(theta_total)
   return(db)
 }
+
+
+
+
+## Export gpx for Garmin use
+
+export_transects_gpx <- function(transects, path, name_prefix = NULL) {
+  # 1. Pull samplers (sf LINESTRING) and reproject to WGS84.
+  #    GPX requires lat/lon in decimal degrees — this is the step
+  #    that dssd's write.transects() skips.
+  samp <- st_transform(transects@samplers, 4326)
+  
+  # 2. Collapse legs within each stratum into a MULTILINESTRING.
+  #    st_combine (not st_union) keeps legs as separate components,
+  #    which GDAL then writes as distinct <trkseg> elements — so the
+  #    Garmin won't connect the end of one leg to the start of the next.
+  strata_tracks <- samp |>
+    group_by(strata) |>
+    summarise(geometry = st_combine(geometry), .groups = "drop")
+  
+  # 3. GPX tracks layer uses the `name` field for the track label
+  #    shown on the device. Prefix (e.g. date or seed) is optional.
+  strata_tracks$name <- if (is.null(name_prefix)) {
+    as.character(strata_tracks$strata)
+  } else {
+    paste(name_prefix, strata_tracks$strata, sep = "_")
+  }
+  strata_tracks <- strata_tracks[, "name"]  # drop other fields
+  
+  # 4. Write. Overwrite if the file already exists.
+  if (file.exists(path)) file.remove(path)
+  st_write(strata_tracks,
+           dsn    = path,
+           layer  = "tracks",
+           driver = "GPX",
+           quiet  = TRUE)
+  
+  invisible(path)
+}
+
+# With a date/seed prefix for daily runs:
+# export_transects_gpx(transects_c,
+#                      path        = "transects_2026-04-21.gpx",
+#                      name_prefix = "2026-04-21")
