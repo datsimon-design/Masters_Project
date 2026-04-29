@@ -132,3 +132,206 @@ ggsave(filename = "GPS_test_2.png", test_2, width = 1920, height = 1080, dpi = 2
 
 ```
 
+
+```{r, Heatmap test}
+# =============================================================================
+# Simulated Dolphin Distribution Heatmap — Proposal Figure
+# Study area: Strait of Gibraltar (GTW strata)
+# Note: Simulated data only — for illustrative purposes
+# =============================================================================
+
+# ── 1. Packages ───────────────────────────────────────────────────────────────
+# install.packages(c("sf", "ggplot2", "dplyr", "MASS", "metR", "ggspatial",
+#                    "viridis", "scales", "ggfx"))
+
+library(sf)
+library(ggplot2)
+library(dplyr)
+library(MASS)        # kde2d
+library(viridis)
+library(scales)
+library(ggspatial)   # scale bar + north arrow
+
+# ── 2. Load study area ────────────────────────────────────────────────────────
+
+area <- st_read("data/GTW_split_acc.gpkg", quiet = TRUE)
+
+# Fix any invalid geometries (duplicate vertices, degenerate edges, etc.)
+sf_use_s2(FALSE)          # switch to GEOS engine — avoids s2 strict validation
+area <- st_make_valid(area)
+
+# Reproject to WGS84 for plotting with lat/lon axes
+area_wgs <- st_transform(area, crs = 4326)
+area_wgs <- st_make_valid(area_wgs)   # re-validate after reprojection
+
+# Bounding box
+bb <- st_bbox(area_wgs)
+xmin <- as.numeric(bb["xmin"]); xmax <- as.numeric(bb["xmax"])
+ymin <- as.numeric(bb["ymin"]); ymax <- as.numeric(bb["ymax"])
+
+# ── 3. Simulate dolphin sightings ─────────────────────────────────────────────
+# Dolphins in the Strait of Gibraltar concentrate near the shelf edge (South
+# stratum) and along the main shipping lane corridor.  We place three
+# overlapping Gaussian clusters to mimic this pattern.
+
+set.seed(42)
+
+# Helper: draw n points from a bivariate normal, keep only those inside area
+sim_points <- function(n_target, mu_x, mu_y, sd_x, sd_y, area_sf,
+                       max_attempts = 50000) {
+  pts <- data.frame(
+    x = rnorm(max_attempts, mu_x, sd_x),
+    y = rnorm(max_attempts, mu_y, sd_y)
+  )
+  pts_sf <- st_as_sf(pts, coords = c("x", "y"), crs = 4326)
+  inside  <- st_within(pts_sf, st_union(area_sf), sparse = FALSE)[, 1]
+  pts[inside, ][seq_len(min(n_target, sum(inside))), ]
+}
+
+area_union <- st_union(area_wgs)
+
+# Cluster 1 — shelf-edge / South stratum (highest density)
+cl1 <- sim_points(180, mu_x = -5.330, mu_y = 36.080,
+                  sd_x = 0.025,  sd_y = 0.018, area_sf = area_wgs)
+
+# Cluster 2 — central corridor (moderate density)
+cl2 <- sim_points(120, mu_x = -5.360, mu_y = 36.105,
+                  sd_x = 0.030,  sd_y = 0.020, area_sf = area_wgs)
+
+# Cluster 3 — eastern approach (lower density)
+cl3 <- sim_points( 70, mu_x = -5.295, mu_y = 36.110,
+                  sd_x = 0.020,  sd_y = 0.015, area_sf = area_wgs)
+
+sightings <- bind_rows(cl1, cl2, cl3)
+
+# ── 4. Kernel density estimation ──────────────────────────────────────────────
+
+h_x <- 0.018   # bandwidth (degrees) — tune for visual smoothness
+h_y <- 0.014
+
+kde <- kde2d(
+  x = sightings$x, y = sightings$y,
+  h = c(h_x, h_y),
+  n = 300,
+  lims = c(xmin - 0.01, xmax + 0.01, ymin - 0.01, ymax + 0.01)
+)
+
+# Convert KDE output to a data frame
+kde_df <- expand.grid(x = kde$x, y = kde$y) |>
+  mutate(density = as.vector(kde$z))
+
+# Mask: only keep cells whose centre falls inside the study area
+kde_sf <- st_as_sf(kde_df, coords = c("x", "y"), crs = 4326)
+in_area <- st_within(kde_sf, area_union, sparse = FALSE)[, 1]
+kde_df$density[!in_area] <- NA
+
+# Rescale density to 0–1 for intuitive legend
+kde_df <- kde_df |>
+  mutate(density_scaled = rescale(density, to = c(0, 1)))
+
+# ── 5. Plot ───────────────────────────────────────────────────────────────────
+
+stratum_colors <- c("South" = "#212842",
+    "East" = "#4E5B9C",
+    "West" = "#5C9EAD")
+
+p <- ggplot() +
+
+  # KDE heatmap (raster tiles)
+  geom_raster(
+    data    = filter(kde_df, !is.na(density)),
+    mapping = aes(x = x, y = y, fill = density_scaled),
+    interpolate = TRUE
+  ) +
+  scale_fill_viridis(
+    option  = "inferno",
+    name    = "Relative\ndensity",
+    na.value = "transparent",
+    limits  = c(0, 1),
+    breaks  = c(0, 0.5, 1),
+    labels  = c("Low", "Medium", "High")
+  ) +
+
+  # Study area boundary (strata outlines)
+  geom_sf(
+    data  = area_wgs,
+    aes(colour = name),
+    fill  = "transparent",
+    linewidth = 0.7,
+    show.legend = TRUE
+  ) +
+  scale_colour_manual(
+    values = stratum_colors,
+    name   = "Stratum"
+  ) +
+
+  # Simulated sighting locations (subtle)
+  geom_point(
+    data  = sightings,
+    aes(x = x, y = y),
+    shape = 21, size = 1.4,
+    fill  = "white", colour = "grey30", alpha = 0.55, stroke = 0.3
+  ) +
+
+  # Scale bar + north arrow (requires ggspatial)
+  annotation_scale(
+    location = "bl", width_hint = 0.25,
+    text_col = "black", line_col = "black", bar_cols = c("white", "black")
+  ) +
+  annotation_north_arrow(
+    location = "br",
+    which_north = "true",
+    style = north_arrow_minimal(text_col = "black", line_col = "black",
+                                fill = "black")
+  ) +
+
+  # Labels
+  labs(
+    title    = "Simulated Common Dolphin Distribution",
+    subtitle = "Strait of Gibraltar study area  |  Illustrative data only",
+    x        = "Longitude",
+    y        = "Latitude",
+    caption  = "Note: Sighting locations are simulated for proposal purposes only."
+  ) +
+
+  # Coordinate system — lock aspect ratio
+  coord_sf(
+    xlim   = c(xmin - 0.005, xmax + 0.005),
+    ylim   = c(ymin - 0.005, ymax + 0.005),
+    expand = FALSE
+  ) +
+
+  # Theme
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    legend.box.background = element_rect(fill = "transparent"),
+    legend.background = element_rect(fill = "transparent", colour = NA)
+  ) +
+
+  # Stack the two legends vertically
+  guides(
+    fill   = guide_colorbar(order = 1, barheight = 6, barwidth = 0.8,
+                             ticks.colour = "white", frame.colour = "white"),
+    colour = guide_legend(order = 2,
+                          override.aes = list(linewidth = 1.5))
+  )
+
+p
+# ── 6. Save ───────────────────────────────────────────────────────────────────
+
+# ggsave(
+#   filename = "dolphin_heatmap.png",
+#   plot     = p,
+#   width    = 10,
+#   height   = 8,
+#   dpi      = 250,
+#   bg       = "#0d1b2a"
+# )
+
+ggsave(filename = "relative_density.png", p, width = 1920, height = 1080, dpi = 200, units = "px")
+message("✓ Saved: dolphin_heatmap.png")
+
+```
+

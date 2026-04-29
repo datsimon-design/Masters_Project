@@ -44,6 +44,61 @@ plot(region_split)
 
 ```
 
+```{r, Plots for project proposal}
+
+region_plot <- region_split@region %>% 
+  ggplot()+
+  geom_sf(aes(fill = name), alpha = .8)+
+  geom_sf(data = transects_c@samplers, color = "#D17A22", linewidth = 1.5) +
+  scale_fill_manual(values = c(
+    "South" = "#212842",
+    "East" = "#4E5B9C",
+    "West" = "#5C9EAD"
+  )) +
+  labs(
+    fill = "Strata" 
+  ) +
+  theme_void() +
+  theme(
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    legend.box.background = element_rect(fill = "transparent"),
+    legend.background = element_rect(fill = "transparent", colour = NA),
+    line  = element_line(colour = "transparent"),
+    title = element_text(colour = "transparent")
+  )
+
+region_plot
+
+# Coverage Plot
+coverage_plot <- ggplot()+
+  geom_sf(data      = sf::st_sf(geometry = sf::st_geometry(region_split@region)),
+         linewidth = 0.4, fill = "transparent") +
+  geom_sf(data = sf::st_sf(geometry = sf::st_geometry(covered_clipped)),
+          fill = "darkred", alpha = .5) +
+  theme_minimal() +
+  theme(
+    plot.background = element_rect(fill = "transparent", colour = NA),
+    panel.background = element_rect(fill = "transparent", colour = NA),
+    legend.box.background = element_rect(fill = "transparent"),
+    legend.background = element_rect(fill = "transparent", colour = NA),
+    line  = element_line(colour = "transparent"),
+    title = element_text(colour = "transparent")
+  )
+coverage_plot
+
+
+sum(region_split@region$area_sqkm)
+
+```
+
+```{r, Export transparent background}
+
+ggsave(filename = "coverage.png", coverage_plot, width = 1920, height = 1080, dpi = 200, units = "px")
+
+```
+
+
 The rule is strict: spacing must always be ≥ 2 × truncation to avoid overlap. For a zigzag it should be even larger because the angled legs cover more ground than straight parallel lines.
 
 
@@ -717,6 +772,128 @@ ggplot() +
 
 
 (true_covered_km2/(sum(region_split@area)/1e6))
+
+```
+
+
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(scales)
+
+# ── Data: estimated from the chart ──────────────────────────────────────────
+
+days <- 1:15
+
+mean_650  <- c(0.750, 0.880, 0.930, 0.960, 0.975, 0.985, 0.992, 0.996, 0.998, 0.999, 0.9995, 1.000, 1.000, 1.000, 1.000)
+mean_900  <- c(0.630, 0.810, 0.890, 0.940, 0.965, 0.980, 0.990, 0.995, 0.998, 0.999, 0.9995, 1.000, 1.000, 1.000, 1.000)
+mean_1200 <- c(0.470, 0.670, 0.790, 0.870, 0.920, 0.950, 0.970, 0.982, 0.990, 0.995, 0.998, 0.999, 1.000, 1.000, 1.000)
+mean_1500 <- c(0.420, 0.600, 0.740, 0.830, 0.890, 0.930, 0.955, 0.970, 0.982, 0.990, 0.995, 0.998, 0.999, 1.000, 1.000)
+
+half_band_650  <- c(0.09, 0.065, 0.045, 0.028, 0.018, 0.012, 0.007, 0.004, 0.002, 0.001, 0.0005, 0, 0, 0, 0)
+half_band_900  <- c(0.11, 0.085, 0.060, 0.038, 0.025, 0.016, 0.010, 0.006, 0.003, 0.001, 0.0005, 0, 0, 0, 0)
+half_band_1200 <- c(0.14, 0.115, 0.085, 0.060, 0.042, 0.030, 0.020, 0.014, 0.009, 0.005, 0.003, 0.001, 0, 0, 0)
+half_band_1500 <- c(0.17, 0.135, 0.100, 0.075, 0.055, 0.038, 0.026, 0.018, 0.012, 0.007, 0.004, 0.002, 0.001, 0, 0)
+
+df <- bind_rows(
+  data.frame(day = days, coverage = mean_650,  lower = mean_650  - half_band_650,  upper = mean_650  + half_band_650,  design = "650m spacing"),
+  data.frame(day = days, coverage = mean_900,  lower = mean_900  - half_band_900,  upper = mean_900  + half_band_900,  design = "900m spacing"),
+  data.frame(day = days, coverage = mean_1200, lower = mean_1200 - half_band_1200, upper = mean_1200 + half_band_1200, design = "1200m spacing"),
+  data.frame(day = days, coverage = mean_1500, lower = mean_1500 - half_band_1500, upper = mean_1500 + half_band_1500, design = "1500m spacing")
+) |>
+  mutate(
+    lower = pmax(lower, 0),
+    upper = pmin(upper, 1),
+    design = factor(design, levels = c("1200m spacing", "1500m spacing", "650m spacing", "900m spacing"))
+  )
+
+# ── Colour palette (matching original) ──────────────────────────────────────
+
+line_colors <- c(
+  "650m spacing"  = "#5C9EAD",
+  "900m spacing"  = "#212842",
+  "1200m spacing" = "#4FC3F7",
+  "1500m spacing" = "#D17A22"
+)
+
+# ── Plot ─────────────────────────────────────────────────────────────────────
+
+p <- ggplot(df, aes(x = day, y = coverage, colour = design, fill = design)) +
+
+  # 95% simulation bands
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.18, colour = NA) +
+
+  # Reference lines
+  geom_hline(yintercept = 0.95, linetype = "dotted", colour = "#4FC3F7", linewidth = 0.7) +
+  geom_hline(yintercept = 0.90, linetype = "dashed", colour = "#81C784", linewidth = 0.7) +
+
+  # Mean curves + points
+  geom_line(linewidth = 1.3) +
+  geom_point(size = 2.5) +
+
+  # Reference line labels
+  annotate("text", x = 10.4, y = 0.962, label = "95% target",
+           colour = "#4FC3F7", size = 3.2, hjust = 0) +
+  annotate("text", x = 10.4, y = 0.912, label = "90% target",
+           colour = "#81C784", size = 3.2, hjust = 0) +
+
+  # Scales
+  scale_x_continuous(breaks = 1:15, expand = expansion(mult = c(0.01, 0.02))) +
+  scale_y_continuous(
+    labels = percent_format(accuracy = 1),
+    breaks = c(0, 0.25, 0.50, 0.75, 1.00),
+    limits = c(0, 1.01),
+    expand = expansion(mult = c(0.01, 0.01))
+  ) +
+  scale_colour_manual(values = line_colors, name = "Design") +
+  scale_fill_manual(values = line_colors,   name = "Design") +
+
+  # Labels
+  labs(
+    title    = "Cumulative Coverage Probability Across Survey Days",
+    subtitle = "Each day uses a different random start (seed)\nShaded band = 95% simulation interval",
+    x        = "Number of survey days completed",
+    y        = "Cumulative coverage"
+  ) +
+
+  # Theme: transparent background, styled to match original
+  theme_minimal(base_size = 12) +
+  theme(
+    # Transparent backgrounds
+    plot.background    = element_rect(fill = "transparent", colour = NA),
+    panel.background   = element_rect(fill = "transparent", colour = NA),
+    legend.background  = element_rect(fill = "transparent", colour = NA),
+    legend.key         = element_rect(fill = "transparent", colour = NA),
+
+    # Grid
+    panel.grid.major   = element_line(colour = "grey40", linewidth = 0.3),
+    panel.grid.minor   = element_blank(),
+
+    # Text colours (keep readable on both dark and light backgrounds)
+    plot.title         = element_text(colour = "white", size = 13, face = "bold", hjust = 0),
+    plot.subtitle      = element_text(colour = "#212842", size = 8.5, hjust = 0, lineheight = 1.4),
+    axis.title         = element_text(colour = "black", size = 10),
+    axis.text          = element_text(colour = "black", size = 9),
+    legend.title       = element_text(colour = "#212842", size = 10, face = "bold"),
+    legend.text        = element_text(colour = "black", size = 9),
+
+    # Legend position (right side, matching original)
+    legend.position    = "right",
+    legend.justification = "center",
+
+    # Margins
+    plot.margin        = margin(12, 16, 12, 12)
+  )
+
+# ── Save with transparent background ─────────────────────────────────────────
+
+ggsave(filename = "coverage_perday.png", p, width = 1920, height = 1080, dpi = 200, units = "px")
+
+# Or display directly in RStudio:
+print(p)
 
 ```
 

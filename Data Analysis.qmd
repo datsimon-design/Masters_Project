@@ -61,9 +61,23 @@ test_dis <- test %>%
     )
   )
 
+# Change bird and fish presence to binary
+test_dis <- test_dis %>% 
+  mutate(bird_presence = case_when(
+    bird_presence == "False" ~ 0,
+    bird_presence == "True" ~ 1,
+    TRUE ~ NA_real_
+  )) %>% 
+  mutate(fish_presence = case_when(
+    fish_presence == "False" ~ 0,
+    fish_presence == "True" ~ 1,
+    TRUE ~ NA_real_
+  ))
+ 
+
 ```
 
-Plot data as Histogram to see possible oberver biases.
+Plot data as Histogram to see possible observer biases.
 
 ```{r}
 # Hist plot to see potential biases; should start high and drop after a broad shoulder
@@ -75,7 +89,7 @@ test_dis %>%
 # Boxplot to identify biases for specific species (bigger species easier to detect)
 test_dis %>% 
   ggplot(aes(
-    x = distance,
+    x = sort(distance),
     y = species,
     fill = species
   )) +
@@ -95,15 +109,15 @@ test_new <-test_dis %>%
 
 model_hn <- ds(
   data = test_new,
-  truncation = 30,
-  key = "hn"
+  truncation = 30,    # Adjusted depending on data
+  key = "hn"          # Use differenet models to find best fitting one
 )
 
 
 summary(model_hn)
 plot(model_hn)
 
-model_hr <- ds(
+  model_hr <- ds(
   data = test_new,
   truncation = 30,
   key = "hr"
@@ -116,3 +130,6 @@ plot(model_hr)
 AIC(model_hn, model_hr)    # Use to compare different models
 
 ```
+
+
+
