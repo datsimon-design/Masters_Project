@@ -145,6 +145,28 @@ summary(transects_c@samplers)
 
 Export the above design to test it on GPS device. After this I will assign different seeds per day, if I want the transects for the ceratin day, including the seed I need to go into the loop and pull from there.
 
+```{r, generate transects}
+# Important to achieve same design every time
+set.seed(40)
+
+study_design <- make.design(
+  region = region_split,
+  transect.type =  "line",
+  design = "eszigzag",
+  spacing = c(1500, 1500, 1500),
+  design.angle = c(90, 0, 0),
+  edge.protocol = "minus",
+  truncation = 300
+)
+
+transects_c <- generate.transects(study_design)
+
+transects_c
+plot(region_split, transects_c, covered.area = TRUE)
+
+```
+
+
 ```{r, Export transect line for this design}
 
 
@@ -156,8 +178,8 @@ transect_export_clean <- st_geometry(transect_export)
 st_write(transect_export_clean, "transects.gpx", layer = "tracks", driver = "GPX")
 
 
-
-export_transects_gpx(transects_c, "transects_garmin.gpx")
+# Groups transects
+export_transects_gpx(transects_c, "pilot.gpx")
 
 # With a date/seed prefix for daily runs:
 # export_transects_gpx(transects_c,

@@ -107,7 +107,6 @@ calculate_distance_bino <- function(reticles, height, factor = 0.05) {
 
 
 
-
 ## Export gpx for Garmin use
 
 export_transects_gpx <- function(transects, path, name_prefix = NULL) {
