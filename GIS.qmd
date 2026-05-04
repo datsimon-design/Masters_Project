@@ -11,6 +11,7 @@ library(sf)
 library(leaflet)
 library(units)
 library(ggspatial)
+library(lubridate)
 ```
 
 
@@ -23,17 +24,42 @@ gaia <- st_read("./data/GIS/test/gaia_test_17.04.gpx", layer = "track_points")
 gaia_line <- st_read("./data/GIS/test/gaia_test_17.04.gpx", layer = "tracks")
 
 # Garmin track File
-garmin <- st_read("./data/GIS/test/Track_DB26-04-17 122035.gpx", layer = "track_points")
-garmin_line <- st_read("./data/GIS/test/Track_DB26-04-17 122035.gpx", layer = "tracks")
+garmin <- st_read("./data/GIS/26_05_04pilot/Track_2026-05-04 125104.gpx", layer = "track_points")
+garmin_line <- st_read("./data/GIS/26_05_04pilot/Track_2026-05-04 125104.gpx", layer = "tracks")
 
 #Garmin POI File
-garmin_wp <- st_read("./data/GIS/test/Waypoints_17-APR-26.gpx", layer = "waypoints")
+garmin_wp <- st_read("./data/GIS/26_05_04pilot/Waypoints_04-MAY-26.gpx", layer = "waypoints")
 
 
-bbox_1 <- st_bbox(garmin)
+plot(garmin_line)
+
 bbox_2 <- st_bbox(gaia)
 
 ```
+
+```{r, Define off and on effort times}
+
+date <- as.Date(garmin$time[1])
+
+effort_times <- data.frame(
+  off_effort = as.POSIXct(paste(date, c("10:25:00"))) ,
+  on_effort = as.POSIXct(paste(date, c("10:33:00")))
+)
+
+garmin <- garmin %>% 
+  rowwise() %>% 
+  mutate(effort = ifelse(
+    time >= effort_times$off_effort & time <= effort_times$on_effort, 
+    0,
+    1
+  )) %>% 
+  ungroup()
+
+garmin %>% 
+  filter(effort == 0)
+
+```
+
 
 ```{r, cleaning qfield_wp for visualisation}
 
@@ -41,17 +67,22 @@ wp_clean <- qfield_wp %>%
   filter(id >= 5)
 
 
+garmin_wp_dis <- st_as_sf(garmin_wp,  crs = 4326)
+st_distance(garmin_wp_dis[3,], garmin_wp_dis[4,])
+
 ```
 
 
 ```{r, Plot test 1}
 
+bbox_1 <- st_bbox(garmin)
+
 test_1 <- ggplot() +
-  geom_sf(data = qfield, aes(color = "QField"), linewidth = .8) +
-  geom_sf(data = gaia_line, aes(color = "Gaia GPS"), linewidth = .8) +
+  #geom_sf(data = qfield, aes(color = "QField"), linewidth = .8) +
+  #geom_sf(data = gaia_line, aes(color = "Gaia GPS"), linewidth = .8) +
   geom_sf(data = garmin_line, aes(color = "Garmin"), linewidth = .8) +
   geom_sf(data = garmin_wp, aes(color = "Garmin Waypoints"), size = 5, alpha = .5) +
-  geom_sf(data = wp_clean, aes(color = "QField Waypoints"), size = 5, alpha = .5) +
+  #geom_sf(data = wp_clean, aes(color = "QField Waypoints"), size = 5, alpha = .5) +
   annotation_scale(location = "bl", width_hint = .5) +
   scale_color_manual(values = c("QField" = "blue", 
                                  "Gaia GPS" = "red", 
@@ -70,7 +101,7 @@ test_1 <- ggplot() +
 
 test_1
 
-
+plot(garmin_wp)
 ```
 
 ```{r, Plot test 2}
@@ -96,12 +127,15 @@ test_2 <- ggplot() +
 ```{r, interactive plot}
 leaflet() %>%
   addProviderTiles("CartoDB.Positron") %>%
-  addPolylines(data = st_transform(gaia_line, 4326),
-               color = "red", weight = 2, label = "Gaia GPS") %>%
+  # addPolylines(data = st_transform(gaia_line, 4326),
+#               color = "red", weight = 2, label = "Gaia GPS") %>%
   addPolylines(data = st_transform(garmin_line, 4326),
                color = "green", weight = 2, label = "Garmin") %>%
-  addPolylines(data = st_transform(qfield, 4326),
-               color = "blue", weight = 2, label = "QField") %>% 
+ # addPolylines(data = st_transform(qfield, 4326),
+  #             color = "blue", weight = 2, label = "QField") %>% 
+  
+  addMarkers(data = st_transform(garmin_wp, 4326)) %>% 
+  addScaleBar(position = "bottomleft") %>% 
   addLegend(
     position = "bottomright",        # topleft, topright, bottomleft, bottomright
     colors   = c("red", "green", "blue"),
