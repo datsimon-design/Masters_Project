@@ -6,7 +6,7 @@ Within [data](/data), all data especially a shapefile of the British Gibraltar T
 
 ### Method
 In order to estimate the relative abundance and distribution of cetaceans within the BGTW I used a systematic distance sampling approach. I used a equal spaced zigzag design to acieve an equal coverage of the survey area and minimise travel time between transect legs and off-effort time.
-
+This repo is part of the [Survey Design](/SurveySetup.Rmd), the [data analysis](/DataAnalysis.qmd) and [data visualisation](/DataVisualisation.qmd).  
 
 
 © 2026 Simon Gendrisch. All Rights Reserved
