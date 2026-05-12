@@ -88,7 +88,7 @@ get_full <- function(past_days = 1, forecast_days = 0) {
 
 # Calculate Distance from inclinometer angle and observer height
 calculate_distance_inclino <- function(angle, height) {
-  di <- height/tan(angle* pi / 180)
+  di <- round(height/tan(angle* pi / 180), 2)
   return(di)
 }
 
@@ -101,7 +101,7 @@ calculate_distance_bino <- function(reticles, height, factor = 0.05) {
   
   theta_total <- theta_ret + theta_horizon
   
-  db <- height / tan(theta_total)
+  db <- round(height / tan(theta_total), 2)
   return(db)
 }
 
