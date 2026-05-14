@@ -105,6 +105,24 @@ calculate_distance_bino <- function(reticles, height, factor = 0.05) {
   return(db)
 }
 
+# Calculate new POI from distance and bearing
+calculate_sighting <- function(location, bearing, distance) {
+  # Convert to plain string
+  coords <- sf::st_coordinates(location)
+  
+  sighting_poi_st <- geosphere::destPoint(
+    p =  coords,   # POI of the boat
+    b =  bearing,   # Bearing
+    d =  distance,   # Distance
+  )
+  
+  sighting_poi <- sf::st_sfc(
+    sf::st_point(c(sighting_poi_st[, "lon"], sighting_poi_st[, "lat"])),
+    crs = sf::st_crs(location)
+  )
+  
+  return(sighting_poi)
+}
 
 
 ## Export gpx for Garmin use
