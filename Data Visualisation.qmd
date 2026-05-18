@@ -23,10 +23,13 @@ library(tidyterra)
 
 ```{r, output = F}
 
-survey_data <- st_read("./data/survey_data.gpkg")
+survey_data <- read_csv("data/GIS/test/observations_filled.csv")
 
 survey_data %>% 
   filter(species == "sperm_whale")
+
+survey_data <- survey_data %>% 
+  st_as_sf(wkt = "geometry", crs = 4326)
 
 ```
 
@@ -124,23 +127,34 @@ bbox <- st_bbox(test_sf)
 xlims <- c(bbox["xmin"], bbox["xmax"])
 ylims <- c(bbox["ymin"], bbox["ymax"])
 
-map <- ggplot(test_sf)+
-  annotation_map_tile(type = "cartolight") +
-#  geom_sf(data = world,
-#    fill = "grey90",
-#    color = "grey70"
-#  ) +
+map <- ggplot(survey_data)+
+  # annotation_map_tile(type = "cartolight") +
+ geom_sf(data = world,
+   fill = "grey90",
+   color = "grey70"
+ ) +
   geom_sf(aes(color = species), size = 2)+
   coord_sf(xlim = xlims, ylim = ylims) +
   theme_minimal()
+map
 
-
-bar <- test_df %>% 
+bar <- survey_data %>% 
   ggplot() +
   geom_bar(aes(x = species, fill = species))
 
 # Use patchwork to order graphs
 map / bar
 
+
+
+survey_data %>% 
+  ggplot() +
+  geom_sf(data = world,
+   fill = "grey90",
+   color = "grey70"
+ ) +
+  geom_sf(aes(color = species))
+  
+  
 ```
 
