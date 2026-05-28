@@ -1,8 +1,8 @@
 
-## Functions
+## Functions ----------------
 
 
-# Pull weather data from open meteo API for land
+# Pull weather data from open meteo API for land ----------------
 get_weather <- function(past_days = 1, forecast_days = 0) {
   
   library(httr)
@@ -25,7 +25,7 @@ get_weather <- function(past_days = 1, forecast_days = 0) {
 
 }
 
-# Pull weather data from open meteo API for marine
+# Pull weather data from open meteo API for marine ----------------
 get_marine <- function(past_days = 1, forecast_days = 0) {
   
   library(httr)
@@ -47,7 +47,7 @@ get_marine <- function(past_days = 1, forecast_days = 0) {
 }
 
 
-# Pull full dataframe and add time and date column
+# Pull full dataframe and add time and date column ----------------
 get_full <- function(past_days = 1, forecast_days = 0) {
   library(tidyverse)
   
@@ -86,7 +86,7 @@ get_full <- function(past_days = 1, forecast_days = 0) {
 }
 
 
-# Calculate Distance from inclinometer angle and observer height
+# Calculate Distance from inclinometer angle and observer height ----------------
 calculate_distance_inclino <- function(angle, height) {
   R <- 6371000
   theta_horizon <- sqrt(2 * height / R)
@@ -95,7 +95,8 @@ calculate_distance_inclino <- function(angle, height) {
   return(di)
 }
 
-# Calculate Distance from reticles and observer height; factor needs to be adjusted for each binocular
+
+# Calculate Distance from reticles and observer height; factor needs to be adjusted for each binocular----------------
 # For the 7×50FMTRC-SX bino the factor 0.005 is correct
 calculate_distance_bino <- function(reticles, height, factor = 0.005) {
   R <- 6371000  # Earth radius in meters
@@ -109,7 +110,7 @@ calculate_distance_bino <- function(reticles, height, factor = 0.005) {
   return(db)
 }
 
-# Calculate new POI from distance and bearing
+# Calculate new POI from distance and bearing ----------------
 calculate_sighting <- function(location, bearing, distance) {
   # Convert to plain string
   coords <- sf::st_coordinates(location)
@@ -129,7 +130,28 @@ calculate_sighting <- function(location, bearing, distance) {
 }
 
 
-## Export gpx for Garmin use
+# Calculate Segment bearing to calculate perpendicular distance--------------
+seg_bearing <- function(leg_start, leg_end, gpx_file) {
+  
+  # Make sure time formats are the same (UTC)
+  gpx_file$time <- as.POSIXct(gpx_file$time, tz = "UTC")
+  leg_start <- as.POSIXct(leg_start, tz = "UTC")
+  leg_end   <- as.POSIXct(leg_end,   tz = "UTC")
+  
+  # Assign 
+  gpx_file[gpx_file$time >= leg_start & gpx_file$time <= leg_end, ]
+  if (nrow(seg) < 2) stop("Fewer than 2 fixes inside the segment window.")
+  
+}
+
+
+# gpx_file <- st_read("./data/GIS/2026_05_08/Track_A026-05-08 122436.gpx", layer = "track_points")
+# effort_log <- read_excel(path = "./data/datasheet_complete.xlsx", sheet = "effort_log")
+# 
+# leg_start = effort_log$leg_start
+# leg_end = effort_log$leg_end
+
+## Export gpx for Garmin use ----------------
 
 export_transects_gpx <- function(transects, path, name_prefix = NULL) {
   # 1. Pull samplers (sf LINESTRING) and reproject to WGS84.
