@@ -13,7 +13,7 @@ detection <- read_excel(path = "./data/datasheet_landsurvey.xlsx", sheet = "dete
 
 effort_log <- read_excel(path = "./data/datasheet_landsurvey.xlsx", sheet = "effort_log")
 
-gibraltar <- st_read("./data/gib.gpkg")
+gibraltar <- st_read("./data/bayofalgib.gpkg")
 
 # Convert to sf
 effort_log <- st_as_sf(effort_log, coords = c("lon", "lat"), crs = 4326)
@@ -77,7 +77,10 @@ data %>%
   geom_sf_text(data = st_set_geometry(data, "sighting_poi"),
               aes(label = species), size = 3, nudge_y = -0.001) +
   
-  coord_sf() +
+  coord_sf(
+    xlim = c(-5.44, -5.25),
+    ylim = c(36.05, 36.2)
+  ) +
   labs(color = "Spots") +
   theme_minimal()
 
@@ -104,12 +107,12 @@ make_wedge <- function(x0, y0, r, start, end, crs, n = 120) {
 proj <- 32630   # UTM zone 30N — metres, correct for Gibraltar
 
 centres <- data.frame(
-  name  = c("Europa", "MedSteps", "WestSide"),
-  lon   = c(-5.345641859, -5.342792071, -5.346930922),
-  lat   = c(36.10935173, 36.12133795, 36.12221254),
-  start = c(60, 33, 210),
-  end   = c(220, 161, 315),
-  r_m   = c(2500, 10000, 10000)        # radius in METRES now, not degrees
+  name  = c("Europa", "MedSteps", "WestSide", "SandyBay"),
+  lon   = c(-5.345641859, -5.342792071, -5.346930922, -5.34272596),
+  lat   = c(36.10935173, 36.12133795, 36.12221254, 36.13006488),
+  start = c(60, 33, 210, 16),
+  end   = c(220, 161, 315, 155),
+  r_m   = c(10000, 10000, 10000, 8000)        # radius in METRES now, not degrees
 )
 
 # project the centres into metres
@@ -125,6 +128,8 @@ sectors <- do.call(rbind, lapply(seq_len(nrow(centres)), function(i) {
 
 sectors <- st_transform(sectors, 4326)   # back to lon/lat for the map
 
+
+# Sector map
 ggplot() +
   geom_sf(data = gibraltar) +
   geom_sf(data = sectors, aes(fill = name), colour = "black", alpha = 0.4) +
