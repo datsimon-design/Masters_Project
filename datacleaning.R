@@ -206,14 +206,14 @@ angles <- (0:89)
 
 df <- data.frame(
   angle = angles,
-  inclino_dis = calculate_distance_inclino(angles, 3)
+  inclino_dis = calculate_distance_inclino(angles, 18)
 )
 
 reticles <- seq(0,10, by = 0.5)
 
 bino <- data.frame(
   reticles = reticles,
-  bino_dis = calculate_distance_bino(reticles, 3)
+  bino_dis = calculate_distance_bino(reticles, 18)
 )
 
 
