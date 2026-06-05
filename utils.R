@@ -98,17 +98,49 @@ calculate_distance_inclino <- function(angle, height) {
 
 # Calculate Distance from reticles and observer height; factor needs to be adjusted for each binocular----------------
 # For the 7×50FMTRC-SX bino the factor 0.005 is correct
-calculate_distance_bino <- function(reticles, height, factor = 0.005) {
+calculate_distance_bino <- function(reticles, height, factor = 0.005, ref_distance = NA_real_) {
   R <- 6371000  # Earth radius in meters
   
   theta_ret <- reticles * factor
-  theta_horizon <- sqrt(2 * height / R)
+  theta_ref <- ifelse(is.na(ref_distance),
+                      sqrt(2 * height / R),                          # horizon dip
+                      height / ref_distance + ref_distance / (2 * R)) # coast at ref_distance
+ 
+  theta_total <- theta_ret + theta_ref
   
-  theta_total <- theta_ret + theta_horizon
-  
-  db <- round(height / tan(theta_total), 2)
-  return(db)
+  # invert  theta = h/d + d/(2R)  ->  d = R*theta - sqrt((R*theta)^2 - 2*R*h)
+  disc <- (R * theta_total)^2 - 2 * R * height
+  disc[disc < 0] <- NA_real_        # sighting above the reference / invalid
+  round(R * theta_total - sqrt(disc), 2)
 }
+
+# Implement the coastline to calculate ref_distance for the Westside-------------
+coast_distance <- function(observer, bearing, land, max_range = 60000) {
+  if (is.na(bearing)) return(NA_real_)
+  
+  xy  <- st_coordinates(observer)        # observer = sf/sfc POINT in lon/lat (EPSG:4326)
+  lon <- xy[1, 1]; lat <- xy[1, 2]
+  
+  here <- sprintf("+proj=aeqd +lat_0=%.8f +lon_0=%.8f +datum=WGS84 +units=m", lat, lon)
+  land <- st_union(st_transform(land, here))
+  
+  rad <- bearing * pi / 180
+  ray <- st_sfc(st_linestring(rbind(c(0, 0),
+                                    c(sin(rad) * max_range, cos(rad) * max_range))), crs = here)
+  
+  water <- st_difference(ray, land)
+  if (all(st_is_empty(water))) return(NA_real_)
+  
+  water  <- st_cast(water, "LINESTRING")
+  origin <- st_sfc(st_point(c(0, 0)), crs = here)
+  front  <- water[which.min(st_distance(origin, water))]
+  ends   <- st_coordinates(front)
+  d      <- max(sqrt(ends[, 1]^2 + ends[, 2]^2))
+  
+  if (d > max_range * 0.98) NA_real_ else d
+}
+
+
 
 # Calculate new POI from distance and bearing ----------------
 calculate_sighting <- function(location, bearing, distance) {
