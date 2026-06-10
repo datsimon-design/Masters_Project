@@ -223,3 +223,20 @@ export_transects_gpx <- function(transects, path, name_prefix = NULL) {
 # export_transects_gpx(transects_c,
 #                      path        = "transects_2026-04-21.gpx",
 #                      name_prefix = "2026-04-21")
+
+
+
+
+
+# Define custom theme for ggplot2 ------------
+
+my_theme_trans <- function() {
+    theme_minimal() +
+    theme(
+      plot.background = element_rect(fill = "transparent", colour = NA),
+      panel.background = element_rect(fill = "transparent", colour = NA),
+      legend.box.background = element_rect(fill = "transparent", colour = NA),
+      legend.background = element_rect(fill = "transparent", colour = NA),
+      legend.title = element_text(face = "bold")
+    )
+}

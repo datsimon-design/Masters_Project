@@ -1,0 +1,307 @@
+---
+title: "Visualisation"
+format: html
+editor: source
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(sf)
+library(ggspatial)
+library(osmdata)
+library(ggforce)
+library(gt)
+library(ggtext)
+library(legendry)
+
+```
+
+#### Colorpalette
+
+```{r}
+darkblue = "#212842"
+midblue = "#4E5B9C"
+lightblue = "#5C9EAD"
+
+```
+
+
+```{r}
+# Excel sheet of the spots with details
+spots <- read_excel(path = "./data/datasheet_landsurvey.xlsx", sheet = "spots")
+
+# Gib Bay coastline
+coast <- st_read("./data/bayofalgib.gpkg")
+
+# Clean the sighting data and import
+source("./land_survey.R")
+
+
+```
+
+# Create a map of the survey sectors
+
+This maps shows the sectors that were surveyed.
+
+```{r}
+make_wedge <- function(x0, y0, r, start, end, crs, n = 120) {
+  b   <- seq(start, end, length.out = n) * pi / 180
+  pts <- cbind(x0 + r * sin(b), y0 + r * cos(b))   # compass: x=sin, y=cos
+  ring <- rbind(c(x0, y0), pts, c(x0, y0))         # close through the centre
+  st_sfc(st_polygon(list(ring)), crs = crs)
+}
+
+proj <- 32630   # UTM zone 30N — metres, correct for Gibraltar
+
+R = 6.378e+6
+
+
+centres <- as.data.frame(spots)
+centres <- centres %>% 
+  rename(name = spot_name,
+         start = spot_bearing1,
+         end = spot_bearing2) %>% 
+  mutate(r_m = sqrt(2*R*observer_height/20))
+
+
+# project the centres into metres
+xy <- st_coordinates(
+  st_transform(st_as_sf(centres, coords = c("lon", "lat"), crs = 4326), proj)
+)
+
+sectors <- do.call(rbind, lapply(seq_len(nrow(centres)), function(i) {
+  g <- make_wedge(xy[i, 1], xy[i, 2], centres$r_m[i],
+                  centres$start[i], centres$end[i], crs = proj)
+  st_sf(name = centres$name[i], geometry = g)
+}))
+
+sectors <- st_transform(sectors, 4326)   # back to lon/lat for the map
+
+sectors <- sectors  %>% 
+  filter(name != "MedSteps" & name != "WestSide")
+
+# Sector map
+sector_map <- ggplot() +
+  geom_sf(data = coast) +
+  geom_sf(data = sectors, aes(fill = name), colour = "black", alpha = 0.6) +
+  #geom_sf(data = data$geometry,  colour = "black", alpha = 0.4) +
+  coord_sf(
+    xlim = c(-5.438, -5.248),
+    ylim = c(36.05, 36.195)
+  ) +
+  
+  labs(fill = "Sectors") +
+  
+  scale_fill_manual(values = c(
+    Europa = darkblue,
+    PrinceGeorge = midblue,
+    SandyBay = lightblue
+  )) +
+  my_theme_trans()
+
+sector_map
+
+
+```
+
+```{r}
+active_spots <- spots %>%  
+  filter(spot_name != "MedSteps" & spot_name != "WestSide") %>% 
+  select(spot_name, observer_height, lat, lon)
+
+
+```
+
+```{r, Export}
+ggsave(filename = "./figures/sector_map.png", sector_map, width = 1920, height = 1920, dpi = 200, units = "px")
+
+```
+
+
+
+# Visualise the sightings
+
+! Old script
+```{r}
+
+# Create labels for the different spots
+spot_label <- data %>% 
+  select(spot_name, geometry, observer_height) %>% 
+  mutate(y_nudge = case_when(
+    spot_name == "SandyBay" ~ 0.003,
+    spot_name == "Europa" ~ 0.003,
+    spot_name == "WestSide" ~ 0.003,
+    
+    TRUE ~ - 0.003),
+    
+    x_nudge = case_when(
+      spot_name == "WestSide" ~ -0.002,
+      spot_name == "MedSteps" ~ 0.002,
+      
+      TRUE ~ 0
+    )
+  )
+
+
+sightings <- ggplot() +
+  geom_sf(data = coast, fill = "lightgray", alpha = .8) +
+  geom_sf(data = st_set_geometry(data, "geometry")) +   # Set geometry so aes does not missalign
+  # geom_sf(data = sectors, aes(fill = name), colour = "black", alpha = 0.4) +
+  geom_sf(data = st_set_geometry(data, "sighting_poi"), #%>%  filter(date.x >= "2026-06-09"),
+          aes(fill = species, linetype = species ), colour = "black", size = 3, shape = 21) +
+  # geom_sf_label(data = st_set_geometry(data, "geometry"),
+  #               aes(label = spot_name), size = 2, nudge_y = spot_label$y_nudge) +
+  # geom_sf_text(data = st_set_geometry(data, "sighting_poi"),
+  #             aes(label = species), size = 3, nudge_y = -0.003) +
+  #facet_wrap(~ sector) +
+  
+  
+  coord_sf(
+    xlim = c(-5.438, -5.248),
+    ylim = c(36.05, 36.195)
+  ) +
+  labs(fill = "Species",
+       linetype = "Whales") +
+  theme_minimal() +
+  
+  scale_shape_manual(values = c(21, 22, 24)) + 
+  
+  scale_fill_manual(values = c(     # If only one value is defined the rest is grayed out by default
+   delphinidae = "lightblue",
+   common_dolphin = "darkblue",
+   striped_dolphin = "blue",
+   fin_whale = "purple"
+   
+  ),
+  labels = c(
+     delphinidae = "Delphinidae",
+     common_dolphin = "<b>Common Dolphin</b> <br> <i>Delphinus delphis</i>",
+     striped_dolphin = "Striped Dolphin",
+     fin_whale = "<b>Fin whale</b> <br> <i> Balaenoptera physalus </i>"
+     
+   ))+
+  
+  my_theme_trans() +
+  
+  theme(
+  legend.text = ggtext::element_markdown()
+)
+
+sightings
+
+
+```
+
+Nesting the legend to make it more understandable
+
+```{r}
+
+# species & their groups, in display order
+sp_levels <- c("common_dolphin", "striped_dolphin", "delphinidae", "fin_whale", "unidentified")
+sp_groups <- c("Odontoceti",     "Odontoceti",      "Odontoceti",  "Mysticeti", "Other")
+
+# count sightings per species, then sum per group
+sp_counts  <- table(factor(data$species, levels = sp_levels))   # per-species counts
+grp_totals <- tapply(as.integer(sp_counts), sp_groups, sum)     # summed per group
+
+# bake the totals into the group-header strings
+group_headers <- paste0(sp_groups, " (n = ", grp_totals[sp_groups], ")")
+
+species_groups <- key_group_lut(sp_levels, group_headers)
+
+sightings <- ggplot() +
+  geom_sf(data = coast, fill = "lightgray", alpha = .8) +
+  geom_sf(data = st_set_geometry(data, "geometry"), shape = 25, fill = "gray10") +
+  geom_sf(data = st_set_geometry(data, "sighting_poi"),
+          aes(fill = species), colour = "black", size = 3, shape = 21) +   # linetype removed
+  coord_sf(xlim = c(-5.438, -5.248), ylim = c(36.05, 36.195)) +
+  scale_fill_manual(
+    values = c(
+      delphinidae     = lightblue,
+      common_dolphin  = darkblue,
+      striped_dolphin = midblue,
+      fin_whale       = "purple",
+      unidentified    = "gray"
+    ),
+    labels = c(
+      delphinidae     = "<i>Delphinidae sp.</i>",
+      common_dolphin  = "<b>Common Dolphin</b><br><i>Delphinus delphis</i>",
+      striped_dolphin = "<b>Striped Dolphin</b><br><i>Stenella coeruleoalba</i>",
+      fin_whale       = "<b>Fin whale</b><br><i>Balaenoptera physalus</i>",
+      unidentified    = "Unidentified"
+    )
+  ) +
+  guides(fill = guide_legend_group(key = species_groups)) +   # <- the nesting happens here
+  labs(fill = "") +
+  theme_minimal() +
+  my_theme_trans() +
+  theme(
+    legend.text              = ggtext::element_markdown(),
+    legendry.legend.subtitle = element_text(face = "bold")   # styles the group headers
+  )
+
+sightings
+
+
+```
+
+
+
+```{r, Export}
+ggsave(filename = "./figures/sightings_complete.png", sightings, width = 1920, height = 1920, dpi = 200, units = "px")
+```
+
+Check how far the sightings are off the observer -> count vs distance
+
+```{r}
+location <- unique(spots$spot_name)
+
+for (l in location) {
+  d <- data %>% 
+    filter(spot_name == l)
+  
+  plot <- d %>% 
+    ggplot()+
+    geom_histogram(aes(
+      x = distance
+    ), fill = darkblue) +
+    labs(
+      title = paste("Distance vs Number of sighting at", l)
+    ) +
+    my_theme_trans()
+
+
+  ggsave(filename = paste0("./figures/distance_",l, ".png"), plot, width = 1920, height = 1920, dpi = 200, units = "px")
+  
+}
+
+
+
+distance <- data %>% 
+  ggplot() + 
+  geom_histogram(aes(
+    x = distance,
+    fill = sector
+  ), binwidth = 550, color = "white") +
+  facet_wrap(~ sector) +
+  
+  scale_fill_manual(values = c(
+    S = darkblue,
+    W = midblue,
+    E = lightblue
+  )) +
+  
+  my_theme_trans() +
+  theme(
+    strip.text  = element_text(face = "bold"),
+    panel.border  = element_rect(fill = "transparent", colour = "black"))
+
+distance
+```
+
+```{r}
+ggsave(filename = "./figures/distance_facet.png", distance, width = 1920, height = 1520, dpi = 200, units = "px")
+```
+
