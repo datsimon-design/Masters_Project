@@ -15,6 +15,11 @@ library(ggforce)
 library(gt)
 library(ggtext)
 library(legendry)
+library(ks)  # Kernel smoothing for Kernel density Map
+library(patchwork)
+library(flextable)
+library(ggfun)
+
 
 ```
 
@@ -27,7 +32,6 @@ lightblue = "#5C9EAD"
 
 ```
 
-
 ```{r}
 # Excel sheet of the spots with details
 spots <- read_excel(path = "./data/datasheet_landsurvey.xlsx", sheet = "spots")
@@ -38,6 +42,11 @@ coast <- st_read("./data/bayofalgib.gpkg")
 # Clean the sighting data and import
 source("./land_survey.R")
 
+
+# Set active spots as variable
+active_spots <- spots %>%  
+  filter(spot_name != "MedSteps" & spot_name != "WestSide") %>% 
+  select(spot_name)
 
 ```
 
@@ -86,7 +95,7 @@ sectors <- sectors  %>%
 sector_map <- ggplot() +
   geom_sf(data = coast) +
   geom_sf(data = sectors, aes(fill = name), colour = "black", alpha = 0.6) +
-  #geom_sf(data = data$geometry,  colour = "black", alpha = 0.4) +
+  geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10") +
   coord_sf(
     xlim = c(-5.438, -5.248),
     ylim = c(36.05, 36.195)
@@ -106,24 +115,74 @@ sector_map
 
 ```
 
-```{r}
-active_spots <- spots %>%  
-  filter(spot_name != "MedSteps" & spot_name != "WestSide") %>% 
-  select(spot_name, observer_height, lat, lon)
+Overview map, with inset
 
+First create inset
+```{r}
+
+europe <- map_data("world") %>% 
+  filter(
+    long >= -25,
+    long <= 45,
+    lat >= 30,
+    lat <= 72
+  )
+
+inset <- ggplot(europe, aes(long, lat, group = group)) +
+  geom_polygon(fill = "lightgrey", color = "black", linewidth = 0.2) +
+  geom_rect(
+    aes(
+      xmin = -5.438,
+      xmax = -5.248,
+      ymin = 36.05,
+      ymax = 36.195
+    ),
+    color = "red",
+    fill = NA,
+    linewidth = 1
+  ) +
+  annotate(
+    "label",
+    x = -7,
+    y = 35.9,
+    label = "Strait of Gibraltar",
+    size = 4,
+    fontface = "italic"
+  ) +
+  annotate(
+    "text",
+    x = -3,
+    y = 38.950,
+    label = "Spain",
+    size = 5
+  ) +
+  coord_fixed(
+    xlim = c(-10, 0),
+    ylim = c(35, 40)
+  ) +
+  theme_void()
+```
+
+Insert the inset with `patchwork`
+
+```{r}
+
+sector_map + inset_element(inset,left = 0.8, bottom = 0.8, right = 1, top = 1)
 
 ```
+
 
 ```{r, Export}
 ggsave(filename = "./figures/sector_map.png", sector_map, width = 1920, height = 1920, dpi = 200, units = "px")
 
 ```
 
-
-
 # Visualise the sightings
 
-! Old script
+::: callout-warning
+Old script
+:::
+
 ```{r}
 
 # Create labels for the different spots
@@ -213,10 +272,10 @@ species_groups <- key_group_lut(sp_levels, group_headers)
 
 sightings <- ggplot() +
   geom_sf(data = coast, fill = "lightgray", alpha = .8) +
-  geom_sf(data = st_set_geometry(data, "geometry"), shape = 25, fill = "gray10") +
+  geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10") +
   geom_sf(data = st_set_geometry(data, "sighting_poi"),
-          aes(fill = species), colour = "black", size = 3, shape = 21) +   # linetype removed
-  coord_sf(xlim = c(-5.438, -5.248), ylim = c(36.05, 36.195)) +
+          aes(fill = species), colour = "black", size = 3, shape = 21) + 
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.195)) +
   scale_fill_manual(
     values = c(
       delphinidae     = lightblue,
@@ -233,13 +292,35 @@ sightings <- ggplot() +
       unidentified    = "Unidentified"
     )
   ) +
+  
+  # Add the scale bar
+  annotation_scale(
+    location = "bl",            # "bl" = bottom left
+    width_hint = 0.2,          # Bar length takes up approx 40% of map width
+    unit_category = "metric",   # Options: "metric", "imperial", or "nautical"
+    pad_y = unit(0.05, "npc")
+  ) +
+  
+  # Add the north arrow
+  annotation_north_arrow(
+    location = "br", # "tr" = top right
+    height = unit(0.12, "npc"),
+    width = unit(0.1, "npc"),
+    which_north = "true",       # Align arrow to true north pole instead of map grid
+    pad_x = unit(0.05, "npc"),    # X offset from the boundary
+    pad_y = unit(0.05, "npc"),    # Y offset from the boundary
+    style = north_arrow_nautical # Arrow graphic style
+  ) +
+  
   guides(fill = guide_legend_group(key = species_groups)) +   # <- the nesting happens here
   labs(fill = "") +
   theme_minimal() +
   my_theme_trans() +
   theme(
     legend.text              = ggtext::element_markdown(),
-    legendry.legend.subtitle = element_text(face = "bold")   # styles the group headers
+    legendry.legend.subtitle = element_text(face = "bold"),   # styles the group headers
+    legend.position = "inside",
+    legend.position.inside = c(0.15, 0.7)
   )
 
 sightings
@@ -247,11 +328,85 @@ sightings
 
 ```
 
-
-
 ```{r, Export}
-ggsave(filename = "./figures/sightings_complete.png", sightings, width = 1920, height = 1920, dpi = 200, units = "px")
+ggsave(filename = "./figures/sightings_legend.png", sightings, width = 1920, height = 1920, dpi = 200, units = "px")
 ```
+
+# Sightings analysis
+
+```{r}
+# Filter out sightings before 28.05.2026
+data_an <- data %>% filter(date.x > "2026-05-28")
+
+data_an %>% 
+  filter(on_effort == TRUE) %>% 
+  summarise(n_sightings = n())
+
+data_an %>% 
+  filter(species %in% c("delphinidae", "common_dolphin")) %>% 
+  summarise(.by = sector, n = n())
+
+data_an %>% 
+  filter(species %in% c("delphinidae", "common_dolphin")) %>% 
+  summarise(.by = species, n = n())
+
+effort <- effort_log %>% 
+  mutate(across(c(observation_start, observation_end),
+                ~ hms::as_hms(.))) %>% 
+  filter(!grepl("off_effort", survey_id)) %>% 
+  mutate(effort_time = as.duration(observation_end - observation_start))
+
+cat("Watch sessions:", nrow(effort),
+    "| total on-effort hours:", round(sum(effort$effort_time)/60^2, 2), "\n")
+
+er <- data_an %>% 
+  filter(on_effort == 1) %>% 
+  count(spot_name, name = "sightings") %>% 
+  left_join(effort %>%
+              group_by(spot_name) %>% 
+  summarise(hours = sum(effort_time)/60^2), by = "spot_name") %>% 
+  mutate(per_hour = round(sightings/hours, 2))
+
+
+cat("\nEncounter rate by station:\n"); print(er)
+
+
+# On effort hours per person
+per_person <- effort_log %>% 
+  mutate(duration = as.numeric(
+    difftime(ymd_hms(observation_end), ymd_hms(observation_start), units = "mins")
+  )) %>% 
+  separate_longer_delim(crew, delim = ";") %>% 
+  mutate(crew = trimws(crew)) %>% 
+  summarise(
+    total_mins = sum(duration, na.rm = TRUE),
+    total_hours = sum(duration, na.rm = TRUE)/60,
+    .by = "crew"
+  )
+
+
+# Watches per day
+as.data.frame(effort_log) %>% 
+  mutate(date = dmy(date)) %>% 
+  summarise(
+    n = n(),
+    .by = "date"
+  ) %>% 
+  
+  ggplot(aes(x = date, y = n)) +
+  geom_col(fill = darkblue) +
+  scale_x_date(
+    date_breaks = "2 days",
+    date_labels = "%d %b"
+  ) +
+  my_theme_trans() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+  
+
+```
+
 
 Check how far the sightings are off the observer -> count vs distance
 
@@ -304,4 +459,140 @@ distance
 ```{r}
 ggsave(filename = "./figures/distance_facet.png", distance, width = 1920, height = 1520, dpi = 200, units = "px")
 ```
+
+
+# Creating a Kernel Density Map
+
+This map only uses the sighting data and does not correct for effort time!
+
+```{r}
+
+# Select on effort sightings
+on <- data %>% filter(on_effort == TRUE & !is.na(sighting_poi)) %>% 
+  filter(species %in% c("delphinidae", "common_dolphin")) # Filter out species that are not identified and fin whale sightings
+message(nrow(on), " on-effort sightings parsed")
+
+# Reproject so lon lat -> metres (Use same df as on otherwise error in kde)
+sight_coords <- st_coordinates(on$sighting_poi)
+
+# Weight the sightings by group size, larger group = larger weoght
+weights <- on$group_size
+weights[is.na(weights)] <- 1
+
+# Transform into a factor that can be used by ks
+weights <- weights * length(weights) / sum(weights)
+
+
+# Fit the KDE
+kde_fit <- kde(x = sight_coords, w = weights, H = Hpi(sight_coords),
+               binned = FALSE, gridsize = c(100, 100))
+
+
+# Turn the kde df into a tidy table
+grid_x  <- kde_fit$eval.points[[1]]
+grid_y  <- kde_fit$eval.points[[2]]
+density <- expand.grid(x = grid_x, y = grid_y)
+density$z <- as.vector(kde_fit$estimate)
+density$z[density$z < max(density$z) * 0.01]
+
+# Create df for sightings
+sightings_df <- data.frame(x = sight_coords[, 1], y = sight_coords[, 2],
+                           group_size = on$group_size)
+
+
+
+```
+
+### Visualise the density map
+
+```{r}
+density_map <- ggplot() +
+  
+  # Plot density data
+  geom_raster(data = density, aes(x, y, fill = z)) +
+  
+  # Contour the spots
+  geom_contour(data = density, aes(x, y, z = z),
+               colour = "white", alpha = .25, bins = 7) +
+  
+  # Overlay sightings
+  geom_point(data = sightings_df, aes(x, y, size = group_size),
+             colour = "white", alpha = 0.35) +
+  
+  # Add shapefile overlay
+  geom_sf(data = coast, fill = "lightgray") +
+  
+  # Overlay spots
+  geom_point(data = spots %>% 
+               filter(spot_name %in% active_spots$spot_name),
+             aes(x = lon, y = lat),
+             shape = 25, fill = "gray10") +
+  
+  scale_size_continuous(range = c(1.5, 8), name = "Group size") +
+  
+  coord_sf(xlim = c(-5.438, -5.248), ylim = c(36.05, 36.2))  +  # Adjust maybe later to account for all sightings, also outside the BGTW
+  
+  labs(
+    fill = "Density",
+    x = "",
+    y = ""
+  ) +
+  # Add the scale bar
+  annotation_scale(
+    location = "bl",            # "bl" = bottom left
+    width_hint = 0.2,          # Bar length takes up approx 40% of map width
+    unit_category = "metric",   # Options: "metric", "imperial", or "nautical"
+    pad_y = unit(0.05, "npc"),
+    text_col  = "white"
+  ) +
+  
+  # Add the north arrow
+  annotation_north_arrow(
+    location = "br", # "tr" = top right
+    height = unit(0.12, "npc"),
+    width = unit(0.1, "npc"),
+    which_north = "true",       # Align arrow to true north pole instead of map grid
+    pad_x = unit(0.05, "npc"),    # X offset from the boundary
+    pad_y = unit(0.05, "npc"),    # Y offset from the boundary
+    style = north_arrow_nautical # Arrow graphic style
+  ) +
+  
+  my_theme_trans() +
+  
+  
+  # Customize the colorbar, place on top and adjust spacing
+  guides(
+    fill = guide_colorbar(
+      barwidth = unit(0.4, "npc"),
+      barheight = unit(0.015, "npc"),
+      title.position = "top",
+      theme = theme(
+        legend.ticks = element_line(color = "lightgrey", linetype = 9),
+        legend.text.position = "top"
+      )
+    )
+  ) +
+  
+  theme(legend.direction = "horizontal",
+        legend.position = "inside",
+        legend.position.inside = c(0.25, 0.91),
+        #legend.background = element_roundrect("red", r = 0.25),
+        legend.spacing = unit(0, "cm"),
+        legend.margin = margin(t = 0, r = 0, b = 7, l = 0, unit = "pt"),
+        text = element_text(size = 10)
+    )
+
+windows(width = 1920/25.4,
+        height = 1820/25.4)
+
+
+density_map
+```
+
+```{r}
+ggsave(filename = "./figures/density_map.png", density_map, width = 1920, height = 1820, dpi = 200, units = "px")
+```
+
+
+
 

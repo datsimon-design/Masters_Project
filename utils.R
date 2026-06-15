@@ -231,7 +231,7 @@ export_transects_gpx <- function(transects, path, name_prefix = NULL) {
 # Define custom theme for ggplot2 ------------
 
 my_theme_trans <- function() {
-    theme_minimal() +
+    theme_minimal(base_size = 11) +
     theme(
       plot.background = element_rect(fill = "transparent", colour = NA),
       panel.background = element_rect(fill = "transparent", colour = NA),
