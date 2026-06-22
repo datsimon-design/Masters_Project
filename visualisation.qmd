@@ -19,6 +19,8 @@ library(ks)  # Kernel smoothing for Kernel density Map
 library(patchwork)
 library(flextable)
 library(ggfun)
+library(ggsignif)
+library(ggmagnify)
 
 
 ```
@@ -35,6 +37,7 @@ lightblue = "#5C9EAD"
 ```{r}
 # Excel sheet of the spots with details
 spots <- read_excel(path = "./data/datasheet_landsurvey.xlsx", sheet = "spots")
+
 
 # Gib Bay coastline
 coast <- st_read("./data/bayofalgib.gpkg")
@@ -143,10 +146,10 @@ inset <- ggplot(europe, aes(long, lat, group = group)) +
   ) +
   annotate(
     "label",
-    x = -7,
+    x = -8,
     y = 35.9,
     label = "Strait of Gibraltar",
-    size = 4,
+    size = 2.5,
     fontface = "italic"
   ) +
   annotate(
@@ -160,20 +163,26 @@ inset <- ggplot(europe, aes(long, lat, group = group)) +
     xlim = c(-10, 0),
     ylim = c(35, 40)
   ) +
-  theme_void()
+  theme_void(base_size = 5) +
+  theme(panel.border = element_rect(fill = NA, colour = "black", linewidth = 0.5),
+        panel.background = element_rect(fill = "white"))
 ```
 
 Insert the inset with `patchwork`
 
 ```{r}
 
-sector_map + inset_element(inset,left = 0.8, bottom = 0.8, right = 1, top = 1)
+overview <- sector_map + inset_element(inset,left = 0.00001, bottom = 0.8, right = 0.3, top = 1)
 
+overview
 ```
+
 
 
 ```{r, Export}
 ggsave(filename = "./figures/sector_map.png", sector_map, width = 1920, height = 1920, dpi = 200, units = "px")
+
+ggsave(filename = "./figures/overview_map.png", overview, width = 1920, height = 1920, dpi = 200, units = "px")
 
 ```
 
@@ -270,27 +279,42 @@ group_headers <- paste0(sp_groups, " (n = ", grp_totals[sp_groups], ")")
 
 species_groups <- key_group_lut(sp_levels, group_headers)
 
+
+# Define shape color and legend entry once
+data$species <- factor(data$species, levels = sp_levels)
+
+# define the key contents ONCE so fill and shape stay identical
+sp_labels <- c(
+  common_dolphin  = "<b>Common Dolphin</b><br><i>Delphinus delphis</i>",
+  striped_dolphin = "<b>Striped Dolphin</b><br><i>Stenella coeruleoalba</i>",
+  delphinidae     = "<b>Delphinidae</b>",
+  fin_whale       = "<b>Fin whale</b><br><i>Balaenoptera physalus</i>",
+  unidentified    = "Unidentified"
+)
+sp_shapes <- c(common_dolphin = 21, striped_dolphin = 21, delphinidae = 21,
+               fin_whale = 22, unidentified = 21)
+sp_fills  <- c(common_dolphin = darkblue, striped_dolphin = midblue, delphinidae = lightblue,
+               fin_whale = "purple", unidentified = "gray")
+
+
+# Plot
 sightings <- ggplot() +
   geom_sf(data = coast, fill = "lightgray", alpha = .8) +
   geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10") +
   geom_sf(data = st_set_geometry(data, "sighting_poi"),
-          aes(fill = species), colour = "black", size = 3, shape = 21) + 
+          aes(fill = species, shape = species), colour = "black", size = 3) + 
   coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.195)) +
+  
+  scale_shape_manual(
+    values = sp_shapes,
+    labels = sp_labels,
+    name = ""
+  ) +
+  
   scale_fill_manual(
-    values = c(
-      delphinidae     = lightblue,
-      common_dolphin  = darkblue,
-      striped_dolphin = midblue,
-      fin_whale       = "purple",
-      unidentified    = "gray"
-    ),
-    labels = c(
-      delphinidae     = "<i>Delphinidae sp.</i>",
-      common_dolphin  = "<b>Common Dolphin</b><br><i>Delphinus delphis</i>",
-      striped_dolphin = "<b>Striped Dolphin</b><br><i>Stenella coeruleoalba</i>",
-      fin_whale       = "<b>Fin whale</b><br><i>Balaenoptera physalus</i>",
-      unidentified    = "Unidentified"
-    )
+    values = sp_fills,
+    labels = sp_labels,
+    name = ""
   ) +
   
   # Add the scale bar
@@ -312,8 +336,10 @@ sightings <- ggplot() +
     style = north_arrow_nautical # Arrow graphic style
   ) +
   
-  guides(fill = guide_legend_group(key = species_groups)) +   # <- the nesting happens here
-  labs(fill = "") +
+  guides(fill = guide_legend_group(key = species_groups,
+                                   override.aes = list(colour = "black")),
+         shape = guide_legend_group(key = species_groups,
+                                   override.aes = list(colour = "black"))) +   # <- the nesting happens here
   theme_minimal() +
   my_theme_trans() +
   theme(
@@ -331,6 +357,8 @@ sightings
 ```{r, Export}
 ggsave(filename = "./figures/sightings_legend.png", sightings, width = 1920, height = 1920, dpi = 200, units = "px")
 ```
+
+
 
 # Sightings analysis
 
@@ -359,13 +387,31 @@ effort <- effort_log %>%
 cat("Watch sessions:", nrow(effort),
     "| total on-effort hours:", round(sum(effort$effort_time)/60^2, 2), "\n")
 
-er <- data_an %>% 
+er <- data_an %>%  
   filter(on_effort == 1) %>% 
   count(spot_name, name = "sightings") %>% 
   left_join(effort %>%
               group_by(spot_name) %>% 
   summarise(hours = sum(effort_time)/60^2), by = "spot_name") %>% 
-  mutate(per_hour = round(sightings/hours, 2))
+  mutate(per_hour = round(sightings/hours, 2)) %>% 
+  select(spot_name, sightings, hours, per_hour) %>% 
+  arrange(desc(per_hour))
+
+
+# Create flextable from the data
+flextable(er) %>% 
+   set_header_labels(
+    per_hour = "Sightings per hour",
+    spot_name = "Spotname",
+    sightings = "# of sightings",
+    hours = "on-effort Hours"
+  ) %>% 
+  colformat_double(
+    j = "hours",
+    digits = 2
+  ) %>% 
+  autofit() %>% 
+  theme_booktabs()
 
 
 cat("\nEncounter rate by station:\n"); print(er)
@@ -384,6 +430,7 @@ per_person <- effort_log %>%
     .by = "crew"
   )
 
+per_person
 
 # Watches per day
 as.data.frame(effort_log) %>% 
@@ -402,10 +449,252 @@ as.data.frame(effort_log) %>%
   my_theme_trans() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+# When did we have the most sightings?
+sight_time <- data %>%
+  mutate(
+    time_bin = paste0(
+      sprintf("%02d", hour(start_time)),
+      ":",
+      ifelse(minute(start_time) < 30, "00", "30")
+    )
+  ) %>%
+  count(time_bin)
+ 
+sighting_day <- sight_time %>% 
+  ggplot(aes(x = time_bin, y = n)) +
+  geom_col(fill = darkblue) +
+  my_theme_trans() +
+  labs(
+    x = "Time",
+    y = "n of sightings",
+    title = "Number of sightings over the day"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
+sighting_day
   
+```
+
+```{r}
+ggsave(filename = "./figures/sighting_day.png", sighting_day, width = 1920, height = 1520, dpi = 200, units = "px")
+```
+
+### Does tide have an influence? 
+
+```{r}
+tide_df <- data %>% 
+  mutate(tide = as.factor(tide)) %>% 
+  summarise(
+    n = n(),
+    .by = "tide"
+  ) %>% 
+  ggplot(aes(x = tide, y = n)) +
+  geom_col()
+
+tide_df
 
 ```
+
+
+### Compare current to target watches/hours
+Target hours comes from the Power Analysis script
+
+```{r}
+per_spot <- as.data.frame(effort_log) %>% 
+  filter(spot_name %in% active_spots$spot_name) %>% 
+  mutate(duration = as.numeric(
+    difftime(ymd_hms(observation_end), ymd_hms(observation_start), units = "mins")
+  )) %>% 
+  summarise(
+    total_mins = sum(duration, na.rm = TRUE),
+    total_hours = sum(duration, na.rm = TRUE)/60,
+    percent = round((total_hours / 10) * 100, 2), 
+    .by = "spot_name"
+  )
+
+aim <- data.frame(
+  spot = per_spot$spot_name,
+  target = 10
+)
+
+hour_spot <- per_spot %>% 
+  ggplot(aes(x = spot_name, y = per_spot$total_hours)) +
+  geom_col(fill = darkblue) +
+  geom_text(aes(x = spot_name, y = total_hours + 0.5), ,label = paste(per_spot$percent, "%")) +
+  geom_errorbar(
+    data = aim,
+    aes(x = spot, ymin = target, ymax = target),
+    linewidth = 1.5,
+    linetype = "dashed",
+    color = "darkred"
+  ) +
+  labs(
+    x = "",
+    y = "Hours per spot"
+  ) +
+  my_theme_trans()
+  
+hour_spot
+```
+
+```{r}
+ggsave(filename = "./figures/hour_spot.png", hour_spot, width = 1920, height = 1520, dpi = 200, units = "px")
+```
+
+
+### Convert to sightings per unit effort (SPUE)
+
+```{r}
+effort <- effort_log %>%
+  filter(!str_detect(survey_id, "off_effort")) %>%
+  mutate(
+    duration_min = as.numeric(difftime(observation_end, observation_start,
+                                        units = "mins"))
+  )
+ 
+# ---- 3. Detections: keep on-effort sightings -------------------------------
+sightings <- detection %>%
+  filter(on_effort == 1)
+
+ 
+# ---- 4. Sightings & individuals per scan -----------------------------------
+per_scan <- sightings %>%
+  group_by(survey_id) %>%
+  summarise(
+    n_sightings   = n(),
+    n_individuals = sum(group_size, na.rm = TRUE),  # one NA group size -> 0
+    .groups = "drop"
+  )
+ 
+# Join back onto the full effort table; scans with no sighting become 0 (NOT NA)
+effort <- effort %>%
+  left_join(per_scan, by = "survey_id") %>%
+  mutate(
+    n_sightings   = replace_na(n_sightings, 0),
+    n_individuals = replace_na(n_individuals, 0)
+  )
+ 
+# ---- 5. SPUE by spot -------------------------------------------------------
+spue_by_spot <- effort %>%
+  group_by(spot_name) %>%
+  summarise(
+    scans        = n(),
+    effort_hours = sum(duration_min, na.rm = TRUE) / 60,
+    sightings    = sum(n_sightings),
+    individuals  = sum(n_individuals),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    spue_per_scan   = sightings / scans,        # headline SPUE
+    sightings_per_h = sightings / effort_hours, # encounter rate
+    indiv_per_h     = individuals / effort_hours
+  ) %>%
+  arrange(desc(scans))
+ 
+# ---- 6. SPUE overall -------------------------------------------------------
+spue_overall <- effort %>%
+  summarise(
+    spot_name    = "TOTAL",
+    scans        = n(),
+    effort_hours = sum(duration_min, na.rm = TRUE) / 60,
+    sightings    = sum(n_sightings),
+    individuals  = sum(n_individuals)
+  ) %>%
+  mutate(
+    spue_per_scan   = sightings / scans,
+    sightings_per_h = sightings / effort_hours,
+    indiv_per_h     = individuals / effort_hours
+  )
+ 
+spue_summary <- bind_rows(spue_by_spot, spue_overall)
+ 
+# ---- 7. Report & export ----------------------------------------------------
+spue_report <- spue_summary %>%
+  mutate(across(c(effort_hours, spue_per_scan, sightings_per_h, indiv_per_h),
+                ~ round(.x, 3)))
+ 
+print(spue_report, n = Inf)
+
+spue_report %>% 
+  filter(spot_name %in% active_spots$spot_name | spot_name == "TOTAL") %>% 
+  select(!geometry) %>% 
+  flextable() %>% 
+  delete_columns(j = "geometry") %>% 
+  set_header_labels(
+    spot_name = "Spot Names",
+    scans = "Scans",
+    effort_hours = "Hours",
+    sightings = "Sightings",
+    individuals = "Individuals",
+    spue_per_scan = "SPUE (per scan)",
+    sightings_per_h = "Sightings per h",
+    indiv_per_h = "Indiv. per h"
+  ) %>% 
+  colformat_double(
+    j = c("effort_hours", "sightings_per_h", "sightings_per_h"),
+    digits = 2
+  ) %>% 
+  bold(i = 4) %>% 
+  autofit() %>% 
+  theme_booktabs()
+
+```
+
+Analize spue and compare. Test if there is significant difference between the spots (Kruskal-Wallis) and between which spots (dun-Test). Additional glm 
+
+```{r}
+library(FSA)
+
+active <- c("Europa", "SandyBay", "PrinceGeorge")
+scans  <- effort %>% filter(spot_name %in% active)   # per-scan rows, NOT the summary
+
+count(scans, spot_name)     
+
+
+kruskal.test(n_sightings ~ spot_name, data = scans)
+
+dunnTest(n_sightings ~ factor(spot_name), data = scans, method = "bh")
+```
+
+```{r}
+
+
+spue_clean <-spue_report %>% 
+  filter(spot_name %in% active_spots$spot_name) %>% 
+  select(!geometry)
+
+SPUE <- spue_clean %>% 
+  ggplot(aes(x = spot_name, y = spue_per_scan))+
+  geom_col(fill = darkblue) +
+  geom_signif(
+    # Specify which columns to connect (using group names or numeric X-indices)
+    comparisons = list(c("Europa", "PrinceGeorge")),
+    
+    # Enter your exact pre-calculated p-value symbols in the same order
+    annotations = c("***"), 
+    map_signif_level = TRUE,
+   
+    
+    # Visual styling details
+    tip_length = 0.02,
+    textsize = 6
+  ) +
+  
+  labs(x = "", y = "SPUE") +
+  
+  ylim(c(0, 1.2)) +
+  
+  my_theme_trans() +
+  theme(base_size = 11)
+
+SPUE
+```
+
+```{r}
+ggsave(filename = "./figures/SPUE.png", SPUE, width = 1000, height = 1000, dpi = 200, units = "px")
+```
+
+
 
 
 Check how far the sightings are off the observer -> count vs distance
@@ -499,6 +788,9 @@ density$z[density$z < max(density$z) * 0.01]
 sightings_df <- data.frame(x = sight_coords[, 1], y = sight_coords[, 2],
                            group_size = on$group_size)
 
+# Get 95% (home range) and 50% (core area)  contour levels
+hr_lev   <- contourLevels(kde_fit, cont = 95)   # 95% home range
+core_lev <- contourLevels(kde_fit, cont = 50)   # 50% core area
 
 
 ```
@@ -511,9 +803,12 @@ density_map <- ggplot() +
   # Plot density data
   geom_raster(data = density, aes(x, y, fill = z)) +
   
-  # Contour the spots
-  geom_contour(data = density, aes(x, y, z = z),
-               colour = "white", alpha = .25, bins = 7) +
+  # Contour the home range and core area
+  geom_contour(data = density, aes(x = x, y = y, z = z, colour = "95% home range"),
+               breaks = hr_lev,   linewidth = 0.7) +
+  geom_contour(data = density, aes(x = x, y = y, z = z, colour = "50% core area"),
+               breaks = core_lev, linewidth = 0.9, linetype = "32") +
+  
   
   # Overlay sightings
   geom_point(data = sightings_df, aes(x, y, size = group_size),
@@ -530,7 +825,13 @@ density_map <- ggplot() +
   
   scale_size_continuous(range = c(1.5, 8), name = "Group size") +
   
-  coord_sf(xlim = c(-5.438, -5.248), ylim = c(36.05, 36.2))  +  # Adjust maybe later to account for all sightings, also outside the BGTW
+    scale_colour_manual(
+    name   = NULL,
+    values = c("95% home range" = "white", "50% core area" = "white"),
+    breaks = c("95% home range", "50% core area")
+  ) +
+  
+  coord_sf(xlim = c(-5.438, -5.248), ylim = c(36.05, 36.2))  +  # Adjus t maybe later to account for all sightings, also outside the BGTW
   
   labs(
     fill = "Density",
@@ -569,9 +870,15 @@ density_map <- ggplot() +
       theme = theme(
         legend.ticks = element_line(color = "lightgrey", linetype = 9),
         legend.text.position = "top"
-      )
-    )
+      ), order = 1
+    ),
+    
+    size = guide_legend(override.aes = list(alpha = 1), order = 2),
+    
+    color = guide_legend(order = 3)
   ) +
+  
+  
   
   theme(legend.direction = "horizontal",
         legend.position = "inside",
@@ -582,8 +889,8 @@ density_map <- ggplot() +
         text = element_text(size = 10)
     )
 
-windows(width = 1920/25.4,
-        height = 1820/25.4)
+# windows(width = 1920/25.4,
+#         height = 1820/25.4)
 
 
 density_map
@@ -593,6 +900,34 @@ density_map
 ggsave(filename = "./figures/density_map.png", density_map, width = 1920, height = 1820, dpi = 200, units = "px")
 ```
 
+
+Export as csv to visualize in blender
+```{r}
+library(sf)
+
+# --- KDE grid -> long format (x, y, density) ---
+gx <- density$eval.points[[1]]
+gy <- density$eval.points[[2]]
+grid <- expand.grid(x = gx, y = gy)
+grid$density <- as.vector(density$estimate)
+
+# shared local origin (note these numbers down)
+ox <- min(grid$x); oy <- min(grid$y)
+grid$x <- grid$x - ox
+grid$y <- grid$y - oy
+write.csv(grid, "kde_grid.csv", row.names = FALSE)
+
+# --- coastline, SAME origin shift so it aligns ---
+coast_utm <- st_transform(coast, 32630)        # your bay landmass polygon
+co <- as.data.frame(st_coordinates(coast_utm)) # gives X, Y, L1[, L2, L3]
+co$X <- co$X - ox
+co$Y <- co$Y - oy
+write.csv(co, "coastline.csv", row.names = FALSE)
+```
+
+```{r}
+png(density, "density.png")
+```
 
 
 
