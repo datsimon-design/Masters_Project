@@ -109,6 +109,8 @@ head(data)
 
 Sys.sleep(3)
 
+saveRDS(data, file = "./temp/boat_data.rds")
+
 #-----------------TEST--------------------------------------------------------
 
 data_test <- data %>% 

@@ -106,6 +106,25 @@ sector_map <- ggplot() +
   
   labs(fill = "Sectors") +
   
+  # Add the scale bar
+  annotation_scale(
+    location = "bl",            # "bl" = bottom left
+    width_hint = 0.2,          # Bar length takes up approx 40% of map width
+    unit_category = "metric",   # Options: "metric", "imperial", or "nautical"
+    pad_y = unit(0.05, "npc")
+  ) +
+  
+  # Add the north arrow
+  annotation_north_arrow(
+    location = "br", # "tr" = top right
+    height = unit(0.12, "npc"),
+    width = unit(0.1, "npc"),
+    which_north = "true",       # Align arrow to true north pole instead of map grid
+    pad_x = unit(0.05, "npc"),    # X offset from the boundary
+    pad_y = unit(0.05, "npc"),    # Y offset from the boundary
+    style = north_arrow_nautical # Arrow graphic style
+  ) +
+  
   scale_fill_manual(values = c(
     Europa = darkblue,
     PrinceGeorge = midblue,
@@ -262,7 +281,125 @@ sightings
 
 ```
 
-Nesting the legend to make it more understandable
+### Include the boat data and combine to one df
+
+```{r}
+
+# Get the boat data from the data cleaning script
+boat <- readRDS("./temp/boat_data.rds")
+
+boat <- boat %>% 
+  select(date.x, species, group_size, behaviour, geometry) %>% 
+  mutate(
+    source = "boat"
+  )
+
+land <- data %>% 
+  select(date.x, species, group_size, behaviour, sighting_poi) %>% 
+  rename(geometry = sighting_poi) %>% 
+  mutate(
+    source = "land"
+  )
+
+full <- boat %>%
+  bind_rows(land)
+
+saveRDS(full, "./temp/full.rds")
+
+st_set_geometry(full, "geometry")
+
+
+# species & their groups, in display order
+sp_levels <- c("common_dolphin", "striped_dolphin", "delphinidae", "fin_whale", "unidentified")
+sp_groups <- c("Odontoceti",     "Odontoceti",      "Odontoceti",  "Mysticeti", "Other")
+
+# count sightings per species, then sum per group
+sp_counts  <- table(factor(full$species, levels = sp_levels))   # per-species counts
+grp_totals <- tapply(as.integer(sp_counts), sp_groups, sum)     # summed per group
+
+# bake the totals into the group-header strings
+group_headers <- paste0(sp_groups, " (n = ", grp_totals[sp_groups], ")")
+
+species_groups <- key_group_lut(sp_levels, group_headers)
+
+
+# Define shape color and legend entry once
+full$species <- factor(full$species, levels = sp_levels)
+
+# define the key contents ONCE so fill and shape stay identical
+sp_labels <- c(
+  common_dolphin  = "<b>Common Dolphin</b><br><i>Delphinus delphis</i>",
+  striped_dolphin = "<b>Striped Dolphin</b><br><i>Stenella coeruleoalba</i>",
+  delphinidae     = "<b>Delphinidae</b>",
+  fin_whale       = "<b>Fin whale</b><br><i>Balaenoptera physalus</i>",
+  unidentified    = "Unidentified"
+)
+sp_shapes <- c(common_dolphin = 21, striped_dolphin = 21, delphinidae = 21,
+               fin_whale = 22, unidentified = 21)
+sp_fills  <- c(common_dolphin = darkblue, striped_dolphin = midblue, delphinidae = lightblue,
+               fin_whale = "purple", unidentified = "gray")
+
+
+# Plot
+sightings <- ggplot() +
+  geom_sf(data = coast, fill = "lightgray", alpha = .8) +
+  
+  geom_sf(data = st_set_geometry(full, "geometry"),
+          aes(fill = species, shape = species), colour = "black", size = 3) + 
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.195)) +
+  
+  scale_shape_manual(
+    values = sp_shapes,
+    labels = sp_labels,
+    name = ""
+  ) +
+  
+  scale_fill_manual(
+    values = sp_fills,
+    labels = sp_labels,
+    name = ""
+  ) +
+  
+  # Add the scale bar
+  annotation_scale(
+    location = "bl",            # "bl" = bottom left
+    width_hint = 0.2,          # Bar length takes up approx 40% of map width
+    unit_category = "metric",   # Options: "metric", "imperial", or "nautical"
+    pad_y = unit(0.05, "npc")
+  ) +
+  
+  # Add the north arrow
+  annotation_north_arrow(
+    location = "br", # "tr" = top right
+    height = unit(0.12, "npc"),
+    width = unit(0.1, "npc"),
+    which_north = "true",       # Align arrow to true north pole instead of map grid
+    pad_x = unit(0.05, "npc"),    # X offset from the boundary
+    pad_y = unit(0.05, "npc"),    # Y offset from the boundary
+    style = north_arrow_nautical # Arrow graphic style
+  ) +
+  
+  guides(fill = guide_legend_group(key = species_groups,
+                                   override.aes = list(colour = "black")),
+         shape = guide_legend_group(key = species_groups,
+                                   override.aes = list(colour = "black"))) +   # <- the nesting happens here
+  theme_minimal() +
+  my_theme_trans() +
+  theme(
+    legend.text              = ggtext::element_markdown(),
+    legendry.legend.subtitle = element_text(face = "bold"),   # styles the group headers
+    legend.position = "inside",
+    legend.position.inside = c(0.15, 0.7)
+  )
+
+sightings
+
+
+```
+
+
+
+Nesting the legend to make it easier understandable
 
 ```{r}
 
@@ -855,7 +992,8 @@ density_map <- ggplot() +
     which_north = "true",       # Align arrow to true north pole instead of map grid
     pad_x = unit(0.05, "npc"),    # X offset from the boundary
     pad_y = unit(0.05, "npc"),    # Y offset from the boundary
-    style = north_arrow_nautical # Arrow graphic style
+    style = north_arrow_nautical(text_col = "white") # Arrow graphic style
+    
   ) +
   
   my_theme_trans() +
@@ -930,4 +1068,34 @@ png(density, "density.png")
 ```
 
 
+# Create detection function per spot
+
+```{r}
+library(Distance)
+
+dat <- data %>% 
+  select(-observer)
+
+# on-effort detections with a valid radial distance
+d <- subset(dat, on_effort == TRUE & !is.na(distance))
+d$size      <- d$group_size
+d$spot_name <- factor(d$spot_name)
+
+# truncate the furthest ~10% (reticle angular resolution is poor at km scale)
+trunc <- as.numeric(quantile(d$distance, 0.90, na.rm = TRUE))
+
+# pooled POINT-transect detection functions
+m_hn   <- ds(d, transect = "point", key = "hn", adjustment = "cos", truncation = trunc)
+m_hr   <- ds(d, transect = "point", key = "hr", adjustment = "cos", truncation = trunc)
+
+# detectability as a covariate instead of per-spot fits (MCDS, no adjustment terms)
+m_ht   <- ds(d, transect = "point", key = "hn", formula = ~observer_height, truncation = trunc)
+m_spot <- ds(d, transect = "point", key = "hn", formula = ~spot_name,       truncation = trunc)
+
+AIC(m_hn, m_hr, m_ht, m_spot)   # model selection
+summary(m_ht)
+gof_ds(m_ht)                    # Cramér–von Mises goodness-of-fit
+plot(m_ht)      
+
+```
 
