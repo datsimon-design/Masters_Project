@@ -308,57 +308,46 @@ saveRDS(full, "./temp/full.rds")
 
 st_set_geometry(full, "geometry")
 
+full_sum <- full %>% 
+  summarise(
+    sightings = n()
+  )
 
-# species & their groups, in display order
-sp_levels <- c("common_dolphin", "striped_dolphin", "delphinidae", "fin_whale", "unidentified")
-sp_groups <- c("Odontoceti",     "Odontoceti",      "Odontoceti",  "Mysticeti", "Other")
+#--------------
 
-# count sightings per species, then sum per group
-sp_counts  <- table(factor(full$species, levels = sp_levels))   # per-species counts
-grp_totals <- tapply(as.integer(sp_counts), sp_groups, sum)     # summed per group
-
-# bake the totals into the group-header strings
-group_headers <- paste0(sp_groups, " (n = ", grp_totals[sp_groups], ")")
-
-species_groups <- key_group_lut(sp_levels, group_headers)
+mt_levels = c("boat", "land")
+mt_groups = c("Method", "Method")
 
 
-# Define shape color and legend entry once
-full$species <- factor(full$species, levels = sp_levels)
+mt_fill = c(darkblue, lightblue)
 
-# define the key contents ONCE so fill and shape stay identical
-sp_labels <- c(
-  common_dolphin  = "<b>Common Dolphin</b><br><i>Delphinus delphis</i>",
-  striped_dolphin = "<b>Striped Dolphin</b><br><i>Stenella coeruleoalba</i>",
-  delphinidae     = "<b>Delphinidae</b>",
-  fin_whale       = "<b>Fin whale</b><br><i>Balaenoptera physalus</i>",
-  unidentified    = "Unidentified"
-)
-sp_shapes <- c(common_dolphin = 21, striped_dolphin = 21, delphinidae = 21,
-               fin_whale = 22, unidentified = 21)
-sp_fills  <- c(common_dolphin = darkblue, striped_dolphin = midblue, delphinidae = lightblue,
-               fin_whale = "purple", unidentified = "gray")
+mt_fill_labs = c("Boat Transects", "Land Surveys")
+
+mt_headers = paste0(mt_groups, " (n = ", full_sum$sightings, ")")
+
 
 
 # Plot
-sightings <- ggplot() +
+method_map <- ggplot() +
   geom_sf(data = coast, fill = "lightgray", alpha = .8) +
   
   geom_sf(data = st_set_geometry(full, "geometry"),
-          aes(fill = species, shape = species), colour = "black", size = 3) + 
-  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.195)) +
+          aes(fill = source, shape = source), colour = "black", size = 3) + 
+  coord_sf(xlim = c(-5.47, -5.248), ylim = c(36.05, 36.195)) +
   
   scale_shape_manual(
-    values = sp_shapes,
-    labels = sp_labels,
+    values = c(22, 21),
+    labels = mt_fill_labs,
     name = ""
   ) +
   
   scale_fill_manual(
-    values = sp_fills,
-    labels = sp_labels,
+    values = mt_fill,
+    labels = mt_fill_labs,
     name = ""
   ) +
+  
+  
   
   # Add the scale bar
   annotation_scale(
@@ -379,23 +368,29 @@ sightings <- ggplot() +
     style = north_arrow_nautical # Arrow graphic style
   ) +
   
-  guides(fill = guide_legend_group(key = species_groups,
+  guides(fill = guide_legend_group(key = key_group_lut(met_levels, mt_headers),
                                    override.aes = list(colour = "black")),
-         shape = guide_legend_group(key = species_groups,
-                                   override.aes = list(colour = "black"))) +   # <- the nesting happens here
+         shape = guide_legend_group(key = key_group_lut(met_levels, mt_headers),
+                                   override.aes = list(colour = "black"))) +
+  
   theme_minimal() +
   my_theme_trans() +
   theme(
     legend.text              = ggtext::element_markdown(),
     legendry.legend.subtitle = element_text(face = "bold"),   # styles the group headers
     legend.position = "inside",
-    legend.position.inside = c(0.15, 0.7)
+    legend.position.inside = c(0.08, 0.6)
   )
 
-sightings
+method_map
 
 
 ```
+
+```{r}
+ggsave(filename = "./figures/method_map.png", method_map, width = 1920, height = 1920, dpi = 200, units = "px")
+```
+
 
 
 
@@ -515,7 +510,12 @@ data_an %>%
   filter(species %in% c("delphinidae", "common_dolphin")) %>% 
   summarise(.by = species, n = n())
 
+# ----------------
+# Analyse effort
+
 effort <- effort_log %>% 
+  mutate(date = dmy(date)) %>% 
+  #filter(date > "2026-05-28") %>% 
   mutate(across(c(observation_start, observation_end),
                 ~ hms::as_hms(.))) %>% 
   filter(!grepl("off_effort", survey_id)) %>% 
@@ -524,37 +524,45 @@ effort <- effort_log %>%
 cat("Watch sessions:", nrow(effort),
     "| total on-effort hours:", round(sum(effort$effort_time)/60^2, 2), "\n")
 
-er <- data_an %>%  
-  filter(on_effort == 1) %>% 
-  count(spot_name, name = "sightings") %>% 
-  left_join(effort %>%
-              group_by(spot_name) %>% 
-  summarise(hours = sum(effort_time)/60^2), by = "spot_name") %>% 
-  mutate(per_hour = round(sightings/hours, 2)) %>% 
-  select(spot_name, sightings, hours, per_hour) %>% 
-  arrange(desc(per_hour))
 
 
-# Create flextable from the data
-flextable(er) %>% 
-   set_header_labels(
-    per_hour = "Sightings per hour",
-    spot_name = "Spotname",
-    sightings = "# of sightings",
-    hours = "on-effort Hours"
-  ) %>% 
-  colformat_double(
-    j = "hours",
-    digits = 2
-  ) %>% 
-  autofit() %>% 
-  theme_booktabs()
 
 
 cat("\nEncounter rate by station:\n"); print(er)
 
 
-# On effort hours per person
+effort %>%  
+  as.data.frame() %>% 
+  mutate(
+    dur = as.duration(observation_end - observation_start)
+  ) %>% 
+  select(survey_id, spot_name, dur) %>% 
+  summarise(
+    n = n(),
+    .by = spot_name
+  )
+
+effort %>% 
+  as.data.frame() %>%
+  mutate(
+    dur = as.duration(observation_end - observation_start)
+  ) %>% 
+  select(survey_id, spot_name, dur) %>% 
+  summarise(
+    time = sum(dur),
+    .by = spot_name
+  )
+
+
+surveys_spot <- data_an %>% 
+  summarise(
+    n = n(),
+    .by = spot_name
+  )
+
+
+
+# On effort # On effort # On effort hours per person
 per_person <- effort_log %>% 
   mutate(duration = as.numeric(
     difftime(ymd_hms(observation_end), ymd_hms(observation_start), units = "mins")
@@ -604,7 +612,6 @@ sighting_day <- sight_time %>%
   labs(
     x = "Time",
     y = "n of sightings",
-    title = "Number of sightings over the day"
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
@@ -636,22 +643,23 @@ tide_df
 ### Compare current to target watches/hours
 Target hours comes from the Power Analysis script
 
+
 ```{r}
-per_spot <- as.data.frame(effort_log) %>% 
+per_spot <- as.data.frame(effort) %>% 
   filter(spot_name %in% active_spots$spot_name) %>% 
-  mutate(duration = as.numeric(
-    difftime(ymd_hms(observation_end), ymd_hms(observation_start), units = "mins")
-  )) %>% 
+  # mutate(duration = as.numeric(
+  #   difftime(ymd_hms(observation_end), ymd_hms(observation_start), units = "mins")
+  # )) %>% 
   summarise(
-    total_mins = sum(duration, na.rm = TRUE),
-    total_hours = sum(duration, na.rm = TRUE)/60,
-    percent = round((total_hours / 10) * 100, 2), 
+    total_hours = sum(effort_time, na.rm = TRUE)/60^2,
+    total_mins = total_hours*60,
+    percent = round((total_hours / 9) * 100, 2), 
     .by = "spot_name"
   )
 
 aim <- data.frame(
   spot = per_spot$spot_name,
-  target = 10
+  target = 9
 )
 
 hour_spot <- per_spot %>% 
@@ -828,7 +836,16 @@ SPUE
 ```
 
 ```{r}
+day_SPUE <- sighting_day + SPUE +
+  plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = "bold", size = 14))
+```
+
+
+
+```{r}
 ggsave(filename = "./figures/SPUE.png", SPUE, width = 1000, height = 1000, dpi = 200, units = "px")
+ggsave(filename = "./figures/day_SPUE_comb.png", day_SPUE, width = 2000, height = 1000, dpi = 200, units = "px")
 ```
 
 
@@ -1070,19 +1087,95 @@ png(density, "density.png")
 
 # Create detection function per spot
 
-```{r}
+Clean data into clean df with only dolphin sightings and area size 
+
+```{r, clean data for ds}
 library(Distance)
 
-dat <- data %>% 
-  select(-observer)
+# Run wedge chunk before this
+sectors_m2 <- st_transform(sectors, 32630)            # back to metres
+sectors_m2$area_m2 <- as.numeric(st_area(sectors_m2))
 
-# on-effort detections with a valid radial distance
-d <- subset(dat, on_effort == TRUE & !is.na(distance))
-d$size      <- d$group_size
-d$spot_name <- factor(d$spot_name)
+sectors_m2 <- as.data.frame(sectors_m2) %>% 
+  select(-geometry) %>% 
+  rename("Region.Label" = name)
 
-# truncate the furthest ~10% (reticle angular resolution is poor at km scale)
-trunc <- as.numeric(quantile(d$distance, 0.90, na.rm = TRUE))
+sight <- data %>% 
+  filter(on_effort == TRUE) %>% 
+  filter(species %in% c("common_dolphin", "delphinidae")) %>% 
+  transmute(survey_id, distance, size = group_size, species)
+  
+
+eff <- effort_log %>% 
+  mutate(sector_deg = abs(spot_bearing2 - spot_bearing1)) %>% 
+  as.data.frame() %>% 
+  select(-geometry)%>% 
+  filter(spot_name %in% active_spots$spot_name) %>% 
+  mutate(Effort = sector_deg/360) %>% 
+  select("Region.Label" = spot_name,
+         "Sample.Label" = survey_id,
+         "height" = observer_height,
+         Effort) %>% 
+  left_join(sectors_m2, by = "Region.Label")
+
+dis <- eff %>% 
+  as.data.frame() %>% 
+  left_join(sight, by = c("Sample.Label" = "survey_id")) %>% 
+  rename(Area = area_m2) %>% 
+  mutate(
+    size = replace_na(size, median(dis$size, na.rm = TRUE))
+  )
+
+dis$object <- NA_integer_
+dis$object[!is.na(dis$distance)] <- seq_len(sum(!is.na(dis$distance)))
+
+
+
+```
+
+
+
+
+```{r, run different ds methods}
+
+
+trunc <- 10000
+conversion.factor <- convert_units("Metre", NULL, "square metre")
+
+# Overall detection function (pooled)
+d.hn <- ds(data=dis %>% filter(!is.na(dis$size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc)
+d.hr <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc)
+
+
+# height as a covariatte
+d.ht <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height)
+
+summary(d.hn)
+summary(d.hr)
+
+
+
+plot(d.hn, pdf = TRUE)
+plot(d.hr, pdf = TRUE)
+
+AIC(d.hn, d.hr, d.ht)
+summarize_ds_models(d.hn, d.hr, d.ht)
+
+# GOF to test if model fits the dat
+gof_ds(d.ht)
+
+
+# Abundance estimates from detection function with stratum as stratification
+dht2(d.hr, flatfile = dis, strat_formula = ~Region.Label, convert_units = conversion.factor)
+
+
+
+
+
+
 
 # pooled POINT-transect detection functions
 m_hn   <- ds(d, transect = "point", key = "hn", adjustment = "cos", truncation = trunc)
@@ -1095,7 +1188,9 @@ m_spot <- ds(d, transect = "point", key = "hn", formula = ~spot_name,       trun
 AIC(m_hn, m_hr, m_ht, m_spot)   # model selection
 summary(m_ht)
 gof_ds(m_ht)                    # Cramér–von Mises goodness-of-fit
-plot(m_ht)      
+plot(m_ht)     
+
+summarize_ds_models(sasp.hn, sasp.hr.poly, sasp.unif.cos)
 
 ```
 
