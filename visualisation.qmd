@@ -1123,7 +1123,7 @@ dis <- eff %>%
   left_join(sight, by = c("Sample.Label" = "survey_id")) %>% 
   rename(Area = area_m2) %>% 
   mutate(
-    size = replace_na(size, median(dis$size, na.rm = TRUE))
+    size = replace_na(size, median(size, na.rm = TRUE))
   )
 
 dis$object <- NA_integer_
@@ -1149,48 +1149,68 @@ d.hr <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc)
 
 
-# height as a covariatte
-d.ht <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
-              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height)
+AIC(d.hn, d.hr)
 
 summary(d.hn)
 summary(d.hr)
 
 
+gof_ds(d.hn)
+gof_ds(d.hr)
 
 plot(d.hn, pdf = TRUE)
 plot(d.hr, pdf = TRUE)
 
-AIC(d.hn, d.hr, d.ht)
-summarize_ds_models(d.hn, d.hr, d.ht)
+# height as a covariate
+d.ht <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height)
+# Region as covariate
+d.re <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~Region.Label)
+#Region and height
+d.rh <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height, ~Region.Label)
 
-# GOF to test if model fits the dat
+AIC(d.ht, d.re, d.rh)
+
+# GOF to test if model fits the data
 gof_ds(d.ht)
+gof_ds(d.re)
+gof_ds(d.rh)
+
+
+plot(d.ht, pdf = TRUE)
+plot(d.re, pdf = TRUE)
+plot(d.rh, pdf = TRUE)
+
+# Summary of the best model and abundance and density estimates
+summary(d.ht)
+
+
+summarize_ds_models(d.hn, d.hr, d.ht, d.re, d.rh)
+
 
 
 # Abundance estimates from detection function with stratum as stratification
-dht2(d.hr, flatfile = dis, strat_formula = ~Region.Label, convert_units = conversion.factor)
+dht2(d.ht, flatfile = dis, strat_formula = ~Region.Label, convert_units = conversion.factor)
 
 
+```
 
+```{r}
+png(file="./figures/d_hn.png",
+width=2500, height=2000, res = 300)
+plot(d.hn, pdf = TRUE)
+dev.off()
 
+png(file="./figures/d_hr.png",
+width=2500, height=2000, res = 300)
+plot(d.hr, pdf = TRUE)
+dev.off()
 
-
-
-# pooled POINT-transect detection functions
-m_hn   <- ds(d, transect = "point", key = "hn", adjustment = "cos", truncation = trunc)
-m_hr   <- ds(d, transect = "point", key = "hr", adjustment = "cos", truncation = trunc)
-
-# detectability as a covariate instead of per-spot fits (MCDS, no adjustment terms)
-m_ht   <- ds(d, transect = "point", key = "hn", formula = ~observer_height, truncation = trunc)
-m_spot <- ds(d, transect = "point", key = "hn", formula = ~spot_name,       truncation = trunc)
-
-AIC(m_hn, m_hr, m_ht, m_spot)   # model selection
-summary(m_ht)
-gof_ds(m_ht)                    # Cramér–von Mises goodness-of-fit
-plot(m_ht)     
-
-summarize_ds_models(sasp.hn, sasp.hr.poly, sasp.unif.cos)
-
+png(file="./figures/gof_ht_co.png",
+width=2500, height=2000, res = 300)
+gof_ds(d.ht)
+dev.off()
 ```
 
