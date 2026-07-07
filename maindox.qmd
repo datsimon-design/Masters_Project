@@ -1,13 +1,14 @@
 ---
 title: "Investigating Spatial Distribution of Cetacean in the British Gibraltar Territorial Waters (BGTW)"
 author: "Simon Gendrisch"   
-keywords: "Cetacean, BGTW, Spatial Distribution, Kernel Density Estimation, Land Based Surveys"
+keywords: [Cetacean, BGTW, Spatial Distribution, Kernel Density Estimation, Land Based Surveys]
 
 format: 
   typst:
         template-partials: 
           - typst/typst-show.typ
           - typst/typst-template.typ
+        output-file: Supplemental
         citeproc: true
 bibliography: refs.bib
 csl: "SoMESHarvard.csl"
@@ -29,7 +30,6 @@ crossref:
   (key: "iwc",  short: "IWC",  long: "International Whaling Commission"),
   (key: "noaa", short: "NOAA", long: "National Oceanic and Atmospheric Administration"),
   (key: "obis", short: "OBIS", long: "Ocean Biodiversity Information System"),
-  (key: "gps",  short: "GPS",  long: "Global Positioning System"),
   (key: "spue", short: "SPUE", long: "Sightings per unit effort"),
   (key: "pid", short: "Photo ID", long: "Photo Identification"),
   (key: "aic", short: "AIC", long: "Akaike Information Criterion"),
@@ -118,6 +118,8 @@ crossref:
 {{< pagebreak >}}
 
 # Discussion
+
+{{< include ./chapters/discussion.qmd >}}
 
 {{< pagebreak >}}
 

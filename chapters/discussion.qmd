@@ -1,0 +1,21 @@
+---
+bibliography: refs.bib
+---
+
+## Results Discussion
+The results suggest that there are significantly more sightings (@fig-dis_spot B) and a higher dolphin density (@fig-kde_map) at the southern tip of Gibraltar (Europa Point). This may be explained by the geographical characteristics of the area, as the currents around this point are the strongest among the three sampling points, leading to increased upwelling and the creation of a favourable foraging ground for cetaceans (@sanchez-garridoAlboranSeaCirculation2022). Moreover, the southern area, although still experiencing high levels of traffic, exhibits a lower frequency of ship bunkering compared to other areas. This lower traffic could benefit cetaceans and also increase the detectability from the vantage points. Conversely, this observation could be explained by the elevation of the observation point, which was the lowest of all points surveyed. Consequently, the probability of detecting dolphins in proximity to the shoreline is increased in comparison to vantage points situated at higher altitudes above sea level.
+
+
+<!-- Comment on Olayas study addressing the southern location of PG -->
+Conversely, previous studies by Olaya-Ponzone et al. [-@olaya-ponzoneSpatioTemporalPatternsLimited2026; -@olaya-ponzoneMixedspeciesDolphinGroups2025] suggested that sightings on the west side were expected to be the highest. These studies indicated that the detection of dolphins was highest inside the bay and around the deep underwater canyon inside the Bay of Gibraltar and Algeciras. Contrary to this, the number of sightings on the west side was comparatively low when assessed per unit effort. It has been hypothesized that the frequent use of the Bay of Algeciras and Gibraltar by commercial ships for bunkering and as a main anchorage in a heavily trafficked area may be the reason for the restricted view while surveying. This may result in the potential limitations to observe groups. Moreover, the elevated perspective affording a view of the bay is situated in a relatively southerly direction. This geographical positioning presents a challenge in effectively surveying the northern section of the bay, particularly with regard to accurately confirming species and quantifying group size.
+
+### Detection Function
+Fitting a robust detection function to observations usually needs around 75 – 100 sightings per survey area [@bucklandIntroductionDistanceSampling2001], due to the restricted timeframe and difficulties associated with the change in the survey design the data collection was not sufficient enough to collect enough sightings. The detection function and the density estimation should as such be viewed with care.
+
+Another caveat of this approach was already expressed in multiple studies [@keenDeterminingMarineMammal2021; @thomasDistanceSoftwareDesign2010; @howeDistanceSamplingCamera2017] as it assumes animal density and detectability to be roughly uniform across the scanned sector. This assumption cannot be confirmed by this study in the confound timeframe and as such should also be considered for future studies.
+
+## Data Collection
+Even though the sea state was assessed before every watch the sea state could vary within one sector due to the complexity of the Gibraltar coastline as well as the funnel effect from the Strait of Gibraltar. This resulted in possibly missed observation even though the sea state overall was suitable [@giacomaAreLandBased2013; @keenDeterminingMarineMammal2020]. Furthermore glare and swell height could influence the detection probability, even though they were recorded as a cofactors they weren’t used as factors for **detection function** or the kernel density estimation.
+<!-- Check with Stephen if I should add this -->
+
+Point sampling has rarely been adapted to small cetaceans, as their smaller size and short surfacing times with little to no indicators, makes them harder to spot from a distance. When used on small cetaceans [@giacomaAreLandBased2013; @emblingHowMuchEffort2015; @keenDeterminingMarineMammal2020] the survey were coupled with a camera or even an infrared camera. There have been successful studies implementing this studies even though they were mostly observing larger species such as *Tursiops truncatus* [@gutierrez-munozPatternsTrendsCetacean2021].

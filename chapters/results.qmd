@@ -18,12 +18,14 @@ library(here)
 library(english)
 ```
 
-```{r}
+```{r, define spell_nr}
 
 spell_nr <- function(x){
   if (x <= 9){
-    english(x)
-  } else x
+    as.character(english::english(x))
+  } else{
+    x
+  } 
 }
 ```
 
@@ -122,6 +124,8 @@ boat <- full %>%
 #|include: false
 
 effort <- effort_log %>% 
+  mutate(date = dmy(date)) %>% 
+  filter(date > "2026-05-28") %>% 
   mutate(across(c(observation_start, observation_end),
                 ~ hms::as_hms(.))) %>% 
   filter(!grepl("off_effort", survey_id)) %>% 
@@ -148,7 +152,15 @@ total_land <- effort %>%
     surveys = n()
   )
 
-
+species <- data %>%  
+  filter(spot_name %in% active_spots$spot_name) %>% 
+  summarise(max_group = max(group_size, na.rm = TRUE),
+            min_group = min(group_size, na.rm = TRUE),
+            max_dis = max(distance, na.rm = TRUE),
+            min_dis = min(distance, na.rm = TRUE),
+            sightings = n(),
+            .by = "species")  %>% 
+  arrange(desc(sightings))
 
 
 ```
@@ -159,6 +171,8 @@ total_land <- effort %>%
 
 effort <- effort_log %>%
   filter(!str_detect(survey_id, "off_effort")) %>%
+  mutate(date = dmy(date)) %>% 
+  filter(date > "2026-05-28") %>% 
   mutate(
     duration_min = as.numeric(difftime(observation_end, observation_start,
                                         units = "mins"))
@@ -237,7 +251,7 @@ spue_report <- spue_summary %>%
 # Include the right df from datavis script
 
  active <- c("Europa", "SandyBay", "PrinceGeorge")
- scans  <- effort %>% filter(spot_name %in% active)   # per-scan rows, NOT the summary
+ scans  <- effort %>% filter(spot_name %in% active) # per-scan rows, NOT the summary
 
 # count(scans, spot_name)
 
@@ -249,24 +263,89 @@ spue_report <- spue_summary %>%
 ```
 
 ```{r, Distance function and test}
+ #|include: false
+ #|echo: false
+ #|output: false
+ #|fig-show: hide
+
+library(Distance)
+
+dis <- readRDS(here("temp", "dis.rds"))
+trunc <- 8000
+conversion.factor <- convert_units("Metre", NULL, "square metre")
+
+# Overall detection function (pooled)
+d.hn <- ds(data=dis %>% filter(!is.na(dis$size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc)
+d.hr <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc)
+
+
+# Significant is good so it does not fit the data
+gof_hn <- gof_ds(d.hn, plot = FALSE)
+
+# P value is not significant, good
+gof_hr <- gof_ds(d.hr, plot = FALSE)
+
+# height as a covariate
+d.ht <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height)
+# Region as covariate
+d.re <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~Region.Label)
+#Region and height
+d.rh <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height, ~Region.Label)
+
+
+# Write summary table
+model_tab <- summarize_ds_models(d.hn, d.hr, d.ht, d.re, d.rh, output = "plain")
+
+# Summary of the best model and abundance and density estimates
+sum_ht <- summary(d.ht)
 
 
 ```
 
+```{r, Clean ds data}
+ #|include: false
+
+cluster_clean <- sum_ht$dht$clusters$D %>% 
+  transmute(Label,
+            "Density (km⁻²)"   = Estimate * 1e6,
+            "SE (km⁻²)" = se * 1e6,
+            "LCL (km⁻²)" = lcl * 1e6,
+            "UCL (km⁻²)" = ucl * 1e6,
+            CV = cv)
+
+indiv_clean <- d.ht$dht$individuals$D %>% 
+  transmute(Label,
+            "Density (km⁻²)"   = Estimate * 1e6,
+            "SE (km⁻²)" = se * 1e6,
+            "LCL (km⁻²)" = lcl * 1e6,
+            "UCL (km⁻²)" = ucl * 1e6,
+            CV = cv)
+
+```
+
+
 
 This study adapted point transect distance sampling to small cetaceans, utilising a modified version of the point transect protocol primarily employed for birds or larger cetaceans [@bucklandIntroductionDistanceSampling2001a]. The protocol was adapted to incorporate land-based surveys, enabling a systematic assessment of the cetacean distribution in the `#gls("bgtw")`{=typst}.
 
-Overall, `r  full_sum$sightings` cetacean sightings were recorded between `r format(min(full$date.x), "%d.%m.%Y")` and `r format(max(full$date.x), "%d.%m.%Y")`, including pilot studies and both vessel- and land-based surveys. A total of two vessel-based surveys were conducted, accounting for `r spell_nr(full_source$boat)` of these sightings: `r spell_nr(boat_species$common_dolphin)` common dolphins (*Delphinus delphis*) and `r spell_nr(boat_species$striped_dolphin)` striped dolphins (*Stenella coeruleoalba*) and `r spell_nr(boat_species$delphinidae)` sighting where the species could not be identified. The group size for vessel-based sightings ranged from `r spell_nr(min(boat$group_size, na.rm = TRUE))` to `r spell_nr(max(boat$group_size, na.rm = TRUE))` (mean = `r round(mean(boat$group_size, na.rm = TRUE), 2)`, ±`r round(sd(boat$group_size, na.rm = TRUE), 2)`, median = `r round(median(boat$group_size, na.rm = TRUE), 2)`).
+## Survey Results
+Overall, `r  full_sum$sightings` cetacean sightings were recorded between `r format(min(full$date.x), "%d.%m.%Y")` and `r format(max(full$date.x), "%d.%m.%Y")`, including pilot studies and both vessel- and land-based surveys (@fig-totalmap). A total of two vessel-based surveys were conducted, accounting for `r spell_nr(full_source$boat)` of these sightings: `r spell_nr(boat_species$common_dolphin)` common dolphins (*Delphinus delphis*) and `r spell_nr(boat_species$striped_dolphin)` striped dolphins (*Stenella coeruleoalba*) and `r spell_nr(boat_species$delphinidae)` sighting where the species could not be identified. The group size for vessel-based sightings ranged from `r spell_nr(min(boat$group_size, na.rm = TRUE))` to `r spell_nr(max(boat$group_size, na.rm = TRUE))` (mean = `r round(mean(boat$group_size, na.rm = TRUE), 2)`, ±`r round(sd(boat$group_size, na.rm = TRUE), 2)`, median = `r round(median(boat$group_size, na.rm = TRUE), 2)`).
 
-In total `r total_land$surveys` land-based surveys were conducted, resulting in `r round(sum(er$hours), 2)` total on effort hours over `r length(unique(effort$date))` survey days. `r length(data$survey_id)` cetacean sightings were recorded in this sampling period, of which `r sum(data$on_effort)` were on-effort and `r spell_nr(sum(!data$on_effort))` off-effort. Of these, `r by_familiy$odontoceti` were Odontoceti, so either common dolphins (n = `r by_species$common_dolphin`) or dolphins where the species couldn’t certainly be defined (n = `r by_species$delphinidae`) and `r spell_nr(by_familiy$mysteciti)` Mysticeti of which `r spell_nr(by_species$fin_whale)` could be identified as Fin whales (*Balaenoptera physalus*). `r spell_nr(by_species$unidentified)` sightings could not be reliably assigned and were recorded as unidentified (@fig-sight_map).
+![Total Sightings and the according method used to record the sightings.](figures/method_map.png){#fig-totalmap}
+
+In total `r total_land$surveys` land-based surveys were conducted, resulting in `r round(sum(er$hours), 2)` total on effort hours over `r length(unique(effort$date))` survey days. `r length(data$survey_id)` cetacean sightings were recorded in this sampling period, of which `r sum(data$on_effort)` were on-effort and `r spell_nr(sum(!data$on_effort))` off-effort. Of these, `r by_familiy$odontoceti` were Odontoceti, so either common dolphins (n = `r by_species$common_dolphin`) or dolphins where the species could not certainly be defined (n = `r by_species$delphinidae`) and `r spell_nr(by_familiy$mysteciti)` Mysticeti of which `r spell_nr(by_species$fin_whale)` could be identified as Fin whales (*Balaenoptera physalus*). `r spell_nr(by_species$unidentified)` sightings could not be reliably assigned and were recorded as unidentified (@fig-sight_map).
 
 ![All sightings collected from land-based surveys between `r format(min(full$date.x), "%d.%m.%Y")` and `r format(max(full$date.x), "%d.%m.%Y")`. The sightings were recorded from three different spots, Europa Point, Sandy Bay and Prince George's Battery.](figures/sightings_legend.png){#fig-sight_map}
 
-The group size for land-based sightings ranged from `r min(data$group_size, na.rm = TRUE)` to `r max(data$group_size, na.rm = TRUE)` (mean = `r round(mean(data$group_size, na.rm = TRUE), 2)`, ±`r round(sd(data$group_size, na.rm = TRUE), 2)`, median = `r round(median(data$group_size, na.rm = TRUE), 2)`). The overview table (@tbl-spot) showed different maximum and minimum distances as well as varying group sizes across the spots.
+The group size for land-based sightings ranged from `r min(data$group_size, na.rm = TRUE)` to `r max(data$group_size, na.rm = TRUE)` (mean = `r round(mean(data$group_size, na.rm = TRUE), 2)`, ±`r round(sd(data$group_size, na.rm = TRUE), 2)`, median = `r round(median(data$group_size, na.rm = TRUE), 2)`). The overview table (@tbl-spot) showed different maximum and minimum distances as well as varying group sizes across the spots, with the farthest sighting being `r round(max(er$max_dis)/1000,2)` km away from the observation platform.
 
 ```{r}
 #| label: tbl-spot
-#| tbl-cap: "Statistics per spots over the sampling period."
+#| tbl-cap: "Statistics per spots over the sampling period. Pilot studies were excluded in this table."
 
 tbl_er <- er %>% 
   rename(
@@ -282,8 +361,8 @@ tbl_er <- er %>%
 
 tt(tbl_er,
    width = c(2, 1 , 1, 2.1, 2, 2, 1.5, 1.5)) %>% 
-  format_tt(j = c(3, 4, 5, 6), digits = 2,
-            num_fmt = "decimal", num_zero = TRUE) %>% 
+  format_tt(j = c(3, 4), digits = 2,
+            num_fmt = "decimal", num_zero = TRUE, ) %>% 
   format_tt(j = c(5, 6), fn = function(x) sprintf("%.1f m", x)) %>% 
    style_tt(i = 0, bold = TRUE) %>% 
   style_tt(j = 2:8, align = "c")
@@ -292,7 +371,34 @@ tt(tbl_er,
 
 ```
 
-Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$sightings)]`, covering mainly the **X** side (n = `r max(per_spot$sightings)`). And between the hours XX and XX (@fig-day_SPUE A). `#gls("spue")`{=typst} were highest at spot XX (@fig-day_SPUE B, @tbl-spue_report). A Kruskal-Wallis test showed a significant difference in `#gls("spue")`{=typst} among spots (χ² = `r round(as.numeric(SPUE_kru$statistic),2)`, df = `r as.numeric(SPUE_kru$parameter)`, p = `r round(SPUE_kru$p.value,3)`), Dunn’s test, with a Benjamini-Hochberg correction, showed a significant difference between spot XX and XX (adjusted p = `r SPUE_dunn$res[1,4]`).
+The most common species recorded were the Common Dolphins (n = `r species$sightings[1]`), followed by unidentified dolphins (n = `r species$sightings[2]`). The farthest sightings were unidentified dolphins at around `r round(max(species$max_dis/1000),2)` km (@tbl-species).
+
+```{r}
+#| label: tbl-species
+#| tbl-cap: "Summary table of species group size and maximum and minimum distance of the observerd sightings."
+
+tbl_species <- species %>% 
+  rename(
+    "Species"      = species,
+    "Max. Group Size" = max_group,
+    "Min. Group Size"    = min_group,
+    "Maximum Distance"     = max_dis,
+    "Minimum Distance" = min_dis,
+    "Sightings"           = sightings
+  )
+
+tt(tbl_species) %>% 
+  style_tt(i = 0, bold = TRUE) %>% 
+  style_tt(j = c(2,3, 5), align = "c") %>% 
+  format_tt(j = c(4, 5), fn = function(x) sprintf("%.1f m", x))
+```
+
+
+The number of sightings was also plotted against the distance they were recorded in a histogram (@fig-dis_spot). With a clear trend of sightings at Europa being closer to the observer compared to the other spots.
+
+![Number of sightings against the Distance (in m) where they were recorded relative to the observation spot. Split up by the different substrata (East (E), South(S) and West(W)).](figures/distance_facet.png){#fig-dis_spot}
+
+Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$sightings)]`, covering mainly the southern side (n = `r max(per_spot$sightings)`). And between the hours XX and XX (@fig-day_SPUE A). `#gls("spue")`{=typst} were highest at Europa (@fig-day_SPUE B, @tbl-spue_report). A Kruskal-Wallis test showed a significant difference in `#gls("spue")`{=typst} among spots (χ² = `r round(as.numeric(SPUE_kru$statistic),2)`, df = `r as.numeric(SPUE_kru$parameter)`, p = `r round(SPUE_kru$p.value,3)`), Dunn’s test, with a Benjamini-Hochberg correction, showed a significant difference between Europa and Prince George (adjusted p = `r round(SPUE_dunn$res[1,4],3)`).
 
 ![Sightings over time of day (A) showed tow peaks before and after noon. Sightings per Unit Effort (SPUE) showed a significant difference between Europa and Prince George using Kruksal-Wallis and Dunn's test(B).](figures/day_SPUE_comb.png){#fig-day_SPUE}
 
@@ -333,18 +439,55 @@ tt(tbl_dat,
 
 ```
 
+## Detection model fitting
+Using the `Distance` package [@millerDistanceSampling2019] a detection function was fitted per spot. Using the hr key function resulted in the lowest AIC value (hn = `r AIC(d.hn)[1,2]`; hr = `r AIC(d.hr)[1,2]`) and was therefore used for further analyis. The goodness of fit test confirmed the choice of the key function (hn p-value: `r round(gof_hn$dsgof$CvM$p,3)`; hr p-value = `r round(gof_hr$dsgof$CvM$p,3)`).
+To increase the fit of the function height and region were used as covariates. Using height as covariate and in combination with the region resulted in the lowest AIC (@tbl-model_summary).
 
-Using the `Distance` package [@millerDistanceSampling2019] a detection function was fitted per spot (Figure XX). Using the XX key function resulted in the lowest AIC value and was therefore used for further analyis.
+```{r}
+#| label: tbl-model_summary
+#| tbl-cap: "Summary of the models used to fit the detection function. The formula represents the covariates used."
 
-<!-- Include figure of detection functions -->
+tt(model_tab) %>% 
+  style_tt(i = 0, bold = TRUE) %>% 
+  style_tt(j = 4:7, align = "c")
 
-Using the detection functions the relative abundance of dolphins was calculated. The Abundance using the XX key function was estimated to be XX individuals (95 % CI: XX - XX) 
+```
+
+Using the hr key function along with height as a covariate the detection function was plotted (@fig-ht_model).
+
+```{r}
+#| label: fig-ht_model
+#| fig-cap: "Detection function using the hr key function along with height as covariate."
+
+plot(d.ht, pdf = TRUE)
+```
 
 
+Using the best fitted detection functions the relative abundance of dolphins was calculated. The highest cluster density was estimated to be `r round(sum_ht$dht$clusters$D$Estimate[1]* 1e6, 3)` per km² at Europa (95 % CI: `r round(cluster_clean[1,3], 2)` - `r round(cluster_clean[1,4], 2)`; CV: `r round(cluster_clean$CV[1], 2)`)(@tbl-cluster).
 
+```{r}
+#| label: tbl-cluster
+#| tbl-cap: "Cluster density estimates per spot using the detection function with height as covariate."
+
+tt(cluster_clean) %>% 
+  style_tt(i = c(0, 4), bold = TRUE)
+```
+
+The highest individual density was estimated at Europa `r round(sum_ht$dht$individuals$D$Estimate[1]* 1e6, 3)` per km² (95 % CI: `r round(indiv_clean[1,3], 2)` - `r round(indiv_clean[1,4], 2)`; CV: `r round(indiv_clean$CV[1], 2)`)(@tbl-indiv).
+
+```{r}
+#| label: tbl-indiv
+#| tbl-cap: "Individual density estimates per spot using the detection function with height as covariate."
+
+tt(indiv_clean) %>% 
+  style_tt(i = c(0, 4), bold = TRUE)
+```
+
+
+<!-- Here comes a table of the abundance estimates from the ds function -->
+
+## Kernel Density Estimation
 The Kernel Density Estimation using group size as a weight variable showed the highest density around the south western tip of the peninsula (lat: XX, lon: XX). With the core area covering most of the southern sector (@fig-kde_map). The home area stretched around the whole peninsula covering most of the BGTW and every sector.
 
-
-<!-- Include KDE map here -->
 
 ![The Kernel Density Estimation (KDE) of the sightings collected from land-based surveys between `r format(min(full$date.x), "%d.%m.%Y")` and `r format(max(full$date.x), "%d.%m.%Y")`. The KDE was calculated using group size as a weight variable. The highest density was found around the south western tip of the peninsula (lat: XX, lon: XX).](figures/density_map.png){#fig-kde_map}
