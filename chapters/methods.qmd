@@ -57,7 +57,7 @@ $$
 
 Using the distance and the bearing, the location can be calculated and plotted.
 
-Because of the enclosed nature of the western survey area (the Bay of Algeciras, Gibraltar), the far shore of the bay rather than the sea horizon was visible along most bearings from the Westside station. As the reticle method derives distance from the angular separation between a sighting and a known reference line, the standard horizon-based formula could not be applied here: the coastline sits closer than the true horizon and therefore at a different (greater) angle of depression, so treating it as the horizon would overestimate sighting distances.
+Because of the enclosed nature of the western survey area (the Bay of Gibraltar), the far shore of the bay rather than the sea horizon was visible along most bearings from the Westside station. As the reticle method derives distance from the angular separation between a sighting and a known reference line, the standard horizon-based formula could not be applied here: the coastline sits closer than the true horizon and therefore at a different (greater) angle of depression, so treating it as the horizon would overestimate sighting distances.
 
 For this station the reference depression angle was derived from the distance to the coastline along each sighting's bearing instead. Using a detailed polygon of the bay's landmasses (including the detached mole off Algeciras, which forms the first visible obstacle on some bearings), a ray was projected from the observation point along the recorded horizontal bearing, and the distance to the first intersection with land was taken as the reference distance ($d_{ref}$). The depression angle of the reference line was then calculated as:
 

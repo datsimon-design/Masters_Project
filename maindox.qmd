@@ -34,6 +34,7 @@ crossref:
   (key: "pid", short: "Photo ID", long: "Photo Identification"),
   (key: "aic", short: "AIC", long: "Akaike Information Criterion"),
   (key: "kde", short: "KDE", long: "Kernel Density Estimation"),
+  (key: "locoh", short: "LoCoH", long: "Local Convex Hull"),
 )
 #register-glossary(abbreviations)
 ```
@@ -43,6 +44,7 @@ crossref:
 ```
 
 # Generative AI (GenAI) Use
+This is just a short summary of how AI was used. 
 
 # List of Content
 ```{=typst}
@@ -105,7 +107,7 @@ crossref:
 
 # Introduction / Literature review 
 
-# Methods
+# Methods {#methods-sec .unnumbered}
 
 {{< include ./chapters/methods.qmd >}}
 
@@ -135,4 +137,4 @@ crossref:
 
 {{< pagebreak >}}
 
-# Declaration of Originality 
+# Declaration of Originality / Use of Gen AI

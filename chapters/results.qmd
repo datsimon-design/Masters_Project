@@ -396,7 +396,7 @@ tt(tbl_species) %>%
 
 The number of sightings was also plotted against the distance they were recorded in a histogram (@fig-dis_spot). With a clear trend of sightings at Europa being closer to the observer compared to the other spots.
 
-![Number of sightings against the Distance (in m) where they were recorded relative to the observation spot. Split up by the different substrata (East (E), South(S) and West(W)).](figures/distance_facet.png){#fig-dis_spot}
+![Number of sightings against the Distance (in m) where they were recorded relative to the observation spot. Split up by the different substrata (East (E), South (S) and West (W)).](figures/distance_facet.png){#fig-dis_spot}
 
 Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$sightings)]`, covering mainly the southern side (n = `r max(per_spot$sightings)`). And between the hours XX and XX (@fig-day_SPUE A). `#gls("spue")`{=typst} were highest at Europa (@fig-day_SPUE B, @tbl-spue_report). A Kruskal-Wallis test showed a significant difference in `#gls("spue")`{=typst} among spots (χ² = `r round(as.numeric(SPUE_kru$statistic),2)`, df = `r as.numeric(SPUE_kru$parameter)`, p = `r round(SPUE_kru$p.value,3)`), Dunn’s test, with a Benjamini-Hochberg correction, showed a significant difference between Europa and Prince George (adjusted p = `r round(SPUE_dunn$res[1,4],3)`).
 
