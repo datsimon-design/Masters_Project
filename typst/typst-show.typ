@@ -5,21 +5,10 @@ $endif$
 $if(author)$
   author: [$author$],
 $endif$
-$if(institution)$
-  institution: [$institution$],
-$endif$
 $if(keywords)$
-  keywords: [$keywords$],
+  keywords: ($for(keywords)$"$keywords$",$endfor$),
 $endif$
-$if(supervisor)$
-  supervisor: [$supervisor$],
-$endif$
-$if(ssupervisor)$
-  ssupervisor: [$ssupervisor$],
-$endif$
-$if(date)$
-  date: [$date$],
-$endif$
+
   // <-- restore your original author / affiliation argument lines here
   doc,
 )

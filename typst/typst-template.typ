@@ -2,14 +2,11 @@
 #let article(
   title: none,
   author: none,
-  subtitle: none,
-  institution: none,
-  supervisor: none,
-  ssupervisor: none,
-  date: none,
   keywords: none,
   body,
 ) = {
+  set document(title: title, author: "Simon Gendrisch", keywords: keywords)
+
  page(header: none, footer: none, numbering: none, paper: "a4")[
   #set text(font: "Libertinus Serif", size: 12pt)
   #set par(justify: false, leading: 0.6em)
@@ -36,7 +33,7 @@
   #text()[SMES\@unigib.edu.gi]
 
   #v(1.5em)
-  #text(style: "italic")[Keywords: #keywords.]
+  #text(style: "italic")[Keywords: #keywords.join(", ").]
 
   #v(1.5em)
   Word count (excluding References and Appendices): #text( weight: "bold")[*XXXX* words]
@@ -45,20 +42,26 @@
 
   ]
 
+  
+
   // Rest of article styling
   set page(
     paper: "a4",
     margin: (
-      x: 3cm,
+      x: 2.5cm,
       y: 2.5cm,
     )
   )
   
-  
   set text(
     font: "Libertinus Serif",
     size: 12pt,
-    top-edge: 1em
+    top-edge: 1em,
+  )
+  
+  set par(
+    spacing: 1.5em,
+    justify: true
   )
 
   
