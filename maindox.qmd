@@ -48,15 +48,21 @@ This is just a short summary of how AI was used.
 
 # List of Content
 ```{=typst}
+#[
+  #show outline.entry.where(
+    level: 1
+  ): set block(above: 1.2em)
 
-#outline(
-  title: []
-)
+  #outline(
+    title: []
+  )
+]
 ```
 {{< pagebreak >}}
 
 # List of Tables
 ```{=typst}
+
 #outline(
   title: [],
   target: figure.where(kind: "quarto-float-tbl"),
