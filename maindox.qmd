@@ -8,7 +8,7 @@ format:
         template-partials: 
           - typst/typst-show.typ
           - typst/typst-template.typ
-        output-file: Supplemental
+        output-file: M8.2_SupDoc_206708
         citeproc: true
 bibliography: refs.bib
 csl: "SoMESHarvard.csl"
@@ -31,16 +31,22 @@ crossref:
   (key: "noaa", short: "NOAA", long: "National Oceanic and Atmospheric Administration"),
   (key: "obis", short: "OBIS", long: "Ocean Biodiversity Information System"),
   (key: "spue", short: "SPUE", long: "Sightings per unit effort"),
-  (key: "pid", short: "Photo ID", long: "Photo Identification"),
+  (key: "pid", short: "Photo-ID", long: "Photo Identification"),
   (key: "aic", short: "AIC", long: "Akaike Information Criterion"),
   (key: "kde", short: "KDE", long: "Kernel Density Estimation"),
   (key: "locoh", short: "LoCoH", long: "Local Convex Hull"),
+  (key: "hr", short: "hr", long: "Hazard-rate"),
+  (key: "hn", short: "hn", long: "Half-normal"),
+  (key: "accobams", short: "ACCOBAMS", long: "Agreement on the Conservation of Cetaceans of the Black Sea, Mediterranean Sea and contiguous Atlantic area"),
 )
 #register-glossary(abbreviations)
 ```
 ```{=typst}
 #counter(page).update(1)
 #set page(numbering: "i")
+```
+```{=typst}
+#[
 ```
 
 # Generative AI (GenAI) Use
@@ -107,11 +113,19 @@ This is just a short summary of how AI was used.
 {{< pagebreak >}}
 
 ```{=typst}
+] <no-wc>
+```
+
+```{=typst}
 #counter(page).update(1)
 #set page(numbering: "1")
 ```
 
 # Introduction / Literature review 
+
+{{< include ./chapters/intro.qmd >}}
+
+{{< pagebreak >}}
 
 # Methods {#methods-sec .unnumbered}
 
@@ -131,6 +145,10 @@ This is just a short summary of how AI was used.
 
 {{< pagebreak >}}
 
+```{=typst}
+#[
+```
+
 # References
 ::: {#refs}
 :::
@@ -144,3 +162,8 @@ This is just a short summary of how AI was used.
 {{< pagebreak >}}
 
 # Declaration of Originality / Use of Gen AI
+
+
+```{=typst}
+] <no-wc>
+```

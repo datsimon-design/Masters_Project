@@ -3,22 +3,22 @@ bibliography: refs.bib
 ---
 
 ## Results Discussion
-The results suggest that there are significantly more sightings (@fig-dis_spot B) and a higher dolphin density (@fig-kde_map) at the southern tip of Gibraltar (Europa Point). This may be explained by the geographical characteristics of the area, as the currents around this point are the strongest among the three sampling points, leading to increased upwelling and the creation of a favourable foraging ground for cetaceans [@sanchez-garridoAlboranSeaCirculation2022]. Moreover, the southern area, although still experiencing high levels of traffic, exhibits a lower frequency of ship bunkering compared to other areas. This lower traffic could benefit cetaceans and also increase the detectability from the vantage points. Conversely, this observation could be explained by the elevation of the observation point, which was the lowest of all points surveyed (@tbl-landspots). Consequently, the probability of detecting dolphins in proximity to the shoreline is increased in comparison to vantage points situated at higher altitudes above sea level.
+The results indicate significantly higher sighting frequencies (@fig-dis_spot B) and greater dolphin density (@fig-kde_map) at the southern tip of Gibraltar (Europa Point). One possible explanation is the area's oceanographic characteristics. Currents around Europa Point are stronger than at the other sampling locations, promoting upwelling and increasing local productivity, thereby creating favourable foraging conditions for cetaceans [@sanchez-garridoAlboranSeaCirculation2022]. In addition, although the southern sector is subject to considerable maritime activity, it experiences less ship bunkering than other parts of the bay. Reduced vessel activity may therefore result in lower levels of disturbance, potentially making the area more suitable for foraging or other behaviours. However, the observed spatial pattern should be interpreted with caution, as it may also be influenced by differences in detectability among the observation sites. Europa was surveyed from the lowest elevation of the three vantage points (@tbl-landspots), increasing the likelihood of detecting dolphins close to the shoreline compared with observations made from higher elevations. Consequently, the higher number of sightings and estimated density may partly reflect differences in observation conditions rather than true variation in dolphin occurrence.
 
 
 <!-- Comment on Olayas study addressing the southern location of PG -->
-Conversely, previous studies by Olaya-Ponzone et al. [-@olaya-ponzoneSpatioTemporalPatternsLimited2026; -@olaya-ponzoneMixedspeciesDolphinGroups2025] suggested that sightings on the west side were expected to be the highest. These studies indicated that the detection of dolphins was highest inside the bay and around the deep underwater canyon inside the Bay of Gibraltar. Contrary to this, the number of sightings on the west side was comparatively low when assessed per unit effort. It has been hypothesized that the frequent use of the Bay of Gibraltar by commercial ships for bunkering and as a main anchorage in a heavily trafficked area may be the reason for the restricted view while surveying. This may result in the potential limitations to observe groups. Moreover, the elevated perspective affording a view of the bay is situated in a relatively southerly direction. This geographical positioning presents a challenge in effectively surveying the northern section of the bay, particularly with regard to accurately confirming species and quantifying group size.
+Conversely, previous studies by Olaya-Ponzone et al. [-@olaya-ponzoneSpatioTemporalPatternsLimited2026; -@olaya-ponzoneMixedspeciesDolphinGroups2025] suggested that sightings on the west side were expected to be the highest. These studies indicated that the detection of dolphins was highest inside the bay and around the deep underwater canyon inside the Bay of Gibraltar. Contrary to this, the number of sightings on the west side was comparatively low when assessed per unit effort. It has been hypothesized that the frequent use of the Bay of Gibraltar by commercial ships for bunkering and as a main anchorage in a heavily trafficked area may be the reason for the restricted view while surveying. This may result in the potential limitations to observe groups. Moreover, the elevated perspective affording a view of the bay is situated in a relatively southerly direction. This geographical positioning presents a challenge in effectively surveying the northern section of the bay, particularly with regard to accurately confirming species and quantifying group size. In contrast to previous studies, the present study recorded a greater number of sightings on the eastern side of the Bay of Gibraltar than on the western side. This pattern suggests that future research should allocate greater survey effort to the eastern region to determine whether this spatial distribution is consistent across seasons and years. The eastern side of the bay is characterised by shallower bathymetry than the steeper western side, providing a distinct habitat that may influence cetacean occurrence and habitat use (@sammartinoNumericalModelAnalysis2014). In addition, with the exception of the deep-water anchorage, the eastern sector experiences comparatively lower levels of vessel traffic. Consequently, this area may represent an important habitat for cetaceans and could potentially serve as a refuge or recovery area where disturbance is reduced. Further investigation into habitat characteristics, prey availability, and anthropogenic pressures is required to evaluate the ecological importance of this region and its potential role in future conservation and management strategies.
+
 
 <!-- Change Stats after finishing analysis -->
 ### Statistical Analysis
-Encounter rates, expressed as sightings per unit effort (SPUE), varied significantly among observation stations **(Kruskal–Wallis: χ² = 11.61, df = 2, p = 0.003)**, being highest at Europa, which differed significantly from Prince George after correction for multiple comparisons **(Dunn's test, Benjamini–Hochberg-adjusted: p = 0.002)**. This indicates spatial heterogeneity in cetacean encounter rate across the surveyed sectors rather than a uniform distribution within the BGTW. Importantly, however, SPUE is an effort-standardised index of relative encounter rate and is not corrected for imperfect or distance-dependent detection; because the stations differed in observer height, angular sector width and the extent of water overlooked, part of this variation may reflect between-station differences in detectability and surveyed area rather than true differences in animal density [@bucklandIntroductionDistanceSampling2001]. The significant contrast should therefore be read as a difference in observed encounter rate, with confirmation of a genuine density gradient requiring detection-corrected estimates. Notwithstanding this caveat, the consistently elevated SPUE at Europa identifies it as a candidate area of elevated cetacean occurrence and a priority for targeted monitoring.
+Encounter rates, expressed as sightings per unit effort (SPUE), varied significantly among observation stations (Kruskal–Wallis: χ² = 14.13, df = 2, p = 0.001), being highest at Europa, which differed significantly from Prince George after correction for multiple comparisons (Dunn's test, Benjamini–Hochberg-adjusted: p = 0.001). This indicates spatial heterogeneity in cetacean encounter rate across the surveyed sectors rather than a uniform distribution within the `#gls("bgtw")`{=typst}. Importantly, however, `#gls("spue")`{=typst} is an effort-standardised index of relative encounter rate and is not corrected for imperfect or distance-dependent detection; because the stations differed in observer height, angular sector width and the extent of water overlooked, part of this variation may reflect between-station differences in detectability and surveyed area rather than true differences in animal density [@bucklandIntroductionDistanceSampling2001]. The significant contrast should therefore be read as a difference in observed encounter rate, with confirmation of a genuine density gradient requiring detection-corrected estimates. Notwithstanding this caveat, the consistently elevated `#gls("spue")`{=typst} at Europa identifies it as a candidate area of elevated cetacean occurrence and a priority for targeted monitoring.
 
 <!-- Change Stats after finishing analysis -->
 ### Detection Function
-Reliable estimation of a detection function typically requires a minimum of 75-100 detections, with larger samples needed to fit covariates or more complex key functions[@bucklandIntroductionDistanceSampling2001].In the present study, 121 on-effort cetacean sightings were obtained in total; however, because detection functions were fitted separately for each station, the relevant sample size is the per-station count. Even the best-sampled station (Europa) yielded only 54 detections, with the remaining stations sampled considerably less, so all per-station detection functions were fitted below the recommended minimum. This shortfall—driven by the constrained field season and the mid-study change from a boat-based line-transect to a land-based station design—means the fitted detection functions, and the density estimates derived from them, are imprecise and should be interpreted with caution.
+Reliable estimation of a detection function typically requires a minimum of 75-100 detections, with larger samples needed to fit covariates or more complex key functions[@bucklandIntroductionDistanceSampling2001]. In the present study, 121 on-effort cetacean sightings were obtained in total; however, because detection functions were fitted separately for each station, the relevant sample size is the per-station count. Even the best-sampled station (Europa) yielded only 54 detections, with the remaining stations sampled considerably less, so all per-station detection functions were fitted below the recommended minimum. This shortfall—driven by the constrained field season and the mid-study change from a boat-based line-transect to a land-based station design—means the fitted detection functions, and the density estimates derived from them, are imprecise and should be interpreted with caution.
 
-Another caveat of this approach was already expressed in previous studies [@keenDeterminingMarineMammal2021; @thomasDistanceSoftwareDesign2010; @howeDistanceSamplingCamera2017] concerns the assumptions of a fixed observation station. Because each station repeatedly scanned the same fixed sector rather than sampling randomly placed transects, animals cannot be assumed to be distributed independently of distance from the observer; moreover, detectability—modelled as a function of distance alone—may in practice have varied across the sector with bearing-dependent conditions such as glare and sea state. Neither assumption could be verified within the constrained timeframe, and both warrant explicit attention in future station-based surveys.
-
+Another caveat of this approach was already expressed in previous studies [@keenDeterminingMarineMammal2021; @thomasDistanceSoftwareDesign2010; @howeDistanceSamplingCamera2017] concerns the assumptions of a fixed observation station. Because each station repeatedly scanned the same fixed sector rather than sampling randomly placed transects, animals cannot be assumed to be distributed independently of distance from the observer; moreover, detectability, modelled as a function of distance alone, may in practice have varied across the sector with bearing-dependent conditions such as glare and sea state. Neither assumption could be verified within the constrained timeframe, and both warrant explicit attention in future station-based surveys.
 
 
 ### Kernel Density Estimation
@@ -33,9 +33,14 @@ As a result, the land-based stations sampled only parts of the `#gls("bgtw")`{=t
 Due to the complexity of the Gibraltar coastline as well as the funnel effect from the Strait of Gibraltar the sea state could vary within one sector. Even though the sea state was assessed before every watch this resulted in possibly missed observation even though the sea state overall was suitable [@giacomaAreLandBased2013; @keenDeterminingMarineMammal2020]. Glare and swell height are likewise expected to lower detection probability; although both were recorded, they were not incorporated as covariates in the **detection function**, for example through multiple-covariate distance sampling [@thomasDistanceSoftwareDesign2010; @marquesDistanceSamplingEstimating2009], nor reflected in the effort-uncorrected kernel density surface.
 <!-- Check with Stephen if I should add this -->
 
-As described in the Methods, reticle binoculars were used to measure the vertical angle between each sighting and the horizon, which—together with the observer's height—was used to derive the radial distance to the sighting (see [Calculations](#calc-dis)). Although the reticle method is a well-established and reliable approach for shore-based distance estimation [@lerczakCalculatingSightingDistances1998], it discretises distance, because reticle graticules resolve angles only in fixed increments. To reduce this coarseness, observers were instructed to interpolate to the nearest quarter-reticle rather than reading only the half-reticle marks. The effect is nonetheless most pronounced at long range: because distance is a non-linear (approximately reciprocal) function of the depression angle, a single reticle interval subtends a progressively larger distance band as range increases, such that one reticle may span several kilometres at the far edge of the sampled area. This limitation is highlighted at low observer heights and was therefore most relevant at Europa (18 m a.s.l.). Although in practice most sightings there were recorded relatively close to shore, limiting its influence on the results.
+As described in the [Methods](#methods-sec), reticle binoculars were used to measure the vertical angle between each sighting and the horizon, which—together with the observer's height—was used to derive the radial distance to the sighting (see [Calculations](#calc-dis)). Although the reticle method is a well-established and reliable approach for shore-based distance estimation [@lerczakCalculatingSightingDistances1998], it discretises distance, because reticle graticules resolve angles only in fixed increments. To reduce this coarseness, observers were instructed to interpolate to the nearest quarter-reticle rather than reading only the half-reticle marks. The effect is nonetheless most pronounced at long range: because distance is a non-linear (approximately reciprocal) function of the depression angle, a single reticle interval subtends a progressively larger distance band as range increases, such that one reticle may span several kilometres at the far edge of the sampled area. This limitation is highlighted at low observer heights and was therefore most relevant at Europa (18 m a.s.l.). Although in practice most sightings there were recorded relatively close to shore, limiting its influence on the results.
 
-Furthermore land-based distance sampling has rarely been adapted to small cetaceans, as their smaller size and short surfacing times with little to no indicators, makes them harder to spot from a distance compared to larger cetaceans. When applied on small cetaceans [@giacomaAreLandBased2013; @emblingHowMuchEffort2015; @keenDeterminingMarineMammal2020] the surveys were typically supplemented with a camera or even an infrared camera to improve detection.  Successful land-based studies of small cetaceans nonetheless exist, although they have predominantly targeted larger-bodied delphinidae, such as *Tursiops truncatus* [@gutierrez-munozPatternsTrendsCetacean2021].
+Furthermore land-based distance sampling has rarely been adapted to small cetaceans, as their smaller size and short surfacing times with little to no indicators, makes them harder to spot from a distance compared to larger cetaceans. When applied to small cetaceans [@giacomaAreLandBased2013; @emblingHowMuchEffort2015; @keenDeterminingMarineMammal2020] the surveys were typically supplemented with a camera or even an infrared camera to improve detection. Successful land-based studies of small cetaceans nonetheless exist, although they have predominantly targeted larger-bodied delphinidae, such as *Tursiops truncatus* [@gutierrez-munozPatternsTrendsCetacean2021].
+
+
+## Management and Protection 
+During the sampling period, multiple incidents were observed in which recreational boat operators failed to comply with the Cetacean Protocol set out in the Gibraltar Marine Protection Regulations [-@zotero-item-2954]. On several occasions, fin whales (*Balaenoptera physalus*) were closely approached by recreational vessels during survey watches. Although the Department of Environment vessel was frequently present in the vicinity, no intervention with, or corrective engagement of, the offending operators was observed.
+Vessel presence and close approaches are known to disrupt cetacean behaviour, eliciting shifts in activity budgets, group cohesion, and surfacing patterns [@hawkinsInteractiveBehavioursBottlenose2009; @neumannBehaviourEcologyCommon]. Especially studies in this area found incidents of boat strikes and evasive behaviour in dolphins [@olaya-ponzoneVesselInducedBehavioural2025]. The repeated non-compliance observed here, combined with the apparent absence of on-water enforcement, indicates that the existing regulatory framework is not, in isolation, sufficient to safeguard cetaceans within BGTW. This points to an implementation gap rather than a legislative one: adequate provisions exist under the Marine Protection Regulations [-@zotero-item-2954], but their protective value is contingent on consistent enforcement and operator awareness. Targeted outreach and operator education, alongside a visible enforcement presence at known hotspots (e.g. the southern tip of the peninsula, see @fig-kde_map), are therefore recommended, particularly during peak season, when vessel traffic in this area is greatest.
 
 
 
@@ -43,6 +48,7 @@ Furthermore land-based distance sampling has rarely been adapted to small cetace
 
 ```{=typst}
 #[
+    #show table.cell: set text(size: 12pt)
     #show table.cell.where(y: 0): set text(size: 16pt, weight: "bold")
     #table(
     columns: (1fr, 1fr),
@@ -54,32 +60,51 @@ Furthermore land-based distance sampling has rarely been adapted to small cetace
         [#smallcaps[Weaknesses]],
     ),
     [
-        - High sensitivity
-        - Low reagent cost
+        - Costs
+        - Low effort
+        - Easy to apply and teach
     ],
     [
-        - Limited throughput
-        - Requires frequent calibration
+        - Time intensive
+        - Weather dependent
+        - Relies on detectability of Cetaceans (easier for larger cetaceans or larger groups)
     ],
     )
 ]
 
+```
 
+
+
+```{=typst}
+#[
+    #show table.cell: set text(size: 12pt)
+    #show table.cell.where(y: 0): set text(size: 16pt, weight: "bold")
+    #table(
+    columns: (1fr, 1fr),
+    stroke: none,
+    align: (x, y) => if y == 0 { center } else { left + top },
+    table.vline(x: 1, stroke: 0.5pt),
+    table.header(
+        table.cell(inset: (bottom: 25pt))[#smallcaps()[Opportunities]],
+        [#smallcaps[Threats]],
+    ),
+    [
+        - Costs
+        - Low effort
+        - Easy to apply and teach
+    ],
+    [
+        - Time intensive
+        - Weather dependent
+        - Relies on detectability of Cetaceans (easier for larger cetaceans or larger groups)
+    ],
+    )
+]
 
 ```
-## Strength
-- Costs
-- Low effort
-- Easy to apply and teach
 
-## Weaknesses
-- Time intensive
-- Weather dependent
-- Relies on detectability of Cetaceans (easier for larger cetaceans or larger groups)
 
-## Opportunities
-
-## Threats
 
 # Conclusion
 The author highly encourages to conduct follow-up studies and continue systematically assessing the distribution of cetaceans in the BGTW. As this is the only method that avoids biases introduced by only sampling parts of the whole area and gives us a closer picture of reality.

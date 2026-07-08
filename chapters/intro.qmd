@@ -1,0 +1,56 @@
+---
+bibliography: refs.bib
+---
+
+## Study context and rationale
+
+The eastern Strait of Gibraltar and the adjacent Alboran Sea constitute a transitional zone between the Atlantic and the Mediterranean and support a diverse odontocete assemblage, including the three delphinidae that are the focus of this study: bottlenose dolphin (*Tursiops truncatus*), short-beaked common dolphin (*Delphinus delphis*) and striped dolphin (*Stenella coeruleoalba*) [@canadasModelbasedAbundanceEstimates2023; @destephanisSummerSpatialDistribution2008; @olaya-ponzoneSpatioTemporalPatternsLimited2026; @olaya-ponzonePhotoIdentificationCatalogueDelphinus2025]. Regional cetacean occurrence in this sector has been characterised largely through habitat-based distribution modelling and photo-identification of these species [@canadasModelbasedAbundanceEstimates2023; @olaya-ponzonePhotoIdentificationCatalogueDelphinus2025; @olaya-ponzoneSpatioTemporalPatternsLimited2026; @bamfordAnalysisDorsalEdge2016], and the wider basin has been assessed through large-scale aerial and shipboard line-transect programmes, most recently the `#gls("accobams")`{=typst} Survey Initiative [@panigadaACCOBAMSSurveyInitiative2024]. Despite this regional coverage, no dedicated systematic survey has been conducted within the `#gls("bgtw")`{=typst}: existing local datasets are predominantly opportunistic, behavioural or photo-identification based [@olaya-ponzonePhotoIdentificationCatalogueDelphinus2025; @bamfordAnalysisDorsalEdge2016; @olaya-ponzoneMixedspeciesDolphinGroups2025] rather than design-based abundance and distribution estimates.
+
+This literature review was undertaken to position the present study within that methodological and geographic landscape. Its aims were (i) to characterise the methods currently applied to cetacean distribution research, with an emphasis on systematic survey design; (ii) to quantify the geographic and taxonomic distribution of that research effort across the Mediterranean; and (iii) to identify the gap that a design-based, land- and vessel-based survey of the `#gls("bgtw")`{=typst} is intended to address.
+
+### Critical Review
+A systematic review was conducted to provide an overview of the current research that has been conducted on cetacean distribution using systematic survey design, with a particular focus on the Western Mediterranean area. The following key word strings were utilised in order to scan the Google Scholar database:
+
+```{=typst}
+#text(style: "italic")[Distance sampling AND cetacean; cetacean\* AND "western Mediterranean"; Dolphin AND "western mediterranean" AND (coastal usage / habitat use); kernel density estimation AND cetacean] 
+\ 
+\ 
+```
+
+The keyword strings yielded 51,180 results, following the PRISMA framework (@fig-prisma) 104 publications were retained for further analysis. 
+
+![The PRISMA framework was used to systematically decide if publications fit the criteria and should be included in the final dissertation.](figures/litreview/prisma.png){#fig-prisma}
+
+A screening of records was conducted to identify methods and species, and these were then scored using the relevance matrix (@tbl-relevance, @tbl-incl). Papers with scores of three or more were retained for further screening. A further series of publications were obtained through a comprehensive search of the reference lists of returned papers. The final papers were screened specifically for the method used, the species, and the area extent.
+
+| Score | Method | Species | Study Area | State of the Art | Outcome |
+|:-----:|:------:|:-------:|:----------:|:----------------:|:--------|
+| 1 | ✗ | ✗ | ✗ | ✗ | Excluded |
+| 2 | ✓ | ✗ | ✗ | ✗ | Excluded |
+| 3 | ✓ | ✓ | ✗ | ✗ | Retained |
+| 4 | ✓ | ✓ | ✓ | ✗ | Retained |
+| 5 | ✓ | ✓ | ✓ | ✓ | Retained – fits all criteria |
+
+: Relevance scoring matrix used to screen publications. Criteria are applied cumulatively, such that a higher score requires all lower-ranked criteria to also be met. Publications scoring three or above were retained for further screening. {#tbl-relevance tbl-colwidths="[8,12,12,14,20,34]"}
+
+| Criterion | Description | 
+|:-------|:------|
+| **Method** | Distance Sampling; Line transect; (spatial) distribution models; land-based survey |
+| **Species** | Dolphins, striped dolphin (*Stenella coeruleoalba*), bottlenose dolphin (*Tursiops truncatus*), short-beaked common dolphin (*Delphinus delphis*) |
+| **Study Area** | Western Mediterranean, Bay of Algeciras / Gibraltar, Strait of Gibraltar |
+| **State of the Art** | Relevant; reviewed and up to date, or addresses known biases |
+
+: Inclusion criteria applied at each level of the relevance matrix. {#tbl-incl tbl-colwidths="[20,80]"}
+
+### Synthesis Review
+**Geographic distribution of effort.** Among records assigned to a Mediterranean subregion, the Western Mediterranean was the most frequently represented (n = 22), ahead of Mediterranean-wide studies (n = 14) and the Northwestern Mediterranean (n = 13), with comparatively little work in the eastern basin (Eastern and Northeastern Mediterranean, n = 5 and n = 4, respectively)(@fig-lit_map). This concentration in the Western Mediterranean is partly a function of the search terms, but it is consistent with a genuine regional research focus driven by the Alboran Sea's recognised importance for the focal species [@canadasModelbasedAbundanceEstimates2023; @arcangeliTestingIndicatorsTrend2023; @panigadaACCOBAMSSurveyInitiative2024]. Notably, this effort is dominated by regional- and basin-scale designs; fine-scale, design-based coverage of the Bay of Gibraltar / BGTW sector is largely absent, reinforcing the gap this study addresses.
+
+![The overview map provides a synoptic representation of the studies and the countries in which they were conducted. The focus map (inset) delineates the Mediterranean region into distinct subregions. WM: Western Mediterranean; NWM: Northwestern Mediterranean; NEM: Northeastern Mediterranean; EM: Eastern Mediterranean; M: Mediterranean not specified.](figures/litreview/world_combined.png){#fig-lit_map}
+
+**Taxonomic and methodological focus.** The heatmap (@fig-lit_heat) indicates that research effort is concentrated on bottlenose dolphin (*Tursiops truncatus*), the most frequently studied single species (n = 21), followed by short-beaked common dolphin (*Delphinus delphis*, n = 10) and striped dolphin (*Stenella coeruleoalba*, n = 6); striped and common dolphin additionally feature prominently within multi-species assemblage studies. Methodologically, line-transect distance sampling was the most common single approach, followed by photo-identification mark–recapture and spatial distribution modelling, with aerial line-transect surveys frequently combined with distance sampling. Land-based survey, by contrast, was applied in only a small number of studies, underlining its under-use relative to vessel-based approaches.
+
+![Species-by-method matrix quantifying the number of publications applying each survey method to each focal species. Species and methods were extracted from the papers compiled in the critical review.](figures/litreview/heatmap.png){#fig-lit_heat}
+
+**Temporal trend.** Publication output increased markedly over the review period, from a small number of studies before 2000 to a pronounced rise across 2015–2024, reflecting the growth of coordinated monitoring programmes and improvements in survey and analytical methods over this interval (@fig-time).
+
+![The number of publications over time. Collected during the literature review.](figures/litreview/histogram.png){#fig-time}

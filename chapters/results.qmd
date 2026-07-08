@@ -29,6 +29,31 @@ spell_nr <- function(x){
 }
 ```
 
+```{r, create full df}
+#| include: false
+# Get the boat data from the data cleaning script for debugging only
+# boat <- readRDS("./temp/boat_data.rds")
+# 
+# boat <- boat %>% 
+#   select(date.x, species, group_size, behaviour, geometry) %>% 
+#   mutate(
+#     source = "boat"
+#   )
+# 
+# land <- data %>% 
+#   select(date.x, species, group_size, behaviour, sighting_poi) %>% 
+#   rename(geometry = sighting_poi) %>% 
+#   mutate(
+#     source = "land"
+#   )
+# 
+# full <- boat %>%
+#   bind_rows(land)
+# 
+# saveRDS(full, "./temp/full.rds")
+```
+
+
 
 ```{r, Read data}
 #| include: false
@@ -398,7 +423,7 @@ The number of sightings was also plotted against the distance they were recorded
 
 ![Number of sightings against the Distance (in m) where they were recorded relative to the observation spot. Split up by the different substrata (East (E), South (S) and West (W)).](figures/distance_facet.png){#fig-dis_spot}
 
-Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$sightings)]`, covering mainly the southern side (n = `r max(per_spot$sightings)`). And between the hours XX and XX (@fig-day_SPUE A). `#gls("spue")`{=typst} were highest at Europa (@fig-day_SPUE B, @tbl-spue_report). A Kruskal-Wallis test showed a significant difference in `#gls("spue")`{=typst} among spots (χ² = `r round(as.numeric(SPUE_kru$statistic),2)`, df = `r as.numeric(SPUE_kru$parameter)`, p = `r round(SPUE_kru$p.value,3)`), Dunn’s test, with a Benjamini-Hochberg correction, showed a significant difference between Europa and Prince George (adjusted p = `r round(SPUE_dunn$res[1,4],3)`).
+Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$sightings)]`, covering mainly the southern side (n = `r max(per_spot$sightings)`). And between the hours XX and XX (@fig-day_SPUE A). `#gls("spue")`{=typst} were highest at Europa (@fig-day_SPUE B, @tbl-spue_report). A Kruskal-Wallis test showed a significant difference in `#gls("spue")`{=typst} among spots (χ² = `r round(as.numeric(SPUE_kru$statistic),2)`, df = `r as.numeric(SPUE_kru$parameter)`, p = `r round(SPUE_kru$p.value,3)`), Dunn’s test, with a Benjamini-Hochberg correction, showed a significant difference between Europa and Prince George (adjusted p = `r round(SPUE_dunn$res[1,4],3)`) and between Europa and Sandy Bay (adjusted p = `r round(SPUE_dunn$res[2,4],3)`).
 
 ![Sightings over time of day (A) showed tow peaks before and after noon. Sightings per Unit Effort (SPUE) showed a significant difference between Europa and Prince George using Kruksal-Wallis and Dunn's test(B).](figures/day_SPUE_comb.png){#fig-day_SPUE}
 
@@ -440,7 +465,7 @@ tt(tbl_dat,
 ```
 
 ## Detection model fitting
-Using the `Distance` package [@millerDistanceSampling2019] a detection function was fitted per spot. Using the hr key function resulted in the lowest AIC value (hn = `r AIC(d.hn)[1,2]`; hr = `r AIC(d.hr)[1,2]`) and was therefore used for further analyis. The goodness of fit test confirmed the choice of the key function (hn p-value: `r round(gof_hn$dsgof$CvM$p,3)`; hr p-value = `r round(gof_hr$dsgof$CvM$p,3)`).
+Using the `Distance` package [@millerDistanceSampling2019] a detection function was fitted per spot. Using the `#gls("hr")`{=typst} key function resulted in the lowest AIC value (hn = `r round(AIC(d.hn)[1,2],2)`; hr = `r round(AIC(d.hr)[1,2],2)`) and was therefore used for further analyis. The goodness of fit test confirmed the choice of the key function (hn p-value: `r round(gof_hn$dsgof$CvM$p,3)`; hr p-value = `r round(gof_hr$dsgof$CvM$p,3)`).
 To increase the fit of the function height and region were used as covariates. Using height as covariate and in combination with the region resulted in the lowest AIC (@tbl-model_summary).
 
 ```{r}
@@ -453,7 +478,7 @@ tt(model_tab) %>%
 
 ```
 
-Using the hr key function along with height as a covariate the detection function was plotted (@fig-ht_model).
+Using the `#gls("hr")`{=typst} key function along with height as a covariate the detection function was plotted (@fig-ht_model).
 
 ```{r}
 #| label: fig-ht_model
