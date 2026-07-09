@@ -1,3 +1,4 @@
+#import "@preview/wordometer:0.1.5": word-count, total-words
 
 #let article(
   title: none,
@@ -36,7 +37,7 @@
   #text(style: "italic")[Keywords: #keywords.join(", ").]
 
   #v(1.5em)
-  Word count (excluding References and Appendices): #text( weight: "bold")[*XXXX* words]
+  Word count (excluding References and Appendices): #text( weight: "bold")[#total-words words]
 
   #pagebreak()
 
@@ -61,7 +62,8 @@
   
   set par(
     spacing: 1.5em,
-    justify: true
+    justify: true,
+    leading: 0.75em
   )
 
   
@@ -82,7 +84,9 @@
       ))
   }
 
-  show figure.caption: set text(font: "Quicksand", size : 9pt)
+  show: word-count.with(exclude: <no-wc>)
+
+  show figure.caption: set text(font: "Source Sans 3", size : 9pt)
 
   show figure.where(kind: table): set figure.caption(position: top)
   show figure.where(kind: table): set align(center)

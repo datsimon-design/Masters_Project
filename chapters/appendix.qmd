@@ -68,3 +68,5 @@ coast_distance <- function(observer, bearing, land, max_range = 60000) {
 ```
 Custom function in R to calculate distance from reticles and observer height; factor needs to be adjusted for each binocular. For the west side the code was adjusted to calculate the distance to the coastline based on the observer position and bearing.
 :::
+
+![Visual representation of the calculation of the distance used in the data cleaning pipeline. The observer height $h$ was adapted per spot and the angle $\theta$ was derived from the reticles inside the binoculars.](/misc/Inclinometer.png){#app-incl}

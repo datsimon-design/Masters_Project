@@ -161,8 +161,113 @@ This is just a short summary of how AI was used.
 
 {{< pagebreak >}}
 
-# Declaration of Originality / Use of Gen AI
+<!-- Declaration of Originality and AI -->
+```{=typst}
+#[
+  #pagebreak(weak:true)
+  #page(header: [
+    #set text(size: 9pt)
+    #grid(
+      columns: (1fr, auto),
+      align: (bottom + left, bottom + right),
+      text(weight: "bold", size: 12pt)[C1.1#h(0.6em)Declaration of Originality],
+      image("/misc/Logo-Red-Crest-Side.png", width: 3cm),
+    )
+    #v(-4pt)
+    #line(length: 100%, stroke: 0.5pt + gray)
+  ],
+  )[  #heading(level: 1)[Declaration of Originality / Use of Gen AI]
+      #let decl_title  = doc_title
+      //#let decl_title  = "Test Title"
+      #let decl_author = doc_authors.at(0)
+      //#let decl_author = "Test Author"
+      #set text(size: 11pt, hyphenate: false)
+      #set par(justify: true, leading: 0.8em)
+      #let decl_head(body) = table.cell(
+        fill: rgb("#FF0000"),
+        inset: 6pt,
+        text(weight: "bold", fill: white, body),)
 
+      #let decl_cell(body) = table.cell(inset: 8pt, body)
+
+      #let decl_item(body) = list(indent: 6pt, body-indent: 6pt, body)
+
+      #emph[
+      Students are required to complete this Declaration of Originality (amending
+      and/or deleting as appropriate #text(fill: rgb("#FF0000"))[all red text]) and
+      include at the front of work submitted for assessment.
+      ]
+
+      #v(0.5em)
+
+      #table(
+      columns: (100%),
+      stroke: black,
+      inset: 0pt,
+
+      decl_head[Originality],
+      decl_cell[
+        I, *#decl_author*, confirm that the work presented here -- *#decl_title*. --
+        is an original piece of work in that I am the sole originator and author of
+        the work.
+      ],
+      decl_cell[
+        I also confirm that: \
+        #decl_item[       
+          #emph[the work *has not* been submitted in whole or part for any other
+          assessment at the University of Gibraltar, or for any comparable academic
+          award elsewhere;]
+        ]
+      ],
+
+      decl_head[Copyright],
+      decl_cell[
+        #decl_item[
+          I confirm that where necessary (i.e., reproduction of substantial text,
+          tables, diagrams, websites, recordings of performances, reproductions of
+          artworks) all 3#super[rd] party copyright permissions have been sought and
+          such evidence can be found at*.*
+        ]
+      ],
+      decl_cell[
+        #decl_item[
+          I confirm that copyright permissions have been sought for all my previously
+          published work reproduced here and such evidence can be found at*.*
+        ]
+      ],
+
+      decl_head[Use of Generative Artificial Intelligence (AI)],
+      decl_cell[
+        \u{2610} I HAVE NOT used any Generative AI tools in the completion of this assignment.
+      ],
+      decl_cell()[
+        \u{2612} I HAVE used Generative AI tools in the completion of this assignment. The
+        tools I used were (please list tools used and how you have used them within
+        the assignment):
+      ],
+      decl_cell[*Student Number:* 206708\ 
+                *Student Signature:* #image("/misc/Unterschrift.png", width: 20%) \ 
+                *Date:* DATE],
+      
+      )
+
+    #pagebreak()
+
+    #table(
+      columns: (100%),
+      stroke: black,
+      inset: 0pt,
+
+      decl_head[Use of Generative Artificial Intelligence (AI)],
+      decl_cell[AI Statement],
+      
+
+    )
+    ]
+
+]
+
+```
 
 ```{=typst}
 ] <no-wc>

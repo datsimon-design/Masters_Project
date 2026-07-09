@@ -64,7 +64,7 @@ $$
 d=\frac{h}{\tan{\left(r\times F+\sqrt{\frac{2\times h}{R}}\right)}}
 $$
 
-Using the distance and the bearing, the location can be calculated and plotted.
+Using the distance and the bearing a circle can be projected from the observers' position and the location can be calculated and plotted (@app-incl).
 
 Because of the enclosed nature of the western survey area (the Bay of Gibraltar), the far shore of the bay rather than the sea horizon was visible along most bearings from the Westside station. As the reticle method derives distance from the angular separation between a sighting and a known reference line, the standard horizon-based formula could not be applied here: the coastline sits closer than the true horizon and therefore at a different (greater) angle of depression, so treating it as the horizon would overestimate sighting distances.
 
