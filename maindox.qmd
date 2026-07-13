@@ -50,7 +50,7 @@ crossref:
 ```
 
 # Generative AI (GenAI) Use
-This is just a short summary of how AI was used. 
+This is just a short summary of how AI was used. See Declaration of Originality and use of Gen AI for more details.
 
 # List of Content
 ```{=typst}
@@ -181,6 +181,7 @@ This is just a short summary of how AI was used.
       //#let decl_title  = "Test Title"
       #let decl_author = doc_authors.at(0)
       //#let decl_author = "Test Author"
+      #let decl_date = datetime.today().display("[day]/[month]/[year]")
       #set text(size: 11pt, hyphenate: false)
       #set par(justify: true, leading: 0.8em)
       #let decl_head(body) = table.cell(
@@ -247,7 +248,7 @@ This is just a short summary of how AI was used.
       ],
       decl_cell[*Student Number:* 206708\ 
                 *Student Signature:* #image("/misc/Unterschrift.png", width: 20%) \ 
-                *Date:* DATE],
+                *Date:* #decl_date],
       
       )
 
@@ -259,7 +260,16 @@ This is just a short summary of how AI was used.
       inset: 0pt,
 
       decl_head[Use of Generative Artificial Intelligence (AI)],
-      decl_cell[AI Statement],
+      decl_cell[I used AI as follows: \ \ 
+                *ChatGPT:* \ 
+                - Used for troubleshooting of code
+                - Spellchecking of the document
+                \ 
+                *Claude:* \ 
+                - 
+
+      
+      ],
       
 
     )
@@ -268,6 +278,7 @@ This is just a short summary of how AI was used.
 ]
 
 ```
+
 
 ```{=typst}
 ] <no-wc>
