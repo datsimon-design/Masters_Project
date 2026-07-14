@@ -227,28 +227,23 @@ This is just a short summary of how AI was used. See Declaration of Originality 
           I confirm that where necessary (i.e., reproduction of substantial text,
           tables, diagrams, websites, recordings of performances, reproductions of
           artworks) all 3#super[rd] party copyright permissions have been sought and
-          such evidence can be found at*.*
-        ]
+          such evidence can be found at.]
+        #decl_item[I confirm that copyright permissions have been sought for all my previously
+          published work reproduced here and such evidence can be found at.]
       ],
-      decl_cell[
-        #decl_item[
-          I confirm that copyright permissions have been sought for all my previously
-          published work reproduced here and such evidence can be found at*.*
-        ]
-      ],
-
+      
       decl_head[Use of Generative Artificial Intelligence (AI)],
       decl_cell[
-        \u{2610} I HAVE NOT used any Generative AI tools in the completion of this assignment.
-      ],
-      decl_cell()[
+        \u{2610} I HAVE NOT used any Generative AI tools in the completion of this assignment. \ 
+      
         \u{2612} I HAVE used Generative AI tools in the completion of this assignment. The
         tools I used were (please list tools used and how you have used them within
-        the assignment):
-      ],
-      decl_cell[*Student Number:* 206708\ 
-                *Student Signature:* #image("/misc/Unterschrift.png", width: 20%) \ 
-                *Date:* #decl_date],
+        the assignment): \ \ 
+
+        *Student Number:* 206708\ 
+        *Student Signature:* #image("/misc/Unterschrift.png", width: 20%) \ 
+        *Date:* #decl_date
+        ],
       
       )
 
@@ -264,9 +259,12 @@ This is just a short summary of how AI was used. See Declaration of Originality 
                 *ChatGPT:* \ 
                 - Used for troubleshooting of code
                 - Spellchecking of the document
+                - Used to make the paragraphs sound "scientific" and cohesive
                 \ 
                 *Claude:* \ 
-                - 
+                - Troubleshooting of code
+                - Providing a useful and comprehensive structure of the journal article
+                - Used to make the paragraphs sound "scientific" and cohesive
 
       
       ],

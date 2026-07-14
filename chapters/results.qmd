@@ -447,15 +447,19 @@ gof_hr <- gof_ds(d.hr, plot = FALSE)
 d.ht <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height)
 # Region as covariate
-d.re <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
-              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~Region.Label)
+d.ss <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~sea_state)
 #Region and height
-d.rh <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
-              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height, ~Region.Label)
+d.wh <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula =~wave_height)
+d.ws <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~wind_speed)
+d.gl <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~glare)
 
 
 # Write summary table
-model_tab <- summarize_ds_models(d.hn, d.hr, d.ht, d.re, d.rh, output = "plain")
+model_tab <- summarize_ds_models(d.hn, d.hr, d.ht, d.ss, d.wh, d.ws, d.gl, output = "plain")
 
 # Summary of the best model and abundance and density estimates
 sum_ht <- summary(d.ht)
@@ -463,27 +467,264 @@ sum_ht <- summary(d.ht)
 
 ```
 
-```{r, Clean ds data}
+```{r, Distance per spot}
  #|include: false
 
-cluster_clean <- sum_ht$dht$clusters$D %>% 
-  transmute(Label,
-            "Density (km⁻²)"   = Estimate * 1e6,
-            "SE (km⁻²)" = se * 1e6,
-            "LCL (km⁻²)" = lcl * 1e6,
-            "UCL (km⁻²)" = ucl * 1e6,
-            CV = cv)
+# Europa Point ------
+europa <- dis %>% filter(Region.Label == "Europa")
 
-indiv_clean <- d.ht$dht$individuals$D %>% 
-  transmute(Label,
-            "Density (km⁻²)"   = Estimate * 1e6,
-            "SE (km⁻²)" = se * 1e6,
-            "LCL (km⁻²)" = lcl * 1e6,
-            "UCL (km⁻²)" = ucl * 1e6,
-            CV = cv)
+eu.hn <- ds(data=europa %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500)
+eu.hr <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500)
+
+eu.AIC <- AIC(eu.hn, eu.hr)
+
+# Significant is good so it does not fit the data
+gof_hn_eu <- gof_ds(eu.hn, plot = FALSE)
+# P value is not significant, good
+gof_hr_eu <- gof_ds(eu.hr, plot = FALSE)
+
+# covariates
+eu.gl <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500, formula = ~glare)
+eu.ss <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500, formula = ~sea_state)
+eu.wh <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500, formula = ~wave_height)
+eu.ws <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500, formula = ~wind_speed)
+# Write summary table
+model_europa <- summarize_ds_models(eu.hn, eu.hr, eu.gl, eu.ss, eu.wh, eu.ws, output = "plain")
+
+# Best model
+bf.europa <- summary(eu.ss)
+
+# Sandy Bay ------
+sandy <- dis %>% filter(Region.Label == "SandyBay")
+
+sb.hn <- ds(data=sandy %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000)
+sb.hr <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000)
+
+sb.AIC <- AIC(sb.hn, sb.hr)
+
+# Significant is good so it does not fit the data
+gof_hn_sb <- gof_ds(sb.hn, plot = FALSE)
+# P value is not significant, good
+gof_hr_sb <- gof_ds(sb.hr, plot = FALSE)
+
+# covariates
+sb.gl <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000, formula = ~glare)
+sb.ss <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000, formula = ~sea_state)
+sb.wh <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000, formula = ~wave_height)
+sb.ws <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000, formula = ~wind_speed)
+
+model_sandy <- summarize_ds_models(sb.hn, sb.hr, sb.gl, sb.ss, sb.wh, sb.ws, output = "plain")
+
+# Best model
+bf.sandy <- summary(sb.hr)
+
+# Prince George ------
+prince <- dis %>% filter(Region.Label == "PrinceGeorge")
+
+pg.hn <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000)
+pg.hr <- ds(data=prince %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000)
+
+pg.AIC <- AIC(pg.hn, pg.hr)
+
+# Significant is good so it does not fit the data
+gof_hn_pg <- gof_ds(pg.hn, plot = FALSE)
+# P value is not significant, good
+gof_hr_pg <- gof_ds(pg.hr, plot = FALSE)
+
+# covariates
+pg.gl <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000, formula = ~glare)
+pg.ss <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000, formula = ~sea_state)
+pg.wh <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000, formula = ~wave_height)
+pg.ws <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000, formula = ~wind_speed)
+
+model_prince <- summarize_ds_models(pg.hn, pg.hr, pg.gl, pg.ss, pg.wh, pg.ws, output = "plain")
+
+# Best model
+bf.prince <- summary(pg.hn)
 
 ```
 
+
+```{r, Clean ds data}
+ #|include: false
+
+
+# # Pooled data
+
+pool_group_dens <- sum_ht$dht$clusters$D %>%
+  transmute(Label,
+            "Density (km⁻²)"   = Estimate * 1e6,
+            "SE (km⁻²)" = se * 1e6,
+            "LCL (km⁻²)" = lcl * 1e6,
+            "UCL (km⁻²)" = ucl * 1e6,
+            CV = cv)
+
+pool_indiv_dens <- d.ht$dht$individuals$D %>%
+  transmute(Label,
+            "Density (km⁻²)"   = Estimate * 1e6,
+            "SE (km⁻²)" = se * 1e6,
+            "LCL (km⁻²)" = lcl * 1e6,
+            "UCL (km⁻²)" = ucl * 1e6,
+            CV = cv)
+# 
+# # Abundance
+
+pool <- sum_ht          # <- single pooled fit; change if d.ht is the intended one
+
+# n of groups per stratum (+ Total) from the clusters summary
+n_tbl <- pool$dht$clusters$summary %>% transmute(Label = Region, n_groups = n)
+
+# helper: pull a D or N block, tag columns, keep Label as the key
+pull_block <- function(df, scale = 1) {
+  df %>% transmute(Label,
+                   Estimate = Estimate * scale,
+                   SE = se * scale,
+                   LCL = lcl * scale,
+                   UCL = ucl * scale,
+                   CV  = cv)
+}
+
+grp_dens <- pull_block(pool$dht$clusters$D,    1e6)   # km^-2
+ind_dens <- pull_block(pool$dht$individuals$D, 1e6)   # km^-2
+grp_abun <- pull_block(pool$dht$clusters$N,    1)     # counts
+ind_abun <- pull_block(pool$dht$individuals$N, 1)     # counts
+
+pool_overview_tbl <- n_tbl %>%
+  left_join(grp_dens, by = "Label") %>%
+  left_join(ind_dens, by = "Label", suffix = c(".gd", ".id")) %>%
+  left_join(grp_abun, by = "Label") %>%
+  left_join(ind_abun, by = "Label", suffix = c(".ga", ".ia")) %>%
+  rename(Station = Label)
+
+# rename to the exact column set your per-spot table used
+names(pool_overview_tbl) <- c(
+  "Station", "n of Groups",
+  "Group Dens. Estimate","Group Dens. SE","Group Dens. LCL","Group Dens. UCL","Group Dens. CV",
+  "Indiv. Dens. Estimate","Indiv. Dens. SE","Indiv. Dens. LCL","Indiv. Dens. UCL","Indiv. Dens. CV",
+  "Group Abun. Estimate","Group Abun. SE","Group Abun. LCL","Group Abun. UCL","Group Abun. CV",
+  "Indiv. Abun. Estimate","Indiv. Abun. SE","Indiv. Abun. LCL","Indiv. Abun. UCL","Indiv. Abun. CV"
+)
+
+pooled_tbl <- as.data.frame(pool_overview_tbl, check.names = FALSE)
+colnames(pooled_tbl) <- c("Station","n of Groups", rep(c("Estimate","SE","LCL","UCL","CV"), 4))
+
+pool_dens_tbl <- pooled_tbl[, c(1, 2, 3:12)]
+names(pool_dens_tbl) <- c("Station", "n of Groups",
+                          rep(c("Estimate","SE","LCL","UCL","CV"), 2))
+
+pool_abun_tbl <- pooled_tbl[, c(1, 2, 13:22)]
+names(pool_abun_tbl) <- c("Station", "n of Groups",
+                          rep(c("Estimate","SE","LCL","UCL","CV"), 2))
+
+```
+
+```{r, Spot overview table}
+
+d.models <- list(
+  PrinceGeorge = bf.prince,
+  Europa       = bf.europa,
+  SandyBay     = bf.sandy
+)
+
+extract_model <- function(model, station){
+  cl <- model$dht$clusters
+  ind <- model$dht$individuals
+  tibble(
+    Station        = station,
+    n_groups       = cl$summary$n,
+    # --- group (cluster) density ---
+    group_dens_es  = cl$D$Estimate,
+    group_dens_se  = cl$D$se,
+    group_dens_lcl = cl$D$lcl,
+    group_dens_ucl = cl$D$ucl,
+    group_dens_cv  = cl$D$cv,
+    # --- individual density ---
+    indiv_dens_es  = ind$D$Estimate,
+    indiv_dens_se  = ind$D$se,
+    indiv_dens_lcl = ind$D$lcl,
+    indiv_dens_ucl = ind$D$ucl,
+    indiv_dens_cv  = ind$D$cv,
+    # --- group (cluster) abundance ---
+    group_abun_es  = cl$N$Estimate,
+    group_abun_se  = cl$N$se,
+    group_abun_lcl = cl$N$lcl,
+    group_abun_ucl = cl$N$ucl,
+    group_abun_cv  = cl$N$cv,
+    # --- individual abundance ---
+    indiv_abun_es  = ind$N$Estimate,
+    indiv_abun_se  = ind$N$se,
+    indiv_abun_lcl = ind$N$lcl,
+    indiv_abun_ucl = ind$N$ucl,
+    indiv_abun_cv  = ind$N$cv
+  )
+}
+
+model_overview_tbl <- imap_dfr(d.models, extract_model)
+
+clean_overview_tbl <- model_overview_tbl %>% 
+  transmute(
+  Station = Station,
+  "n of Groups" = n_groups,
+
+  # --- Group density (km^-2) ---
+  "Group Dens. Estimate" = group_dens_es  * 1e6,
+  "Group Dens. SE"       = group_dens_se  * 1e6,
+  "Group Dens. LCL"      = group_dens_lcl * 1e6,
+  "Group Dens. UCL"      = group_dens_ucl * 1e6,
+  "Group Dens. CV"       = group_dens_cv,          
+
+  # --- Individual density (km^-2) ---
+  "Indiv. Dens. Estimate" = indiv_dens_es  * 1e6,
+  "Indiv. Dens. SE"       = indiv_dens_se  * 1e6,
+  "Indiv. Dens. LCL"      = indiv_dens_lcl * 1e6,
+  "Indiv. Dens. UCL"      = indiv_dens_ucl * 1e6,
+  "Indiv. Dens. CV"       = indiv_dens_cv,          
+
+  # --- Group abundance (counts: no unit conversion) ---
+  "Group Abun. Estimate" = group_abun_es,
+  "Group Abun. SE"       = group_abun_se,
+  "Group Abun. LCL"      = group_abun_lcl,
+  "Group Abun. UCL"      = group_abun_ucl,
+  "Group Abun. CV"       = group_abun_cv,
+
+  # --- Individual abundance (counts: no unit conversion) ---
+  "Indiv. Abun. Estimate" = indiv_abun_es,
+  "Indiv. Abun. SE"       = indiv_abun_se,
+  "Indiv. Abun. LCL"      = indiv_abun_lcl,
+  "Indiv. Abun. UCL"      = indiv_abun_ucl,
+  "Indiv. Abun. CV"       = indiv_abun_cv
+)
+
+dens_tbl <- clean_overview_tbl[, c(1, 2, 3:12)]
+names(dens_tbl) <- c("Station", "n of Groups",
+                          rep(c("Estimate","SE","LCL","UCL","CV"), 2))
+
+
+abun_tbl <- clean_overview_tbl[, c(1, 2, 13:22)]
+names(abun_tbl) <- c("Station", "n of Groups",
+                          rep(c("Estimate","SE","LCL","UCL","CV"), 2))
+
+
+
+```
 
 
 This study applied point transect distance sampling technique to small cetaceans, utilising a modified version of the point transect protocol primarily employed for birds or larger cetaceans [@bucklandIntroductionDistanceSampling2001a]. The protocol was adapted to incorporate land-based surveys, enabling a systematic assessment of the cetacean distribution in the `#gls("bgtw")`{=typst}.
@@ -555,17 +796,103 @@ tt(tbl_dat,
 
 ```
 
+## Kernel Density Estimation
+Kernel density estimation (KDE) was used to assess the spatial distribution and identify areas of concentrated cetacean occurrence. Using group size as a weighting variable, the KDE indicated the highest density around the southwestern tip of the peninsula (lat: XX, lon: XX). The core area encompassed most of the southern sector, whereas the home area extended around the entire peninsula, covering most of the BGTW and all three sectors (@fig-kde_map).
+
+![The Kernel Density Estimation (KDE) of the sightings collected from land-based surveys between `r format(min(full$date.x), "%d.%m.%Y")` and `r format(max(full$date.x), "%d.%m.%Y")`. The KDE was calculated using group size as a weight variable. The highest density was found around the south western tip of the peninsula (lat: XX, lon: XX).). Color of grid represents the density Utilisazion distribution.](figures/density_map.png){#fig-kde_map}
+
+
 ## Detection model fitting
-Using the `Distance` package [@millerDistanceSampling2019] a detection function was fitted per spot. Using the `#gls("hr")`{=typst} key function resulted in the lowest AIC value (hn = `r round(AIC(d.hn)[1,2],2)`; hr = `r round(AIC(d.hr)[1,2],2)`) and was therefore used for further analyis. The goodness of fit test confirmed the choice of the key function (hn p-value: `r round(gof_hn$dsgof$CvM$p,3)`; hr p-value = `r round(gof_hr$dsgof$CvM$p,3)`).
-To increase the fit of the function height and region were used as covariates. Using height as covariate and in combination with the region resulted in the lowest AIC (@tbl-model_summary).
+Using the `Distance` package [@millerDistanceSampling2019] multiple detection functions were fitted per spot. Truncation distances were determined separately for each sampling location based on visual inspection of the corresponding distance histograms and were assigned as follows: Europa Point: 4,500 m; Sandy Bay: 12,000 m; Prince George: 8,000 m. In the two-step process it was first determined weather a `#gls("hn")`{=typst} or `#gls("hr")`{=typst} key function was the better fit. After deciding on the key function multiple covariates were tested. For Europa Point and Sandy Bay the `#gls("hr")`{=typst} key function yielded a lower AIC. Prince George was the only spot where a `#gls("hn")`{=typst} key function scored a lower AIC (@tbl-AICs).
+
+```{r}
+#| label: tbl-AICs
+#| tbl-cap: "AIC comparrison of the different key functions for Europa Point (eu) and Sandy Bay (sb) and Prince George (pg). Emphasised rows highlight the lower AIC and the resulting key function."
+hnAIC <- eu.AIC %>% 
+  rows_append(sb.AIC) %>% 
+  rows_append(pg.AIC) %>% 
+  rownames_to_column(var = "Model")
+
+tt(hnAIC) %>% 
+  style_tt(i = c(0, 2, 4, 5), bold = TRUE)
+```
+
+The covariates sea state, glare, wind speed and wave height were tested individually with the best-fitting detection function. Owing to the small sample size, only one covariate was included at a time, as the data were insufficient to support models containing multiple covariates. Model selection was performed separately for each sampling location based on `#gls("aic")`{=typst}, with the model yielding the lowest `#gls("aic")`{=typst} selected as the best-fitting detection function. Goodness-of-fit tests did not reveal any significant fit for the fitted detection functions. Three separate model selection tables were produced, one for each sampling location: Europa Point (@tbl-model_europa), Sandy Bay (@tbl-model_sandy), and Prince George (@tbl-model_prince). The inclusion of covariates resulted in only minor improvements in model fit at Sandy Bay and Prince George (@tbl-model_sandy; @tbl-model_prince), whereas greater differences in AIC were observed among the candidate models at Europa Point (@tbl-model_europa).
+
+
+```{r}
+#| label: tbl-model_europa
+#| tbl-cap: "Model selection table for Europa Point. Models are named according to the covariate included in each detection function. The best-supported model, indicated by the lowest AIC, is presented first. ΔAIC represents the difference in AIC between each candidate model and the best-supported model."
+
+tt(model_europa, digits = 3) %>% 
+  style_tt(i = 0, bold = TRUE)
+
+```
+
+The best-fitting detection function incorporating sea state as a covariate was plotted to visualise the effect of this covariate on detection probability (@fig-eu_func).
+
+```{r}
+#| label: fig-eu_func
+#| fig-cap: "Detection function using the hr key function along with sea state as covariate."
+#| fig-height: 4
+
+plot(eu.ss, pdf = TRUE)
+```
+
+\ 
+
+```{r}
+#| label: tbl-model_sandy
+#| tbl-cap: "Model selection table for Sandy Bay. Models are named according to the covariate included in each detection function. The best-supported model, indicated by the lowest AIC, is presented first. ΔAIC represents the difference in AIC between each candidate model and the best-supported model."
+
+tt(model_sandy, digits = 3) %>% 
+  style_tt(i = 0, bold = TRUE)
+
+```
+
+Using the hr key function alone yielded the lowest AIC and was as such used to fit a detection function (@fig-sand_func). 
+
+```{r}
+#| label: fig-sand_func
+#| fig-cap: "Detection function using the hr key function for Sandy Bay."
+#| fig-height: 4
+
+plot(eu.ss, pdf = TRUE)
+```
+
+\ 
+
+```{r}
+#| label: tbl-model_prince
+#| tbl-cap: "Model selection table for Prince George. Candidate models represent detection functions incorporating different covariates. Models are ranked according to AIC, with the model showing the lowest AIC considered the best-supported model. ΔAIC indicates the difference in AIC values relative to the best-supported model."
+
+tt(model_prince, digits = 3) %>% 
+  style_tt(i = 0, bold = TRUE)
+
+```
+
+For Prince George a half-normal detection function without any covariates was fitted (@fig-pg_func).
+
+```{r}
+#| label: fig-pg_func
+#| fig-cap: "Detection function using the hr key function along with sea state as covariate."
+#| fig-height: 4
+
+plot(eu.ss, pdf = TRUE)
+```
+\ 
+
+Due to the limited number of observations per sampling location, independent detection functions could not be reliably estimated. Therefore, a pooled detection function was fitted using all observations combined, following the same two-step model selection procedure.
+
+Using the `#gls("hr")`{=typst} key function resulted in the lowest AIC value for the pooled function (hn = `r round(AIC(d.hn)[1,2],2)`; hr = `r round(AIC(d.hr)[1,2],2)`) and was therefore used for further analysis. The goodness of fit test confirmed the choice of the key function (hn p-value: `r round(gof_hn$dsgof$CvM$p,3)`; hr p-value = `r round(gof_hr$dsgof$CvM$p,3)`).
+To increase the fit of the function following covariates were fitted: glare, sea state, wave height, wind speed and height. Using height as covariate resulted in the lowest AIC (@tbl-model_summary).
 
 ```{r}
 #| label: tbl-model_summary
 #| tbl-cap: "Summary of the models used to fit the detection function. The formula represents the covariates used."
 
-tt(model_tab) %>% 
-  style_tt(i = 0, bold = TRUE) %>% 
-  style_tt(j = 4:7, align = "c")
+tt(model_tab, digits = 3) %>% 
+  style_tt(i = 0, bold = TRUE)
 
 ```
 
@@ -574,36 +901,77 @@ Using the `#gls("hr")`{=typst} key function along with height as a covariate the
 ```{r}
 #| label: fig-ht_model
 #| fig-cap: "Detection function using the hr key function along with height as covariate."
+#| fig-height: 4
 
 plot(d.ht, pdf = TRUE)
 ```
 
 
-Using the best fitted detection functions the relative abundance of dolphins was calculated. The highest cluster density was estimated to be `r round(sum_ht$dht$clusters$D$Estimate[1]* 1e6, 3)` per km² in the southern sector (surveyd from Europa Point) (95 % CI: `r round(cluster_clean[1,3], 2)` - `r round(cluster_clean[1,4], 2)`; CV: `r round(cluster_clean$CV[1], 2)`)(@tbl-cluster).
+## Density and Abundance Estimates
+
+### Per spot estimates
+Using the best fitting detection function, per spot, the relative abundance of dolphins was calculated. The highest group density was estimated to be `r round(dens_tbl[[3]][2], 3)` per km² in the southern sector (surveyed from Europa Point). The highest individual density was also estimated to be in the southern sector with `r round(dens_tbl[[8]][2], 3)` per km² (@tbl-per_spot_dens).
 
 ```{r}
-#| label: tbl-cluster
-#| tbl-cap: "Group density estimates per spot using the detection function with height as covariate."
+#| label: tbl-per_spot_dens
+#| tbl-cap: "Overview of the density estimated per spot. Density estimates were derived from the best-fitting detection function for each sampling location."
 
-tt(cluster_clean, digits = 2) %>% 
-  style_tt(i = c(0, 4), bold = TRUE)
+
+tt(dens_tbl,
+    width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) |>
+  format_tt(j = 3:12, digits = 2) %>% 
+  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
+  style_tt(i = -2:0, bold = TRUE) %>% 
+  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
+
 ```
 
-The highest individual density was estimated at Europa `r round(sum_ht$dht$individuals$D$Estimate[1]* 1e6, 3)` per km² (95 % CI: `r round(indiv_clean[1,3], 2)` - `r round(indiv_clean[1,4], 2)`; CV: `r round(indiv_clean$CV[1], 2)`)(@tbl-indiv).
+The highest group abundance was estimated to be `r round(abun_tbl[[3]][2], 3)` per km² in the southern sector as well. As well as the highest individual abundance `r round(abun_tbl[[8]][2], 3)`(@tbl-per_spot_abun). 
 
 ```{r}
-#| label: tbl-indiv
-#| tbl-cap: "Individual density estimates per spot using the detection function with height as covariate."
+#| label: tbl-per_spot_abun
+#| tbl-cap: "Overview of the relative abundance estimated per spot. Relative abundance estimates were derived from the best-fitting detection function for each sampling location."
 
-tt(indiv_clean, digits = 2) %>% 
-  style_tt(i = c(0, 4), bold = TRUE)
+
+tt(abun_tbl,
+   width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) |>
+  format_tt(j = 3:12, digits = 2) %>% 
+  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
+  style_tt(i = -2:0, bold = TRUE) %>% 
+  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
+
 ```
 
+The detection-corrected density gradient confirmed earlier findings (@fig-day_SPUE) of higher SPUE at Europa Point compared to the other vantage points.
 
-<!-- Here comes a table of the abundance estimates from the ds function -->
+### Pooled estimates
+Using the best fitting pooled detection functions the relative abundance of dolphins was calculated for the pooled sightings. The highest group density was estimated to be `r round(sum_ht$dht$clusters$D$Estimate[1]* 1e6, 3)` per km² in the southern sector (surveyed from Europa Point) (95 % CI: `r round(pool_group_dens[1,4], 2)` - `r round(pool_group_dens[1,5], 2)`; CV: `r round(pool_group_dens$CV[1], 2)`). The highest individual density was estimated in the southern sector as well with `r round(sum_ht$dht$individuals$D$Estimate[1]* 1e6, 3)` individuals per km² (95 % CI: `r round(pool_indiv_dens[1,4], 2)` - `r round(pool_indiv_dens[1,5], 2)`; CV: `r round(pool_indiv_dens$CV[1], 2)`)(@tbl-pool_dens).
 
-## Kernel Density Estimation
-The Kernel Density Estimation using group size as a weight variable showed the highest density around the south western tip of the peninsula (lat: XX, lon: XX). With the core area covering most of the southern sector (@fig-kde_map). The home area stretched around the whole peninsula covering most of the BGTW and every sector.
+```{r}
+#| label: tbl-pool_dens
+#| tbl-cap: "Overview of the density estimated for the pooled sightings. Density estimates were derived from the best-fitting detection function for all three sampling locations."
 
+tt(pool_dens_tbl, digits = 2,
+   width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) %>% 
+  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
+  style_tt(i = -2:0, bold = TRUE) %>% 
+  style_tt(i = 4, bold = TRUE) %>% 
+  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
 
-![The Kernel Density Estimation (KDE) of the sightings collected from land-based surveys between `r format(min(full$date.x), "%d.%m.%Y")` and `r format(max(full$date.x), "%d.%m.%Y")`. The KDE was calculated using group size as a weight variable. The highest density was found around the south western tip of the peninsula (lat: XX, lon: XX).). Color of grid represents the density Utilisazion distribution.](figures/density_map.png){#fig-kde_map}
+```
+
+For the pooled detection function, the highest group abundance estimate was also observed in the southern sector, with `r round(pool_abun_tbl[[3]][1], 3)` groups per km². Similarly, the highest individual abundance estimate occurred in the southern sector, with `r round(pool_abun_tbl[[8]][1], 3)` individuals per km² (@tbl-pool_abun).
+
+```{r}
+#| label: tbl-pool_abun
+#| tbl-cap: "Overview of the relative abundance estimated for the pooled locations. Relative abundance estimates were derived from the best-fitting detection function for the pooled sighting dataset."
+
+tt(pool_abun_tbl,
+   width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) %>% 
+  format_tt(j = 3:12, digits = 2) %>% 
+  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
+  style_tt(i = -2:0, bold = TRUE) %>% 
+  style_tt(i = 4, bold = TRUE) %>% 
+  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
+```
+
