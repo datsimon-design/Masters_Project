@@ -17,7 +17,7 @@ Surveying Guidelines created for this project and for future applications of thi
 )
 ```
 
-Surveying Guidelines created for this project and for future applications of this methodology. 
+Survey checklist created for this project and for future applications of this protocol, to ensure a standardised data collection. 
 :::
 
 ::: {#app-disR}
@@ -70,3 +70,6 @@ Custom function in R to calculate distance from reticles and observer height; fa
 :::
 
 ![Visual representation of the calculation of the distance used in the data cleaning pipeline. The observer height $h$ was adapted per spot and the angle $\theta$ was derived from the reticles inside the binoculars.](/misc/Inclinometer.png){#app-incl}
+
+
+![Survey sightings plotted on top of a bathymetry map of the BGTW, this map is for visual purposes only, as it holds no real depth data.](/figures/bath_map.png){#app-bath}

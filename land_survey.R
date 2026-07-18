@@ -45,6 +45,17 @@ data <- detection %>%
   mutate(across(c(on_effort, bird_presence, fish_presence),
                 ~ as.logical(.))) %>% 
   
+  # Create Clean spot name
+  mutate(
+    spot_clean = case_when(
+      spot_name == "Europa" ~ "Europa Point",
+      spot_name == "SandyBay" ~ "Sandy Bay",
+      spot_name == "PrinceGeorge" ~ "Prince George",
+      TRUE ~ spot_name
+      
+    )
+  ) %>% 
+  
   
   # Calculate distance first check if Westside to account for coastline
   mutate(ref_distance = pmap_dbl(

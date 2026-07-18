@@ -64,9 +64,9 @@ region_plot <- region_split@region %>%
     panel.background = element_rect(fill = "transparent", colour = NA),
     legend.box.background = element_rect(fill = "transparent"),
     legend.background = element_rect(fill = "transparent", colour = NA),
-    line  = element_line(colour = "transparent"),
-    title = element_text(colour = "transparent")
-  )
+    line  = element_line(colour = "transparent")
+  ) +
+  my_theme_trans()
 
 region_plot
 
@@ -94,6 +94,7 @@ sum(region_split@region$area_sqkm)
 
 ```{r, Export transparent background}
 
+ggsave(filename = "./figures/region_transects.png", region_plot, width = 1920, height = 1080, dpi = 200, units = "px")
 ggsave(filename = "coverage.png", coverage_plot, width = 1920, height = 1080, dpi = 200, units = "px")
 
 ```

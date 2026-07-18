@@ -306,6 +306,16 @@ full <- boat %>%
 
 saveRDS(full, "./temp/full.rds")
 
+full_source <- full %>% 
+  summarise(
+    sightings = n(),
+    .by = "source"
+  ) %>% 
+  pivot_wider(
+    names_from = source,
+    values_from = sightings
+  )
+
 st_set_geometry(full, "geometry")
 
 full_sum <- full %>% 
@@ -321,7 +331,7 @@ mt_groups = c("Method", "Method")
 
 mt_fill = c(darkblue, lightblue)
 
-mt_fill_labs = c("Boat Transects", "Land Surveys")
+mt_fill_labs = c(paste0("Boat Transects (n = ", full_source$boat, ")"), paste0("Land Surveys (n = ", full_source$land, ")"))
 
 mt_headers = paste0(mt_groups, " (n = ", full_sum$sightings, ")")
 
@@ -333,7 +343,7 @@ method_map <- ggplot() +
   
   geom_sf(data = st_set_geometry(full, "geometry"),
           aes(fill = source, shape = source), colour = "black", size = 3) + 
-  coord_sf(xlim = c(-5.47, -5.248), ylim = c(36.05, 36.195)) +
+  coord_sf(xlim = c(-5.47, -5.248), ylim = c(36.05, 36.2005)) +
   
   scale_shape_manual(
     values = c(22, 21),
@@ -368,9 +378,9 @@ method_map <- ggplot() +
     style = north_arrow_nautical # Arrow graphic style
   ) +
   
-  guides(fill = guide_legend_group(key = key_group_lut(met_levels, mt_headers),
+  guides(fill = guide_legend_group(key = key_group_lut(mt_levels, mt_headers),
                                    override.aes = list(colour = "black")),
-         shape = guide_legend_group(key = key_group_lut(met_levels, mt_headers),
+         shape = guide_legend_group(key = key_group_lut(mt_levels, mt_headers),
                                    override.aes = list(colour = "black"))) +
   
   theme_minimal() +
@@ -379,7 +389,7 @@ method_map <- ggplot() +
     legend.text              = ggtext::element_markdown(),
     legendry.legend.subtitle = element_text(face = "bold"),   # styles the group headers
     legend.position = "inside",
-    legend.position.inside = c(0.08, 0.6)
+    legend.position.inside = c(0.12, 0.92)
   )
 
 method_map
@@ -388,7 +398,7 @@ method_map
 ```
 
 ```{r}
-ggsave(filename = "./figures/method_map.png", method_map, width = 1920, height = 1920, dpi = 200, units = "px")
+ggsave(filename = "./figures/method_map.png", method_map, width = 3020, height = 2520, dpi = 300, units = "px")
 ```
 
 
@@ -435,7 +445,7 @@ sightings <- ggplot() +
   geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10") +
   geom_sf(data = st_set_geometry(data, "sighting_poi"),
           aes(fill = species, shape = species), colour = "black", size = 3) + 
-  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.195)) +
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.2005)) +
   
   scale_shape_manual(
     values = sp_shapes,
@@ -487,9 +497,151 @@ sightings
 ```
 
 ```{r, Export}
-ggsave(filename = "./figures/sightings_legend.png", sightings, width = 1920, height = 1920, dpi = 200, units = "px")
+ggsave(filename = "./figures/sightings_legend.png", sightings, width = 3020, height = 2320, dpi = 300, units = "px")
 ```
 
+#### Pull Obis data and compare
+
+```{r}
+library(robis)
+
+xlim <- c(-5.438, -5.248)
+ylim <- c(36.05, 36.195)
+
+
+wkt <- sprintf(
+  "POLYGON ((%f %f, %f %f, %f %f, %f %f, %f %f))",
+  xlim[1], ylim[1],   # SW
+  xlim[2], ylim[1],   # SE
+  xlim[2], ylim[2],   # NE
+  xlim[1], ylim[2],   # NW
+  xlim[1], ylim[1]    # close back to SW
+)
+
+obis_dd <- occurrence("Delphinus delphis", geometry = wkt)
+
+obis_sf <- st_as_sf(obis_dd,
+                    coords = c("decimalLongitude", "decimalLatitude"),
+                    crs = 4326,
+                    na.fail = FALSE)
+
+
+```
+
+Compare to my sightings
+
+```{r}
+sightings <- data %>%
+  filter(on_effort == TRUE & date.x > "2026-05-28") %>% 
+  st_set_geometry("sighting_poi") %>%
+  st_transform(4326) %>%
+  transmute(source = "This study",
+            geometry = sighting_poi)
+
+obis <- obis_sf %>%
+  st_transform(4326) %>%
+  transmute(source = "OBIS")
+
+combined <- bind_rows(sightings, obis)
+combined$source <- factor(combined$source,
+                          levels = c("This study", "OBIS"))
+
+key_labs = c(paste0("This Study (n = ", length(sightings$source), ")"), paste0("OBIS (n = ", length(obis$source), ")"))
+
+
+obis_comp <- obis_sf %>% 
+  ggplot() +
+  geom_sf(data = coast, fill = "lightgray", alpha = .8) +
+  geom_sf(data = st_set_geometry(combined, "geometry"), aes(
+    shape = source, fill = source, alpha = source), colour = "black", size = 3) +
+  scale_shape_manual(values = c("This study" = 21,
+                                "OBIS" = 22),
+                     labels = key_labs) +
+  
+  
+  scale_fill_manual(values  = c("This study" = lightblue,
+                                "OBIS" = darkblue),
+                    labels = key_labs) +
+  
+  
+  scale_alpha_manual(values  = c("This study" = 0.3,
+                                "OBIS" = 1),
+                     labels = key_labs) +
+  
+  
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.2005)) +
+  labs(shape = "Source", fill = "Source", alpha = "Source") +
+  
+  # Add the scale bar
+  annotation_scale(
+    location = "bl",            # "bl" = bottom left
+    width_hint = 0.2,          # Bar length takes up approx 40% of map width
+    unit_category = "metric",   # Options: "metric", "imperial", or "nautical"
+    pad_y = unit(0.05, "npc")
+  ) +
+  
+  # Add the north arrow
+  annotation_north_arrow(
+    location = "br", # "tr" = top right
+    height = unit(0.12, "npc"),
+    width = unit(0.1, "npc"),
+    which_north = "true",       # Align arrow to true north pole instead of map grid
+    pad_x = unit(0.05, "npc"),    # X offset from the boundary
+    pad_y = unit(0.05, "npc"),    # Y offset from the boundary
+    style = north_arrow_nautical # Arrow graphic style
+  ) +
+  
+  my_theme_trans() +
+  theme(
+    legend.text              = ggtext::element_markdown(),
+    legendry.legend.subtitle = element_text(face = "bold"),   # styles the group headers
+    legend.position = "inside",
+    legend.position.inside = c(0.10, 0.7)
+  )
+```
+
+```{r}
+ggsave(filename = "./figures/obis_comp.png", obis_comp, width = 3020, height = 2320, dpi = 300, units = "px") 
+```
+
+```{r}
+station_to_sector <- c(
+  Europa       = "S",
+  PrinceGeorge = "W",
+  SandyBay     = "E"
+)
+
+obis_sf <- st_transform(obis_sf, st_crs(sectors))
+
+obis_counts <- st_join(obis_sf, sectors, join = st_within) %>%
+  st_drop_geometry() %>%
+  count(name, name = "records") %>%     # use sectors' column name here
+  mutate(dataset = "OBIS")
+
+sys_counts <- data %>%
+  st_drop_geometry() %>%
+  filter(on_effort) %>%
+  count(sector, name = "records") %>%
+  mutate(dataset = "This study")
+
+bind_rows(sys_counts, obis_counts) %>%
+  tidyr::pivot_wider(names_from = sector, values_from = records, values_fill = 0)
+
+obis_counts2 <- obis_counts %>%
+  mutate(sector = recode(name, !!!station_to_sector)) %>%
+  select(sector, records, dataset)   # sector is NA for the 45 outside-polygon records
+
+comparison <- bind_rows(sys_counts, obis_counts2) %>%
+  mutate(sector = factor(sector, levels = c("E", "S", "W"),
+                         labels = c("East", "South", "West"))) %>%
+  tidyr::pivot_wider(names_from = sector, values_from = records,
+                     values_fill = 0)
+
+comparison
+
+saveRDS(comparison, "./temp/obis.rds")
+
+```
 
 
 # Sightings analysis
@@ -593,7 +745,10 @@ as.data.frame(effort_log) %>%
   ) +
   my_theme_trans() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
 
+
+```{r, sightings time}
 # When did we have the most sightings?
 sight_time <- data %>%
   mutate(
@@ -611,7 +766,7 @@ sighting_day <- sight_time %>%
   my_theme_trans() +
   labs(
     x = "Time",
-    y = "n of sightings",
+    y = "n of Sightings",
   ) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
@@ -785,7 +940,7 @@ spue_report %>%
 
 ```
 
-Analize spue and compare. Test if there is significant difference between the spots (Kruskal-Wallis) and between which spots (dun-Test). Additional glm 
+Analize spue and compare. Test if there is significant difference between the spots (Kruskal-Wallis) and between which spots (dun-Test). 
 
 ```{r}
 library(FSA)
@@ -793,7 +948,7 @@ library(FSA)
 active <- c("Europa", "SandyBay", "PrinceGeorge")
 scans  <- effort %>% filter(spot_name %in% active)   # per-scan rows, NOT the summary
 
-count(scans, spot_name)     
+#count(scans, spot_name)     
 
 
 kruskal.test(n_sightings ~ spot_name, data = scans)
@@ -822,12 +977,26 @@ SPUE <- spue_clean %>%
     
     # Visual styling details
     tip_length = 0.02,
-    textsize = 6
+    textsize = 6,
+    
+    
+  ) +
+  
+  geom_signif(
+    comparisons = list(c("Europa", "SandyBay")),
+    annotations = c("*"),
+    map_signif_level = TRUE,
+
+
+    # Visual styling details
+    tip_length = 0.02,
+    textsize = 6,
+    y_position=1.18
   ) +
   
   labs(x = "", y = "SPUE") +
   
-  ylim(c(0, 1.2)) +
+  ylim(c(0, 1.25)) +
   
   my_theme_trans() +
   theme(base_size = 11)
@@ -845,7 +1014,7 @@ day_SPUE <- sighting_day + SPUE +
 
 ```{r}
 ggsave(filename = "./figures/SPUE.png", SPUE, width = 1000, height = 1000, dpi = 200, units = "px")
-ggsave(filename = "./figures/day_SPUE_comb.png", day_SPUE, width = 2000, height = 1000, dpi = 200, units = "px")
+ggsave(filename = "./figures/day_SPUE_comb.png", day_SPUE, width = 3500, height = 2000, dpi = 300, units = "px")
 ```
 
 
@@ -856,51 +1025,58 @@ Check how far the sightings are off the observer -> count vs distance
 ```{r}
 location <- unique(spots$spot_name)
 
-for (l in location) {
-  d <- data %>% 
-    filter(spot_name == l)
-  
-  plot <- d %>% 
-    ggplot()+
-    geom_histogram(aes(
-      x = distance
-    ), fill = darkblue) +
-    labs(
-      title = paste("Distance vs Number of sighting at", l)
-    ) +
-    my_theme_trans()
+# for (l in location) {
+#   d <- data %>% 
+#     filter(spot_name == l)
+#   
+#   plot <- d %>% 
+#     ggplot()+
+#     geom_histogram(aes(
+#       x = distance
+#     ), fill = darkblue) +
+#     labs(
+#       title = paste("Distance vs Number of sighting at", l)
+#     ) +
+#     my_theme_trans()
+# 
+# 
+#   ggsave(filename = paste0("./figures/distance_",l, ".png"), plot, width = 1920, height = 1920, dpi = 200, units = "px")
+#   
+# }
 
-
-  ggsave(filename = paste0("./figures/distance_",l, ".png"), plot, width = 1920, height = 1920, dpi = 200, units = "px")
-  
-}
-
-
+data$spot_f <- factor(data$spot_name, levels = c("SandyBay", "Europa", "PrinceGeorge"))
 
 distance <- data %>% 
+  filter(spot_name %in% active_spots$spot_name) %>% 
   ggplot() + 
   geom_histogram(aes(
     x = distance,
-    fill = sector
+    fill = spot_name
   ), binwidth = 550, color = "white") +
-  facet_wrap(~ sector) +
+  facet_wrap(~ spot_f) +
   
   scale_fill_manual(values = c(
-    S = darkblue,
-    W = midblue,
-    E = lightblue
+    "PrinceGeorge" = midblue,
+    "Europa" = darkblue,
+    "SandyBay" = lightblue
   )) +
+  
+  labs(
+    x = "Distance in m",
+    y = "n of Sightings",
+    fill = "Spot"
+  ) +
   
   my_theme_trans() +
   theme(
-    strip.text  = element_text(face = "bold"),
+    strip.text  = element_text(face = "bold", colour = "black"),
     panel.border  = element_rect(fill = "transparent", colour = "black"))
 
 distance
 ```
 
 ```{r}
-ggsave(filename = "./figures/distance_facet.png", distance, width = 1920, height = 1520, dpi = 200, units = "px")
+ggsave(filename = "./figures/distance_facet.png", distance, width = 1920, height = 1020, dpi = 300, units = "px")
 ```
 
 
@@ -1044,15 +1220,17 @@ density_map <- ggplot() +
         text = element_text(size = 10)
     )
 
-# windows(width = 1920/25.4,
-#         height = 1820/25.4)
+ windows(width = 1920/25.4,
+         height = 1820/25.4)
 
 
 density_map
 ```
 
 ```{r}
-ggsave(filename = "./figures/density_map.png", density_map, width = 1920, height = 1820, dpi = 200, units = "px")
+# ggsave(filename = "./figures/density_map.png", density_map, width = 1920, height = 1820, dpi = 200, units = "px")
+
+ggsave(filename = "./figures/density_map.png", density_map, width = 3200, height = 3032, dpi = 300, units = "px")
 ```
 
 
@@ -1102,11 +1280,14 @@ sectors_m2 <- as.data.frame(sectors_m2) %>%
 
 sight <- data %>% 
   filter(on_effort == TRUE) %>% 
+  filter(date.x > "2026-05-28") %>% 
   filter(species %in% c("common_dolphin", "delphinidae")) %>% 
   transmute(survey_id, distance, size = group_size, species)
   
 
 eff <- effort_log %>% 
+  mutate(date = dmy(date)) %>% 
+  filter(date > "2026-05-28") %>% 
   mutate(sector_deg = abs(spot_bearing2 - spot_bearing1)) %>% 
   as.data.frame() %>% 
   select(-geometry)%>% 
@@ -1115,7 +1296,8 @@ eff <- effort_log %>%
   select("Region.Label" = spot_name,
          "Sample.Label" = survey_id,
          "height" = observer_height,
-         Effort) %>% 
+         Effort,
+         wave_height, wind_dir, wind_speed, glare, sea_state) %>% 
   left_join(sectors_m2, by = "Region.Label")
 
 dis <- eff %>% 
@@ -1129,7 +1311,7 @@ dis <- eff %>%
 dis$object <- NA_integer_
 dis$object[!is.na(dis$distance)] <- seq_len(sum(!is.na(dis$distance)))
 
-
+saveRDS(dis, "./temp/dis.rds")
 
 ```
 
@@ -1139,7 +1321,7 @@ dis$object[!is.na(dis$distance)] <- seq_len(sum(!is.na(dis$distance)))
 ```{r, run different ds methods}
 
 
-trunc <- 10000
+trunc <- 8000
 conversion.factor <- convert_units("Metre", NULL, "square metre")
 
 # Overall detection function (pooled)
@@ -1184,10 +1366,10 @@ plot(d.re, pdf = TRUE)
 plot(d.rh, pdf = TRUE)
 
 # Summary of the best model and abundance and density estimates
-summary(d.ht)
+sum_ht <- summary(d.ht)
 
 
-summarize_ds_models(d.hn, d.hr, d.ht, d.re, d.rh)
+summarize_ds_models(d.hn, d.hr, d.ht, d.re, d.rh, output = "plain")
 
 
 
@@ -1196,6 +1378,8 @@ dht2(d.ht, flatfile = dis, strat_formula = ~Region.Label, convert_units = conver
 
 
 ```
+
+
 
 ```{r}
 png(file="./figures/d_hn.png",
@@ -1212,5 +1396,47 @@ png(file="./figures/gof_ht_co.png",
 width=2500, height=2000, res = 300)
 gof_ds(d.ht)
 dev.off()
+```
+
+
+
+```{r, Overlay sight bathymetry}
+library(terra)
+library(tidyterra)
+
+bath <- rast("./data/GIS/BGTW_bathymetry.tif")
+
+bath <- terra::shift(bath, dx = -455.1, dy = -230) 
+bath <- terra::rescale(bath, fx = 1.21, fy = 1.28, x0 = 290271, y0 = 3998441)
+
+#plot(bath)
+
+# add to spat raster maxcell = 2e6
+
+bath_map <- ggplot() +
+  geom_spatraster_rgb(data = bath, maxcell = 2e6)+
+  geom_sf(data = coast, fill = "lightgrey") +
+  geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name),     shape = 25, fill = "gray10") +
+  geom_sf(data = st_set_geometry(data, "sighting_poi"),
+          aes(fill = species), shape = 21, colour = "white", size = 3, alpha = .6) + 
+  coord_sf(crs = 4326, default_crs = 4326,
+           xlim = c(-5.41, -5.28), ylim = c(36.05, 36.16))+
+  
+  scale_fill_manual(values = sp_fills, name = "Species",
+                    labels = sp_labels) +
+  
+  my_theme_trans() +
+  theme(
+    legend.text              = ggtext::element_markdown(colour = "white"),
+    legend.title = element_text(colour = "white"),
+    legend.position = "inside",
+    legend.position.inside = c(0.9, 0.2),
+    legend.background = element_rect(fill = alpha(darkblue, alpha = 0.6))
+  )
+
+```
+
+```{r}
+ggsave(filename = "./figures/bath_map.png", bath_map, width = 3200, height = 3032, dpi = 300, units = "px")
 ```
 

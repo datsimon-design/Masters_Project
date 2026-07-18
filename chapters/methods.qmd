@@ -35,15 +35,27 @@ Because of the expected species in this region, the method to capture `#gls("pid
 The original study design proposed vessel-based line-transect surveys; however, logistical constraints prevented the deployment of the University research vessel during the survey period. As a result, the survey methodology was revised, and a systematic land-based survey approach was adopted to investigate cetacean distribution within the `#gls("bgtw")`{=typst}.
 
 ## Land-based Survey
-Land-based cetacean surveys represent a viable and cost-effective alternative to the more expensive vessel-based surveys. The utilisation of vantage points facilitates a more profound interpretation of the observed behaviour. In the context of behavioural studies, land-based surveys have been a particularly effective method of data collection, as they do not influence the behaviour of cetaceans or introduce bias via the survey vessel [@mannBehavioralSamplingMethods1999].
+Land-based cetacean surveys represent a viable and cost-effective alternative to the more expensive vessel-based surveys. The utilisation of vantage points facilitates a more profound interpretation of the observed behaviour. The behaviour state was defined using an adaptation of Neumann et al. [-@neumannBehaviourEcologyCommon] and Hawkins and Gartside [-@hawkinsInteractiveBehavioursBottlenose2009] (@tbl-behave) .In the context of behavioural studies, land-based surveys have been a particularly effective method of data collection, as they do not influence the behaviour of cetaceans or introduce bias via the survey vessel [@mannBehavioralSamplingMethods1999].
+
+| **Behaviour State** | **Description** |
+|:-- |:---------- |
+| Travelling | Dolphins move in one defined direction and surface consistently. |
+| Milling | Dolphins change swimming direction frequently but remain in the same general area. |
+| Feeding/Foraging | Dolphins actively pursue prey or capture fish. Associated with deep diving, fast swimming; frequent direction changes and inconsistent breath-intervals. |
+| Socialising | At least two dolphins make physical contact at the surface. Like chasing each other, body contact, petting or copulation. Often accompanied by breaching or other surface activities. |
+| Resting | Dolphins stay close to the surface and to each other. They regularly surface at regular intervals and move only very slowly or do not move forward at all. |
+
+: Definition table of behaviour states of dolphins adapted from Neumann et al. (2005)and Hawkins and Gartside (2009). {#tbl-behave}
+
+
 A series of 174 surveys was conducted, with observers remaining on-effort for a period of 10 minutes, followed by a 20-minute break. This protocol was implemented to ensure the observers could rest and the cetaceans could leave the area, reducing the likelihood of double-counting [@gutierrez-munozPatternsTrendsCetacean2021]. Three locations were selected to cover the majority of the `#gls("bgtw")`{=typst}: Europa, Prince George and Sandy Bay (@tbl-landspots, @fig-spots).
 
 
-| Station | Latitude | Longitude | Height (m a.s.l.) | Scan sector
+| **Station** | **Latitude** | **Longitude** | **Height (m a.s.l.)** | **Scan sector**
 |---------|------|------|------|------|
 | Europa | 36°06′33.48″ N | 5°20′44.34″ W | 18 | 060–220°
 | SandyBay | 36°07′47.99″ N | 5°20′31.65″ W | 82 | 016–155°
-| PrinceGeorge |36° 6' 50.4" N | 5° 20' 58.5096"  | 82 | 207–335°
+| PrinceGeorge |36°06′50.4″ N | 5°20′58.5096″ W | 82 | 207–335°
 
 : Land-based observation stations, with position, height above sea level and the compass sector scanned from each. {#tbl-landspots}
 

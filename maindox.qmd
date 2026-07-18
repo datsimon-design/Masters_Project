@@ -37,6 +37,7 @@ crossref:
   (key: "locoh", short: "LoCoH", long: "Local Convex Hull"),
   (key: "hr", short: "hr", long: "Hazard-rate"),
   (key: "hn", short: "hn", long: "Half-normal"),
+  (key: "imma", short: "IMMA", long: "Important Marine Mammal Area"),
   (key: "accobams", short: "ACCOBAMS", long: "Agreement on the Conservation of Cetaceans of the Black Sea, Mediterranean Sea and contiguous Atlantic area"),
 )
 #register-glossary(abbreviations)
@@ -104,6 +105,13 @@ This is just a short summary of how AI was used. See Declaration of Originality 
   )
 ]
 ```
+{{< pagebreak >}}
+
+# Definitions
+<!-- Include watches, SPUE sightings -->
+
+{{< include ./chapters/definitions.qmd >}}
+
 {{< pagebreak >}}
 
 # Acknowledgements 
