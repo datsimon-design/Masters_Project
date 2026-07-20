@@ -1,0 +1,30 @@
+| **Package** | **Purpose** |
+|:-------------|:----------------------------------------------------------------------------|
+| `tidyverse`   | Core data wrangling and visualisation (dplyr, ggplot2, tidyr, purrr) used throughout the analysis.  |
+| `readxl`      | Import of raw survey and effort data from Excel (`.xlsx`) spreadsheets.                                    |
+| `lubridate`   | Parsing and manipulation of survey dates and timestamps.                                                  |
+| `sf`          | Handling, projection and analysis of vector spatial data (survey geometries, coastlines).                 |
+| `ggspatial`   | Addition of spatial elements such as basemaps, scale bars and north arrows to ggplot2 maps.               |
+| `osmdata`     | Retrieval of OpenStreetMap features (e.g. coastline and land polygons) for mapping.                       |
+| `ggforce`     | Extension of ggplot2 with additional geoms and annotation shapes.                                         |
+| `gt`          | Generation of publication-quality display tables.                                                         |
+| `ggtext`      | Rendering of Markdown/HTML-formatted rich text in ggplot2 labels and titles.                              |
+| `legendry`    | Construction of advanced, customised legends and guides for ggplot2.                                      |
+| `ks`          | Kernel density estimation for the kernel-smoothed density maps.                                           |
+| `patchwork`   | Composition of multiple ggplot2 panels into a single figure layout.                                       |
+| `flextable`   | Creation of formatted tables for Word, HTML and PDF output.                                               |
+| `ggfun`       | Helper functions and theme components extending ggplot2.                                                  |
+| `ggsignif`    | Addition of significance brackets and annotations to ggplot2 plots.                                       |
+| `ggmagnify`   | Creation of magnified inset panels within ggplot2 figures.                                                |
+| `tinytable`   | Lightweight generation of tables across output formats (HTML, LaTeX, Typst, Word).                        |
+| `FSA`         | Significance test and helper functions.                                                |
+| `here`        | Construction of project-relative file paths for reproducible file access.                                 |
+| `english`     | Conversion of numeric values to their written-out English word form.                                      |
+| `Distance`    | Fitting of detection functions and estimation of density and abundance from distance-sampling data.       |
+| `dssd`        | Design of distance-sampling surveys, including transect and point layouts.                                |
+| `mrds`        | Mark-recapture distance-sampling detection-function fitting (underlies the Distance workflow).            |
+| `dsims`       | Simulation of distance-sampling surveys to evaluate survey designs.                                       |
+| `robis`       | Pulling non-systematic survey data from OBIS.                                       |
+
+
+: R packages used in this project. {#tbl-packages}

@@ -1,3 +1,4 @@
+## Surveying Protocol
 :::{#app-protocol}
 
 ```{=typst}
@@ -9,6 +10,9 @@
 Surveying Guidelines created for this project and for future applications of this methodology. 
 :::
 
+{{< pagebreak >}}
+
+## Survey Checklist
 :::{#app-checklist}
 
 ```{=typst}
@@ -20,10 +24,20 @@ Surveying Guidelines created for this project and for future applications of thi
 Survey checklist created for this project and for future applications of this protocol, to ensure a standardised data collection. 
 :::
 
+{{< pagebreak >}}
+
+## Photo-ID examples
+![Matching process inside DISCOVERY within one encounter. The aim is to identify individual within one group and choose the best image of each individual in order to match it to the existing catalog.](/misc/photo_ID_match.png){#app-photoid}
+
+![One individual in the photo-ID catalog. With the ID 10001 captured on the 8th of May 2026. This catalog can be used to match multiple individuals and refine the density and distribution results.](/misc/photo_ID_cat.png){#app-photo_cat}
+
+{{< pagebreak >}}
+
+## Distance calculations in R
 ::: {#app-disR}
 ```r
 # Calculate Distance from reticles and observer height; factor needs to be adjusted for each binocular----------------
-# For the 7×50FMTRC-SX bino the factor 0.005 is correct
+# For the 7×50FMTRC-SX bino the factor is 0.005 
 calculate_distance_bino <- function(reticles, height, factor = 0.005, ref_distance = NA_real_) {
   R <- 6371000  # Earth radius in meters
   
@@ -69,7 +83,40 @@ coast_distance <- function(observer, bearing, land, max_range = 60000) {
 Custom function in R to calculate distance from reticles and observer height; factor needs to be adjusted for each binocular. For the west side the code was adjusted to calculate the distance to the coastline based on the observer position and bearing.
 :::
 
+
 ![Visual representation of the calculation of the distance used in the data cleaning pipeline. The observer height $h$ was adapted per spot and the angle $\theta$ was derived from the reticles inside the binoculars.](/misc/Inclinometer.png){#app-incl}
 
+{{< pagebreak >}}
 
+```{=typst}
+#set page(flipped: true)
+```
+## Distance flatfile
+
+::: {#app-flat}
+
+```{r}
+#| echo: false
+#| warning: false
+library(tidyverse)
+library(tinytable)
+
+flat <- readRDS("./temp/dis.rds")
+
+str(flat)
+
+tt(head(flat, n = 10)) |>
+  style_tt(i = 0, bold = TRUE)
+```
+
+Effort and observation logs formatted in a flatfile structure readable by the `Distance` package. Only the first 10 rows are displayed here.
+
+:::
+
+```{=typst}
+#set page(flipped: false)
+```
+{{< pagebreak >}}
+
+## Bathymetry of the BGTW
 ![Survey sightings plotted on top of a bathymetry map of the BGTW, this map is for visual purposes only, as it holds no real depth data.](/figures/bath_map.png){#app-bath}

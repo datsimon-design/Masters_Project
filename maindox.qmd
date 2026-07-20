@@ -107,6 +107,12 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 ```
 {{< pagebreak >}}
 
+# List of R packages
+
+{{< include ./chapters/packages.qmd >}}
+
+{{< pagebreak >}}
+
 # Definitions
 <!-- Include watches, SPUE sightings -->
 
@@ -143,7 +149,7 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 
 # Results
 
-{{< include ./chapters/results.qmd >}}
+<!-- {{< include ./chapters/results.qmd >}} -->
 
 {{< pagebreak >}}
 

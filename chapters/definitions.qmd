@@ -1,0 +1,11 @@
+| **Term** | **Definition** |
+|:---- |:---------- |
+| Group | A group is defined as multiple individuals exhibiting similar behaviour, such as travelling in the same direction, while remaining in close proximity to each other. In this study, a group was defined as individuals occurring within an estimated 100 m radius of each other. |
+| Sighting | A sighting is defined as the visual detection of an individual cetacean, a group of cetaceans, or an unidentified animal within the water and inside the designated survey sector by one or both observers. |
+| On-effort | On-effort is defined as the period during which observers actively scan the designated survey sector for cetacean sightings. Only observations recorded during on-effort periods were included in the analysis. |
+| Off-effort | Off-effort is defined as the period during which observers were not actively scanning the designated survey sector. Only observations recorded during on-effort periods were included in the analysis. |
+| Watch | A watch is defined as a period during which observers actively scan the survey sector for cetacean sightings using binoculars or the naked eye. In this study, each watch had a duration of 10 minutes. |
+| Sightings Per Unit Effort (SPUE) | SPUE is defined as the number of sightings recorded per standardised on-effort watch and is used as a measure of relative sighting frequency. In this study, SPUE was calculated based on the number of sightings recorded during each 10-minute watch. |
+| Truncation | Truncation distance is defined as the maximum distance from the observer beyond which sightings are excluded from distance sampling analyses and detection function fitting. In this study, truncation distances were assessed and determined separately for each sampling location. |
+
+: Definitions of key terminology and concepts used throughout this thesis. {#tbl-defs}
