@@ -21,6 +21,8 @@ library(flextable)
 library(ggfun)
 library(ggsignif)
 library(ggmagnify)
+library(tinytable)
+library(ggmap)
 
 
 ```
@@ -204,6 +206,13 @@ ggsave(filename = "./figures/sector_map.png", sector_map, width = 1920, height =
 ggsave(filename = "./figures/overview_map.png", overview, width = 1920, height = 1920, dpi = 200, units = "px")
 
 ```
+
+### Create overview map with satelite map 
+
+```{r}
+
+```
+
 
 # Visualise the sightings
 
@@ -442,7 +451,7 @@ sp_fills  <- c(common_dolphin = darkblue, striped_dolphin = midblue, delphinidae
 # Plot
 sightings <- ggplot() +
   geom_sf(data = coast, fill = "lightgray", alpha = .8) +
-  geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10") +
+  geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10", size = 3.2) +
   geom_sf(data = st_set_geometry(data, "sighting_poi"),
           aes(fill = species, shape = species), colour = "black", size = 3) + 
   coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.2005)) +
@@ -1315,6 +1324,14 @@ saveRDS(dis, "./temp/dis.rds")
 
 ```
 
+```{r}
+tt(head(dis, n = 10), digits = 2) %>% 
+  style_tt(i = 0, bold = TRUE)
+
+as_tibble(dis) %>% 
+  tt()
+
+```
 
 
 

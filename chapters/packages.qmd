@@ -17,7 +17,7 @@
 | `ggsignif`    | Addition of significance brackets and annotations to ggplot2 plots.                                       |
 | `ggmagnify`   | Creation of magnified inset panels within ggplot2 figures.                                                |
 | `tinytable`   | Lightweight generation of tables across output formats (HTML, LaTeX, Typst, Word).                        |
-| `FSA`         | Significance test and helper functions.                                                |
+| `FSA`         | Statistical tests and helper functions.                                                |
 | `here`        | Construction of project-relative file paths for reproducible file access.                                 |
 | `english`     | Conversion of numeric values to their written-out English word form.                                      |
 | `Distance`    | Fitting of detection functions and estimation of density and abundance from distance-sampling data.       |

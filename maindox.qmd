@@ -149,7 +149,7 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 
 # Results
 
-<!-- {{< include ./chapters/results.qmd >}} -->
+{{< include ./chapters/results.qmd >}}
 
 {{< pagebreak >}}
 
@@ -172,6 +172,12 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 # Appendices
 
 {{< include ./chapters/appendix.qmd >}}
+
+{{< pagebreak >}}
+
+# Science Communication output
+
+{{< include ./chapters/comms.qmd >}}
 
 {{< pagebreak >}}
 

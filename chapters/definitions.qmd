@@ -2,6 +2,7 @@
 |:---- |:---------- |
 | Group | A group is defined as multiple individuals exhibiting similar behaviour, such as travelling in the same direction, while remaining in close proximity to each other. In this study, a group was defined as individuals occurring within an estimated 100 m radius of each other. |
 | Sighting | A sighting is defined as the visual detection of an individual cetacean, a group of cetaceans, or an unidentified animal within the water and inside the designated survey sector by one or both observers. |
+| Behaviour | The predominant behavioural state of a cetacean group, assigned when more than 50% of the individuals were engaged in the same activity. Behavioural state definitions are provided in @tbl-behave. |
 | On-effort | On-effort is defined as the period during which observers actively scan the designated survey sector for cetacean sightings. Only observations recorded during on-effort periods were included in the analysis. |
 | Off-effort | Off-effort is defined as the period during which observers were not actively scanning the designated survey sector. Only observations recorded during on-effort periods were included in the analysis. |
 | Watch | A watch is defined as a period during which observers actively scan the survey sector for cetacean sightings using binoculars or the naked eye. In this study, each watch had a duration of 10 minutes. |

@@ -89,11 +89,12 @@
   show figure.caption: set text(font: "Source Sans 3", size : 9pt)
 
   show figure.where(kind: table): set figure.caption(position: top)
-  show figure.where(kind: table): set align(center)
+  //show figure.where(kind: table): set align(center)
 
   show figure.where(kind: image): set figure.caption(position: bottom)
 
   show figure.where(kind: "quarto-float-app"): set block(breakable: true)
+  show figure.where(kind: "quarto-float-app"): set align(left)
 
 
   //Add the S prefic to fig and table, remove for journal article

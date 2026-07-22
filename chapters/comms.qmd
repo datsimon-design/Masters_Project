@@ -1,0 +1,6 @@
+## Infographic
+
+
+## Interactive Website
+This website was created to provide an interactive platform to explore the data collected during the project phase. It includes an interactive sighting map and supplementary information about the recorded species. The website can be found under to following link.
+
