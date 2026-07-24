@@ -4,6 +4,7 @@
   title: none,
   author: none,
   keywords: none,
+  sectionnumbering: none,
   body,
 ) = {
   set document(title: title, author: "Simon Gendrisch", keywords: keywords)
@@ -65,6 +66,8 @@
     justify: true,
     leading: 0.75em
   )
+
+  set heading(numbering: sectionnumbering)
 
   
 

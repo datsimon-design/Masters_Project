@@ -7,7 +7,7 @@ format:
   typst:
         template-partials: 
           - typst/typst-show.typ
-          - typst/typst-template.typ
+          - typst/journal/typst-template.typ
         output-file: M8.2_SupDoc_206708
         citeproc: true
 bibliography: refs.bib

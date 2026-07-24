@@ -1,0 +1,88 @@
+---
+title: "Investigating Spatial Distribution of Cetacean in the British Gibraltar Territorial Waters (BGTW)"
+author: "Simon Gendrisch"   
+keywords: [Cetacean, BGTW, Spatial Distribution, Kernel Density Estimation, Land Based Surveys]
+
+format: 
+
+  typst:
+        number-sections: true
+        template-partials: 
+          - typst/typst-show.typ
+          - typst/journal/typst-template.typ
+        output-file: M8.2_JournalArticle_206708
+        citeproc: true
+bibliography: refs.bib
+csl: "SoMESHarvard.csl"
+
+---
+
+# Abstract
+
+{{< pagebreak >}}
+
+```{=typst}
+#[
+```
+
+# Generative AI (GenAI) Use
+This is just a short summary of how AI was used. See Declaration of Originality and use of Gen AI for more details.
+
+{{< pagebreak >}}
+
+```{=typst}
+] <no-wc>
+```
+
+
+# Introduction
+
+
+
+
+
+# Methods {#methods-sec .unnumbered}
+
+
+{{< pagebreak >}}
+
+# Results
+
+
+{{< pagebreak >}}
+
+# Discussion
+
+
+{{< pagebreak >}}
+
+```{=typst}
+#[
+```
+
+# Acknowledgements 
+
+
+{{< pagebreak >}}
+
+# Conflict of Interest
+The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.
+
+# Supplementary Material
+Please see Supplementary Material for further information related to this study.
+
+# Science Communication output
+
+{{< include ./chapters/comms.qmd >}}
+
+{{< pagebreak >}}
+
+# References
+::: {#refs}
+:::
+
+```{=typst}
+] <no-wc>
+```
+
+
