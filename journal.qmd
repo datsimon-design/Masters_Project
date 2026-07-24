@@ -43,6 +43,8 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 
 # Methods {#methods-sec .unnumbered}
 
+{{< include ./journal_chapters/j_methods.qmd >}}
+
 
 {{< pagebreak >}}
 

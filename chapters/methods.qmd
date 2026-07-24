@@ -48,7 +48,7 @@ This revision has two consequences for interpretation. First, the land-based sta
 
 
 ## Land-based Survey
-Following the logistical constraints described above, a land-based cetacean surveys represent a viable and cost-effective alternative to the more expensive vessel-based surveys. The utilisation of vantage points facilitates a more profound interpretation of the observed behaviour. The behaviour state was defined using an adaptation of Neumann et al. [-@neumannBehaviourEcologyCommon] and Hawkins and Gartside [-@hawkinsInteractiveBehavioursBottlenose2009] (@tbl-behave). In the context of behavioural studies, land-based surveys have been a particularly effective method of data collection, as they do not influence the behaviour of cetaceans or introduce bias via the survey vessel [@mannBehavioralSamplingMethods1999].
+Following the logistical constraints described above, land-based cetacean surveys represent a viable and cost-effective alternative to the more expensive vessel-based surveys. The utilisation of vantage points facilitates a more profound interpretation of the observed behaviour. The behaviour state was defined using an adaptation of Neumann et al. [-@neumannBehaviourEcologyCommon] and Hawkins and Gartside [-@hawkinsInteractiveBehavioursBottlenose2009] (@tbl-behave). In the context of behavioural studies, land-based surveys have been a particularly effective method of data collection, as they do not influence the behaviour of cetaceans or introduce bias via the survey vessel [@mannBehavioralSamplingMethods1999].
 
 
 | **Behaviour State** | **Description** |
@@ -59,19 +59,19 @@ Following the logistical constraints described above, a land-based cetacean surv
 | Socialising | At least two dolphins make physical contact at the surface. Like chasing each other, body contact, petting or copulation. Often accompanied by breaching or other surface activities. |
 | Resting | Dolphins stay close to the surface and to each other. They regularly surface at regular intervals and move only very slowly or do not move forward at all. |
 
-: Definition table of behaviour states of dolphins adapted from Neumann et al. (2005) and Hawkins and Gartside (2009). {#tbl-behave}
+: Definition table of behaviour states of dolphins adapted from Neumann (2005) and Hawkins and Gartside (2009). {#tbl-behave}
 
 
 Surveys were conducted from three vantage points selected to cover the majority of the `#gls("bgtw")`{=typst}: Europa Point, Prince George, and Sandy Bay (@tbl-landspots, @fig-spots). Observers remained on-effort for 10-minute periods separated by 20-minute breaks, allowing observer rest and reducing double-counting by permitting animals to leave the surveyed area [@gutierrez-munozPatternsTrendsCetacean2021]. In total, 174 surveys (including pilot surveys) were conducted; surveys were postponed when visibility was poor or sea state exceeded Beaufort 5.
 
 
-| **Station** | **Latitude** | **Longitude** | **Height (m a.s.l.)** | **Scan sector**
-|:---------|------:|------:|------|------|
-| Europa | 36°06′33.48″ N | 5°20′44.34″ W | 18 | 060–220°
-| SandyBay | 36°07′47.99″ N | 5°20′31.65″ W | 82 | 016–155°
-| PrinceGeorge |36°06′50.4″ N | 5°20′58.5096″ W | 82 | 207–335°
+| **Station** | **Sector** | **Latitude** | **Longitude** | **Height (m a.s.l.)** | **Scan sector** |
+|:---------|:----|:------:|:------:|:------:|:------|
+| Prince George | West | 36°06′50.40″ N | 5°20′58.51″ W | 82 | 207–335° |
+| Europa Point | South | 36°06′33.48″ N | 5°20′44.34″ W | 18 | 060–220° |
+| Sandy Bay | East | 36°07′47.99″ N | 5°20′31.65″ W | 82 | 016–155° |
 
-: Land-based observation stations, with position, height above sea level and the compass sector scanned from each. {#tbl-landspots}
+: Land-based observation stations, with sector surveyed, position, height above sea level, and the compass sector scanned from each. {#tbl-landspots}
 
 
 ![Point of views of the three selected vantage points (Prince George (A), Sandy Bay (B) and Europa Point (C), facing left (a), right (b) and a wide shot of the spot (c). Overview of the area covered by each spots sector (D).](/figures/spots_comb.png){#fig-spots}

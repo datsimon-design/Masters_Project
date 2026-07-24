@@ -96,17 +96,33 @@ sectors <- st_transform(sectors, 4326)   # back to lon/lat for the map
 sectors <- sectors  %>% 
   filter(name != "MedSteps" & name != "WestSide")
 
+labels <- centres %>%
+  filter(name != "MedSteps" & name != "WestSide") %>% 
+  mutate(
+    nudge_x = c(0.00, 0.00, 0.00),
+    nudge_y = c(-0.006, 0.005, 0.005),
+    fill = c(darkblue, lightblue, midblue)
+  )
+labels <- st_transform(st_as_sf(labels, coords = c("lon", "lat"), crs = 4326), proj)
+
 # Sector map
 sector_map <- ggplot() +
   geom_sf(data = coast) +
   geom_sf(data = sectors, aes(fill = name), colour = "black", alpha = 0.6) +
   geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10") +
+  geom_sf_label(
+    aes(label = name),
+    data = labels,
+    nudge_x = labels$nudge_x,
+    nudge_y = labels$nudge_y,
+    fill = labels$fill,
+    color = "white")+
   coord_sf(
     xlim = c(-5.438, -5.248),
     ylim = c(36.05, 36.195)
   ) +
   
-  labs(fill = "Sectors") +
+  labs(fill = "") +
   
   # Add the scale bar
   annotation_scale(
@@ -132,7 +148,8 @@ sector_map <- ggplot() +
     PrinceGeorge = midblue,
     SandyBay = lightblue
   )) +
-  my_theme_trans()
+  my_theme_trans() +
+  theme(legend.position = "none")
 
 sector_map
 

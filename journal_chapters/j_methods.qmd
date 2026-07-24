@@ -1,0 +1,70 @@
+---
+bibliography: refs.bib
+---
+
+<!-- rewrite for journal article -->
+
+## Distance Sampling
+Distance sampling is a widely established and rigorously validated methodology for the systematic estimation of animal abundance and distribution [@bucklandDistanceSamplingMethods2015; @bucklandIntroductionDistanceSampling2001]. The method is based on the principle that the probability of detecting an animal decreases with increasing distance from the observer, by modelling this detection probability, approximately unbiased estimates of population density can be derived under the method's assumptions [@bucklandDistanceSamplingMethods2015; @bucklandIntroductionDistanceSampling2001; @thomasDistanceSoftwareDesign2010]. Since its formalisation, distance sampling has been successfully adapted across a broad range of terrestrial, aerial, and aquatic survey contexts, demonstrating considerable methodological flexibility [@dawsonDesignFieldMethods2008; @dickUsingDistanceSampling2011; @bucklandDistanceSamplingMethods2015].
+
+Within the field of marine mammal science, distance sampling has become one of the most frequently applied methods for estimating cetacean abundance and distribution [@dickUsingDistanceSampling2011; @gnoneCetaceansMediterraneanSea2023; @raudinoAerialAbundanceEstimates2023], forming the basis of large-scale systematic surveys conducted by organisations including the IWC, ACCOBAMS and NOAA [@AbundanceCetaceansCalifornia; @macleodAbundanceAtlanticWhitesided2004; @stephanisSummerSpatialDistribution2008]. Shipboard line transect surveys, in particular, have been employed extensively to monitor cetacean populations across a range of geographic scales, from oceanic basins to coastal and riverine habitats [@AbundanceCetaceansCalifornia; @lerczakCalculatingSightingDistances1998; @dawsonDesignFieldMethods2008; @dickUsingDistanceSampling2011; @gnoneCetaceansMediterraneanSea2023; @thomasDistanceSoftwareDesign2010]. 
+
+## Survey design
+This study was originally planned as a vessel-based line-transect survey. Logistical constraints prevented deployment of the survey vessel within the field-season window, and the survey was consequently redesigned as a land-based point-transect survey conducted from three fixed vantage points (see Supplemental Material for the original design and the constraints encountered).
+
+Observations were made from three vantage points selected to sample the eastern, southern, and western sectors of the BGTW: Sandy Bay (East), Europa Point (South) and Prince George (West) (@fig-overview, @tbl-landspots). Together these covered parts of the territory, and estimates therefore apply to the surveyed sectors rather than to the BGTW as a whole (@fig-spots).
+
+![The three vantage points Sandy Bay, Europa Point and  Prince George with the according sector that was surveyed.](/figures/overview_map.png){#fig-overview}
+
+| **Station** | **Sector** | **Latitude** | **Longitude** | **Height (m a.s.l.)** | **Scan sector** |
+|:---------|:----|:------:|:------:|:-------:|:------|
+| Prince George | West | 36°06′50.40″ N | 5°20′58.51″ W | 82 | 207–335° |
+| Europa Point | South | 36°06′33.48″ N | 5°20′44.34″ W | 18 | 060–220° |
+| Sandy Bay | East | 36°07′47.99″ N | 5°20′31.65″ W | 82 | 016–155° |
+
+: Land-based observation stations, with sector surveyed, position, height above sea level, and the compass sector scanned from each. {#tbl-landspots}
+
+Surveys were conducted between 08 May 2026 and 07 July 2026, comprising 174 watches (54 per station). Each watch consisted of 10 minutes on effort followed by a 20-minute break, allowing observers to rest and reducing the likelihood of double-counting by permitting animals to leave the surveyed area [@gutierrez-munozPatternsTrendsCetacean2021]. Watches were postponed when visibility was poor or sea state exceeded Beaufort 5.
+
+Observations were made with the naked eye and with binoculars (Fujinon 7 × 50) using a continuous horizon scanning method [@mannBehavioralSamplingMethods1999]. For each sighting, the time, number of reticles, horizontal bearing, species, group size, and behavioural state were recorded, together with the presence of birds or fish where possible. Behavioural states followed an adaptation of Neumann et al. [-@neumannBehaviourEcologyCommon] and Hawkins and Gartside [-@hawkinsInteractiveBehavioursBottlenose2009] (see **Table S**). Photographs were taken opportunistically (Canon EOS R50 with a 100–400 mm telephoto lens) to support subsequent species confirmation.
+
+![Views from the three vantage points, Prince George (A), Sandy Bay (B), and Europa Point (C), facing left (a), right (b), and a wide shot of each station (c). Panel D shows the area covered by each station's scan sector.](/figures/spots_comb.png){#fig-spots}
+
+## Data Analysis
+### Distance calculation
+The distance of the sightings ($d$) was calculated using the formula provided by Lerczak et al.[-@lerczakCalculatingSightingDistances1998]. Where $r$ is the number of reticles from the horizon line, $h$ the height of the observer, the reticle factor $F$ and the Earth's radius $R$.
+
+$$
+d=\frac{h}{\tan{\left(r\times F+\sqrt{\frac{2\times h}{R}}\right)}}
+$$
+
+Using the distance and the bearing a circle can be projected from the observers' position and the location can be calculated and plotted (see **Appendix**).
+
+Because of the enclosed nature of the western survey area (the Bay of Gibraltar), the far shore of the bay rather than the sea horizon was visible along most bearings from the Prince George station. As the reticle method derives distance from the angular separation between a sighting and a known reference line, the standard horizon-based formula could not be applied here: the coastline sits closer than the true horizon and therefore at a different (greater) angle of depression, so treating it as the horizon would overestimate sighting distances.
+
+For this station the reference depression angle was derived from the distance to the coastline along each sighting's bearing instead. Using a detailed polygon of the bay's landmasses (including the detached mole off Algeciras, which forms the first visible obstacle on some bearings), a ray was projected from the observation point along the recorded horizontal bearing, and the distance to the first intersection with land was taken as the reference distance ($d_{ref}$). The depression angle of the reference line was then calculated as:
+
+$$
+\theta_{ref}=\frac{h}{d_{ref}}+\frac{d_{ref}}{2R}
+$$
+
+where $h$ is the observer height and $R$ the Earth's radius, with the second term correcting for the curvature of the sea surface between observer and coastline. This replaces the horizon dip term ($\sqrt{\frac{2\times h}{R}}$) used at the open-water stations; the two expressions are equivalent when $d_{ref}$ equals the horizon distance. Bearings that pointed out of the bay mouth, where no coastline was intersected, reverted to the standard horizon reference. The sighting distance was then obtained from the total depression angle ($\theta_{ref}+reticleAngle$) as before (see Appendix or [GitHub](https://github.com/datsimon-design/Masters_Project) for examples in R).
+
+### Statistical Analysis
+All statistical analyses were carried out in R [@zotero-item-2907]. Sightings per unit effort (SPUE), calculated as the number of sightings per on-effort scan, was strongly right-skewed and zero-inflated and did not meet the assumptions of parametric analysis of variance (normality of residuals and homogeneity of variance); a non-parametric approach was therefore adopted, with each on-effort scan treated as the sampling unit. Differences in SPUE among the three active observation stations (Europa, Sandy Bay and Prince George) were tested using a Kruskal–Wallis rank-sum test [@KruskalWallis1952]. Where the omnibus test was significant, pairwise differences were identified using Dunn's post-hoc test [@dunnMultipleComparisonsUsing1964], which operates on the pooled ranks of the Kruskal–Wallis test and accounts appropriately for tied values. P-values were adjusted for multiple comparisons using the Benjamini–Hochberg false discovery rate procedure [@benjaminiControllingFalseDiscovery1995].
+
+### Detection Function {#det-func .unnumbered}
+The `Distance` package requires a flatfile format [@bucklandDistanceSamplingMethods2015] (see Appendix); the data from the effort and sighting logs were therefore first mutated and then joined, the effort was calculated by dividing the sector degrees by 360. The area for each wedge was calculated and added to the data frame. The truncation distance was determined separately for each sampling location based on the corresponding distribution of observed distances (see Detection model fitting for values). Detection functions were first fitted per station using the `ds` function, following a two-step procedure: candidate key functions (half-normal and hazard-rate) were compared by AIC, goodness-of-fit test (`gof_ds`), and Q–Q plot, and the best-supported key function was then tested with candidate covariates (wave height, glare, sea state, and wind speed) to assess whether they improved fit. 
+
+Because the per-station samples were insufficient to support stable detection functions [@bucklandDistanceSamplingMethods2015], a single pooled detection function was additionally fitted across all stations, following the same two-step procedure; for the pooled model, observation height was tested as an additional covariate alongside those above. The pooled detection function was used for the density estimates reported here, with per-station estimates retained for comparison. Density was estimated separately for groups and individuals.
+
+
+### Kernel Density Estimation (KDE)
+Kernel density estimation (KDE) is a well-established tool for describing the spatial distribution and relative abundance of cetaceans [@raymentKernelDensityEstimates2009; @milmannTemporalSpatialDistribution2017]. It was used here to describe the relative spatial distribution of cetaceans within the BGTW. The locations of all on-effort sightings—derived from reticle-based radial distances and compass bearings (see Calculations), were projected to UTM zone 30N so that smoothing was performed in metric units, and used as input to the kernel density estimation. A bivariate kernel density surface was computed in R using the `ks` package [@duongKsKernelSmoothing2005], with each sighting weighted by its group size so that the surface reflected the relative density of individuals rather than of sightings alone. The smoothing bandwidth was selected automatically using a plug-in bandwidth matrix [@duongPluginBandwidthMatrices2003], and density was evaluated over a 100 × 100 grid spanning the survey area. KDE is a well-established tool for describing the spatial distribution and relative abundance of cetaceans [@canales-caceresDistributionBehaviourStriped2023a; @raymentKernelDensityEstimates2009; @milmannTemporalSpatialDistribution2017]. 
+
+Because the resulting surface is a normalised probability density (integrating to one), it provides a descriptive, relative measure of spatial concentration; it was not corrected for observation effort or imperfect detection, which were instead accounted for separately through the distance-sampling density estimation ([Detection Function](#det-func)). The surface was visualised over the study area and overlaid with the observation stations and individual sightings to identify areas of elevated cetacean occurrence.
+
+### Comparison with opportunistic records
+To evaluate the systematic survey against existing opportunistic data, occurrence records of *Delphinus delphis* were retrieved from the OBIS ([OBIS Mapper](https://mapper.obis.org/)) using the `robis` package [@provoostRobisOceanBiodiversity2022], constrained to a bounding box encompassing the study area (-5.438/-5.248; 36.05/36.195). Records lacking coordinates were excluded, and the remainder were projected to CRS 4326 and assigned to survey sectors by spatial intersection with the stratum polygons. The spatial distribution of opportunistic records was then compared with that of the systematic on-effort sightings, both visually (@fig-obis) and by tabulating record counts per sector (@tbl-obis_comp). Because opportunistic records carry no associated survey effort, the comparison was restricted to spatial coverage and was not interpreted in terms of relative abundance.
+
+This study was carried out under the University of Gibraltar approval, Ethics ID: 259/2026/UniGib

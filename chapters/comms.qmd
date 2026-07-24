@@ -1,5 +1,13 @@
-## Infographic
+## Advisory poster
+The idea behind the advisory poster came from what was seen in the field: a lot of boats were observed during the project that did not comply with the Cetacean Protocol implemented by the Department of the Environment [@2018Cetacean_Protocol]. This might be down to a lack of enforcement, but possibly also a lack of easily accessible information.
 
+The protocol itself sets out several zones with different distances and rules for how to approach a group of dolphins. Arguably this makes things more complicated than they need to be, especially in an area this small. Some cetaceans are also attracted to boats and will ride bow and stern waves, but even then it is the boat owner who should respect the animals and the space they share. Larger cetaceans such as fin whales in particular need to be given more room, so they are not put under unnecessary disturbance in an area that is already crowded and full of other pressures.
+
+The poster is aimed at recreational boat owners and is meant to provide a simple, clear statement that anyone can understand at first glance. It gives a quick explanation of the most important aspect of dealing with cetaceans in this area: keep your distance.
+
+![Process of creating the advisory poster from sketch to first digital drafts.](/misc/infographic_sketch.jpg){#fig-sketch}
+
+![Final advisory poster, designed for a lay audience and to be hang up at marinas.]
 
 ## Interactive Website
 This website was created to provide an interactive platform to explore the data collected during the project phase. It includes an interactive sighting map and supplementary information about the recorded species. The website can be found under to following [link](https://simongendrisch.shinyapps.io/mastershiny/).
