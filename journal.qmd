@@ -70,7 +70,7 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 # Conflict of Interest{.unnumbered}
 The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.
 
-# Supplementary Material
+# Supplementary Material{.unnumbered}
 Please see Supplementary Material for further information related to this study.
 
 # Science Communication output

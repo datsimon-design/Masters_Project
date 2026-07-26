@@ -166,7 +166,7 @@
     let head = it.supplement + [ ] + it.counter.display(it.numbering) + [.]
 
       set align(left)
-      set par(justify: false)
+      set par(justify: true)
 
       block(width: 100%, grid(
         columns: (2.5cm, 1fr),          // <-- 2.5cm IS the "Space"; change to your tab stop
