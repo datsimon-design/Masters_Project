@@ -57,7 +57,7 @@
     University of Gibraltar
   ],
 
-  [Secondary Supervisor:], [
+  [Advisor:], [
     *Dr. Awantha Dissanayake* \
     University of Gibraltar
   ],
@@ -119,6 +119,8 @@
       y: 2.5cm,
     )
   )
+
+  set heading(numbering: "1.")
   
   set text(
     font: "Libertinus Serif",
@@ -132,7 +134,10 @@
     leading: 0.75em
   )
 
-  set heading(numbering: sectionnumbering)
+  counter(page).update(1)
+  set page(numbering: "1")
+
+  
 
   [
   // now add everything from the sup material page
@@ -141,7 +146,7 @@
 
   #v(1.4em)
 
-  #text(weight: "bold")[#author#super[1], Dr. Stephen Chan#super[1], Dr. Awantha Dissanyake#super[1] ]
+  #text(weight: "bold")[#author#super[1], Dr. Stephen Chan#super[1]]
 
   #v(0.1em)
   #text(size: 9pt)[#super[1]#h(0.35em)School of Marine and Environmental Science, University of Gibraltar, GX11 1AA] 

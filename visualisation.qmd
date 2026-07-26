@@ -122,7 +122,9 @@ sector_map <- ggplot() +
     ylim = c(36.05, 36.195)
   ) +
   
-  labs(fill = "") +
+  labs(fill = "",
+       x = "",
+       y = "") +
   
   # Add the scale bar
   annotation_scale(
@@ -220,7 +222,7 @@ overview
 ```{r, Export}
 ggsave(filename = "./figures/sector_map.png", sector_map, width = 1920, height = 1920, dpi = 200, units = "px")
 
-ggsave(filename = "./figures/overview_map.png", overview, width = 1920, height = 1920, dpi = 200, units = "px")
+ggsave(filename = "./figures/overview_map.png", overview, width = 2880, height = 2880, dpi = 300, units = "px")
 
 ```
 
@@ -369,7 +371,7 @@ method_map <- ggplot() +
   
   geom_sf(data = st_set_geometry(full, "geometry"),
           aes(fill = source, shape = source), colour = "black", size = 3) + 
-  coord_sf(xlim = c(-5.47, -5.248), ylim = c(36.05, 36.2005)) +
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.23)) +
   
   scale_shape_manual(
     values = c(22, 21),
@@ -468,10 +470,10 @@ sp_fills  <- c(common_dolphin = darkblue, striped_dolphin = midblue, delphinidae
 # Plot
 sightings <- ggplot() +
   geom_sf(data = coast, fill = "lightgray", alpha = .8) +
-  geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10", size = 3.2) +
+  geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10", size = 2.5) +
   geom_sf(data = st_set_geometry(data, "sighting_poi"),
           aes(fill = species, shape = species), colour = "black", size = 3) + 
-  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.2005)) +
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.23)) +
   
   scale_shape_manual(
     values = sp_shapes,
@@ -514,7 +516,7 @@ sightings <- ggplot() +
     legend.text              = ggtext::element_markdown(),
     legendry.legend.subtitle = element_text(face = "bold"),   # styles the group headers
     legend.position = "inside",
-    legend.position.inside = c(0.15, 0.7)
+    legend.position.inside = c(0.15, 0.8) 
   )
 
 sightings
@@ -525,6 +527,87 @@ sightings
 ```{r, Export}
 ggsave(filename = "./figures/sightings_legend.png", sightings, width = 3020, height = 2320, dpi = 300, units = "px")
 ```
+
+```{r, Map per species}
+
+species <- unique(data$species)
+
+plots <- list()
+
+clean_names <- data %>% 
+  select(species) %>% 
+  mutate(clean_sp = str_to_title(str_replace_all(species, "_", " ")))
+
+clean_names <- setNames(clean_names$clean_sp, clean_names$species)
+
+
+
+for (sp in species){
+  
+  fills <- sp_fills[sp]
+  
+  p <- ggplot() +
+  geom_sf(data = coast, fill = "lightgray", alpha = .8) +
+  geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10", size = 2) +
+  geom_sf(data = st_set_geometry(data, "sighting_poi") %>% filter(species == sp),
+          fill = fills, shape = 21, colour = "black", size = 3) + 
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.23)) +
+  
+  annotate("text", x = -5.46, y = 36.20, label = paste(clean_names[[sp]]), size = 5, hjust = 0) +
+  
+  
+    # Add the scale bar
+  annotation_scale(
+    location = "bl",            # "bl" = bottom left
+    width_hint = 0.2,          # Bar length takes up approx 40% of map width
+    unit_category = "metric",   # Options: "metric", "imperial", or "nautical"
+    pad_y = unit(0.05, "npc")
+  ) +
+  
+  # Add the north arrow
+  annotation_north_arrow(
+    location = "br", # "tr" = top right
+    height = unit(0.12, "npc"),
+    width = unit(0.1, "npc"),
+    which_north = "true",       # Align arrow to true north pole instead of map grid
+    pad_x = unit(0.05, "npc"),    # X offset from the boundary
+    pad_y = unit(0.05, "npc"),    # Y offset from the boundary
+    style = north_arrow_nautical # Arrow graphic style
+  ) +
+  
+  theme_minimal() +
+  my_theme_trans() +
+  theme(
+    legend.text              = ggtext::element_markdown(),
+    legendry.legend.subtitle = element_text(face = "bold"),   # styles the group headers
+    legend.position = "inside",
+    legend.position.inside = c(0.15, 0.7)
+  )
+  
+  plots[[sp]] <- p
+  
+ # ggsave(filename = paste0("./figures/",sp,"_map.png"), p, width = 3020, height = 2320, dpi = 300, units = "px")
+  
+  print(paste("Saved plot for:", sp))
+  
+  
+  
+}
+
+```
+
+```{r}
+species_plot <- wrap_plots(plots) +
+  plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = "bold", size = 14))
+
+```
+
+```{r}
+ggsave(filename = "./figures/per_species.png", species_plot, width = 3020, height = 2320, dpi = 300, units = "px")
+```
+
+
 
 #### Pull Obis data and compare
 
@@ -595,7 +678,7 @@ obis_comp <- obis_sf %>%
                      labels = key_labs) +
   
   
-  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.2005)) +
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.23)) +
   labs(shape = "Source", fill = "Source", alpha = "Source") +
   
   # Add the scale bar
@@ -1187,7 +1270,7 @@ density_map <- ggplot() +
     breaks = c("95% home range", "50% core area")
   ) +
   
-  coord_sf(xlim = c(-5.438, -5.248), ylim = c(36.05, 36.2))  +  # Adjus t maybe later to account for all sightings, also outside the BGTW
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.23))  +  # Adjus t maybe later to account for all sightings, also outside the BGTW
   
   labs(
     fill = "Density",

@@ -7,7 +7,7 @@ format:
   typst:
         template-partials: 
           - typst/typst-show.typ
-          - typst/journal/typst-template.typ
+          - typst/typst-template.typ
         output-file: M8.2_SupDoc_206708
         citeproc: true
 bibliography: refs.bib
@@ -51,7 +51,7 @@ crossref:
 ```
 
 # Generative AI (GenAI) Use
-This is just a short summary of how AI was used. See Declaration of Originality and use of Gen AI for more details.
+This is just a short test summary of how AI was used. See Declaration of Originality and use of Gen AI for more details.
 
 # List of Content
 ```{=typst}

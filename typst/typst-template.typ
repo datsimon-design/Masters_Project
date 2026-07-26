@@ -24,7 +24,7 @@
 
   #v(1.4em)
 
-  #text(weight: "bold")[#author#super[1], Dr. Stephen Chan#super[1], Dr. Awantha Dissanyake#super[1] ]
+  #text(weight: "bold")[#author#super[1], Dr. Stephen Chan#super[1] ]
 
   #v(0.3em)
   #text(size: 9pt)[#super[1]#h(0.35em)School of Marine and Environmental Science, University of Gibraltar, GX11 1AA] 
