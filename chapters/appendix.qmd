@@ -1,4 +1,4 @@
-## Surveying Protocol
+## Appendix A: Surveying Protocol
 :::{#app-protocol}
 
 ```{=typst}
@@ -12,7 +12,7 @@ Surveying Guidelines created for this project and for future applications of thi
 
 {{< pagebreak >}}
 
-## Survey Checklist
+## Appendix B: Survey Checklist
 :::{#app-checklist}
 
 ```{=typst}
@@ -26,14 +26,14 @@ Survey checklist created for this project and for future applications of this pr
 
 {{< pagebreak >}}
 
-## Photo-ID examples
+## Appendix C: Photo-ID examples
 ![Matching process inside DISCOVERY within one encounter. The aim is to identify individual within one group and choose the best image of each individual in order to match it to the existing catalog.](/misc/photo_ID_match.png){#app-photoid}
 
 ![One individual in the photo-ID catalog. With the ID 10001 captured on the 8th of May 2026. This catalog can be used to match multiple individuals and refine the density and distribution results.](/misc/photo_ID_cat.png){#app-photo_cat}
 
 {{< pagebreak >}}
 
-## Distance calculations in R
+## Appendix D: Distance calculations in R
 ::: {#app-disR}
 ```r
 # Calculate Distance from reticles and observer height; factor needs to be adjusted for each binocular----------------
@@ -83,7 +83,7 @@ coast_distance <- function(observer, bearing, land, max_range = 60000) {
 Custom function in R to calculate distance from reticles and observer height; factor needs to be adjusted for each binocular. For the west side the code was adjusted to calculate the distance to the coastline based on the observer position and bearing.
 :::
 
-## Inclinometer guide
+## Appendix E: Inclinometer guide
 ![Visual representation of the calculation of the distance used in the data cleaning pipeline. The observer height $h$ was adapted per spot and the angle $\theta$ was derived from the reticles inside the binoculars.](/misc/Inclinometer.png){#app-incl}
 
 In order to use the inclinometer one must first calibrate the angle board using a leveller or a phone with built in leveller. The scope can be adjusted a bit and tightened back using the two screws on the back. Although the components are securely attached, slight movement may occur during transport or handling, making calibration necessary before each survey. Once calibrated, the inclinometer is ready for use. The scope should be aligned with the target sighting and held as steadily as possible while measuring the angle of depression. Maintaining a stable position can be challenging on a moving vessel, particularly in rough sea conditions. Before recording the angle, the weighted string should be allowed to stabilise to ensure an accurate reading. Angle measurements taken from vessels with a low observation height are highly sensitive to small measurement errors. It is therefore recommended to record multiple angle measurements for each sighting and use their average in subsequent calculations. To minimise temporal error, one observer should measure and record the angle of depression while a second observer simultaneously measures and records the bearing, ensuring that both measurements correspond to the same surfacing event (@app-inclinometer).
@@ -95,7 +95,7 @@ In order to use the inclinometer one must first calibrate the angle board using 
 ```{=typst}
 #set page(flipped: true)
 ```
-## Distance flatfile
+## Appendix F: Distance flatfile
 
 ::: {#app-flat}
 
@@ -122,5 +122,5 @@ Effort and observation logs formatted in a flatfile structure readable by the `D
 ```
 {{< pagebreak >}}
 
-## Bathymetry of the BGTW
+## Appendix G: Bathymetry of the BGTW
 ![Survey sightings plotted on top of a bathymetry map of the BGTW, this map is for visual purposes only, as it holds no real depth data.](/figures/bath_map.png){#app-bath}

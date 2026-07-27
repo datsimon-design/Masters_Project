@@ -755,9 +755,9 @@ trunc_sens <- purrr::map_dfr(w_grid, function(w) {
 
 ```
 
+<!-- remove dups from journal -->
 
-
-This study applied point-transect distance sampling to assess the distribution and density of small cetaceans within the `#gls("bgtw")`{=typst}. A modified point-transect protocol, adapted from approaches primarily used for birds and larger cetaceans [@bucklandIntroductionDistanceSampling2001a], was implemented for land-based surveys. The following results describe the observed cetacean occurrence, spatial distribution, and density estimates across the study area.
+The following will expand on the results from the journal article.
 
 ## Survey Results
 Overall, `r  full_sum$sightings` cetacean sightings were recorded between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`, point transect sampling was conducted including pilot studies and both vessel- and land-based surveys (@fig-totalmap). A total of two vessel-based surveys were conducted, accounting for `r spell_nr(full_source$boat)` of these sightings: `r spell_nr(boat_species$common_dolphin)` sightings of common dolphins (*Delphinus delphis*) and `r spell_nr(boat_species$striped_dolphin)` sightings of striped dolphins (*Stenella coeruleoalba*) and `r spell_nr(boat_species$delphinidae)` sighting where the species could not be identified. The group size for vessel-based sightings ranged from `r spell_nr(min(boat$group_size, na.rm = TRUE))` to `r spell_nr(max(boat$group_size, na.rm = TRUE))` (mean = `r round(mean(boat$group_size, na.rm = TRUE), 2)`, median = `r round(median(boat$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(boat$group_size, na.rm = TRUE), 2)`).
@@ -766,7 +766,6 @@ Overall, `r  full_sum$sightings` cetacean sightings were recorded between `r for
 
 In total `r total_land$surveys` land-based surveys were conducted, resulting in `r round(sum(er$hours), 2)` total on-effort hours and 58 off-effort hours over `r length(unique(effort$date))` survey days. `r length(data$survey_id)` cetacean sightings were recorded in this sampling period, of which `r sum(data$on_effort)` were on-effort and `r spell_nr(sum(!data$on_effort))` off-effort. Of these, `r by_familiy$odontoceti` sightings were Odontoceti, including `r by_species$common_dolphin` sightings of common dolphins, `r by_species$delphinidae` sightings of unidentified dolphins where the species could not certainly be defined and `r spell_nr(by_familiy$mysteciti)` Mysticeti sightings of  Fin whales (*Balaenoptera physalus*). `r spell_nr(by_species$unidentified)` sightings the species could not be reliably determined and were recorded as unidentified (@fig-sight_map, @fig-perspecies_map). The group size for land-based sightings ranged from `r min(data$group_size, na.rm = TRUE)` to `r max(data$group_size, na.rm = TRUE)` (mean = `r round(mean(data$group_size, na.rm = TRUE), 2)`, median = `r round(median(data$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(data$group_size, na.rm = TRUE), 2)`). 
 
-![All sightings collected from land-based surveys between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`. The sightings were recorded from three different spots, Europa Point, Sandy Bay and Prince George's Battery (indicated as triangles).](figures/sightings_legend.png){#fig-sight_map}
 
 ![All sightings collected from the land-based survey between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")` by species. Delphinidae (A), Common Dolphins (B), Fin whales (C) and unidentified sightings respectively.](/figures/per_species.png){#fig-perspecies_map}
 
@@ -781,7 +780,7 @@ overview_tbl
 
 Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$sightings)]`, covering mainly the southern side (n = `r max(per_spot$sightings)`). Sighting frequency varied over the course of the day, showing a bimodal distribution with peaks in the late morning and mid-afternoon and a reduction around midday (@fig-day). 
 
-
+<!-- keep here -->
 ![Sightings over time of day showed two peaks: before and after noon.](figures/sighting_day.png){#fig-day}
 
 

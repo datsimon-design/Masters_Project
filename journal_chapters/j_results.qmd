@@ -1,0 +1,957 @@
+---
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: true
+bibliography: refs.bib
+
+---
+
+```{r, Packages}
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(FSA)
+library(gt)
+library(tinytable)
+library(here)
+library(english)
+```
+
+```{r, define spell_nr}
+
+spell_nr <- function(x){
+  if (x <= 9){
+    as.character(english::english(x))
+  } else{
+    x
+  } 
+}
+```
+
+```{r, create full df}
+#| include: false
+# Get the boat data from the data cleaning script for debugging only
+# boat <- readRDS("./temp/boat_data.rds")
+# 
+# boat <- boat %>% 
+#   select(date.x, species, group_size, behaviour, geometry) %>% 
+#   mutate(
+#     source = "boat"
+#   )
+# 
+# land <- data %>% 
+#   select(date.x, species, group_size, behaviour, sighting_poi) %>% 
+#   rename(geometry = sighting_poi) %>% 
+#   mutate(
+#     source = "land"
+#   )
+# 
+# full <- boat %>%
+#   bind_rows(land)
+# 
+# saveRDS(full, "./temp/full.rds")
+```
+
+
+
+```{r, Read data}
+#| include: false
+# Excel sheet of the spots with details
+spots <- read_excel(here("data", "datasheet_landsurvey.xlsx"),sheet ="spots")
+
+
+# Clean the sighting data and import
+source("./land_survey.R")
+
+full <- readRDS("./temp/full.rds")
+
+obis_comp <- readRDS("./temp/obis.rds")
+
+
+# Set active spots as variable
+active_spots <- spots %>%  
+  filter(spot_name != "MedSteps" & spot_name != "WestSide") %>% 
+  select(spot_name)
+
+odontoceti <- c("common_dolphin", "striped_dolphin", "bottlenose_dolphin", "delphinidae")
+mysteciti <- c("fin_whale")
+
+
+
+```
+
+```{r}
+#|include: false
+
+by_species <- data %>% 
+  summarise(
+    n_species = n(),
+    .by = "species"
+  ) %>% 
+  pivot_wider(
+    names_from = species,
+    values_from = n_species
+  )
+
+by_familiy <- full %>% 
+  filter(source == "land") %>% 
+  mutate(family = case_when(
+    species %in% odontoceti ~ "odontoceti",
+    species %in% mysteciti ~ "mysteciti",
+    TRUE ~ NA_character_)) %>% 
+  summarise(
+    sighting = n(),
+    .by = "family"
+  ) %>% 
+  pivot_wider(
+    names_from = family,
+    values_from = sighting
+  )
+
+
+per_spot <- data %>% 
+  summarise(
+    sightings = n(),
+    .by = "spot_name"
+  )
+
+
+full_source <- full %>% 
+  summarise(
+    sightings = n(),
+    .by = "source"
+  ) %>% 
+  pivot_wider(
+    names_from = source,
+    values_from = sightings
+  )
+
+full_sum <- full %>% 
+  summarise(
+    sightings = n()
+  )
+
+boat_species <- full %>% 
+  filter(source == "boat") %>% 
+  summarise(
+    n_species = n(),
+    .by = "species"
+  ) %>% 
+  pivot_wider(
+    names_from = species,
+    values_from = n_species
+  )
+
+boat <- full %>% 
+  filter(source == "boat")
+
+
+```
+
+```{r, Effort analysis}
+#|include: false
+
+effort <- effort_log %>% 
+  mutate(date = dmy(date)) %>% 
+  filter(date > "2026-05-28") %>% 
+  mutate(across(c(observation_start, observation_end),
+                ~ hms::as_hms(.))) %>% 
+  filter(!grepl("off_effort", survey_id)) %>% 
+  mutate(effort_time = as.duration(observation_end - observation_start))
+
+er <- data %>%  
+  filter(spot_name %in% active_spots$spot_name) %>% 
+  summarise(min_group = min(group_size, na.rm = TRUE),
+            max_group = max(group_size, na.rm = TRUE),
+            mean_group = mean(group_size, na.rm = TRUE),
+            median_group = median(group_size, na.rm = TRUE),
+            sd_group = sd(group_size, na.rm = TRUE),
+            min_dis = min(distance, na.rm = TRUE),
+            max_dis = max(distance, na.rm = TRUE),
+            sightings = n(),
+            .by = "spot_name") %>%
+  left_join(effort %>%
+              group_by(spot_name) %>% 
+  summarise(hours = sum(effort_time)/60^2), by = "spot_name") %>% 
+  mutate(per_hour = round(sightings/hours, 2)) %>% 
+  mutate(group_range = paste(min_group, "-", max_group)) %>% 
+  select(spot_name, sightings, hours, per_hour, min_dis, max_dis, group_range, mean_group, median_group, sd_group) %>% 
+  arrange(desc(per_hour))
+
+
+total_land <- effort %>% 
+  summarise(
+    surveys = n()
+  )
+
+species <- data %>%  
+  filter(spot_name %in% active_spots$spot_name) %>% 
+  summarise(max_group = max(group_size, na.rm = TRUE),
+            min_group = min(group_size, na.rm = TRUE),
+            max_dis = max(distance, na.rm = TRUE),
+            min_dis = min(distance, na.rm = TRUE),
+            sightings = n(),
+            .by = "species")  %>% 
+  arrange(desc(sightings))
+
+
+```
+
+```{r, Overview Table by Spot}
+library(dplyr)
+library(tinytable)
+
+## --- helpers -----------------------------------------------------------------
+## NA (not Inf) for all-missing subsets; en-dash range, em-dash for empty.
+smin <- function(x) { x <- x[!is.na(x)]; if (length(x)) min(x) else NA_real_ }
+smax <- function(x) { x <- x[!is.na(x)]; if (length(x)) max(x) else NA_real_ }
+rng  <- function(a, b) ifelse(is.na(a) | is.na(b), "—", paste0(a, " – ", b))
+## NA/NaN-safe numeric formatting (single-sighting species -> SD is NA)
+fmt  <- function(x, d) ifelse(is.na(x), "—", sprintf(paste0("%.", d, "f"), x))
+
+pretty_species <- function(x) {
+  map <- c(common_dolphin = "Common Dolphin",
+           delphinidae     = "Delphinidae",
+           fin_whale       = "Fin Whale",
+           unidentified    = "Unidentified")
+  out  <- unname(map[x])
+  miss <- is.na(out)
+  out[miss] <- tools::toTitleCase(gsub("_", " ", x[miss]))
+  out
+}
+
+active <- data %>% filter(spot_name %in% active_spots$spot_name)
+
+## --- 1. spot-level summary (== your `er` table) ------------------------------
+spot_sum <- active %>%
+  summarise(
+    sightings    = n(),
+    d_min        = round(smin(distance)),
+    d_max        = round(smax(distance)),
+    g_min        = smin(group_size),
+    g_max        = smax(group_size),
+    g_mean       = mean(group_size,   na.rm = TRUE),
+    g_median     = median(group_size, na.rm = TRUE),
+    g_sd         = sd(group_size,     na.rm = TRUE),
+    .by = spot_name
+  ) %>%
+  left_join(
+    effort %>% group_by(spot_name) %>%
+      summarise(hours = sum(effort_time) / 60^2, .groups = "drop"),
+    by = "spot_name"
+  ) %>%
+  mutate(per_hour = round(sightings / hours, 2),
+         hours    = round(hours, 1)) %>%
+  arrange(desc(per_hour))            # spot ordering = descending encounter rate
+
+## --- 2. species-level split within each spot ---------------------------------
+sp_sum <- active %>%
+  summarise(
+    sightings = n(),
+    d_min     = round(smin(distance)),
+    d_max     = round(smax(distance)),
+    g_min     = smin(group_size),
+    g_max     = smax(group_size),
+    g_mean    = mean(group_size,   na.rm = TRUE),
+    g_median  = median(group_size, na.rm = TRUE),
+    g_sd      = sd(group_size,     na.rm = TRUE),
+    .by = c(spot_name, species)
+  ) %>%
+  arrange(match(spot_name, spot_sum$spot_name), desc(sightings))
+
+## --- 3. build interleaved display rows ---------------------------------------
+spot_order <- tibble(spot_name = spot_sum$spot_name,
+                     .ord = seq_along(spot_sum$spot_name))
+
+spot_rows <- spot_sum %>%
+  transmute(
+    spot_name,
+    label                = spot_name,
+    Sightings            = as.character(sightings),
+    `Distance range (m)` = rng(d_min, d_max),
+    `Group range`        = rng(g_min, g_max),
+    Hours                = sprintf("%.1f", hours),
+    `Sightings·h⁻¹`      = sprintf("%.2f", per_hour),
+    `Mean group`         = fmt(g_mean, 2),
+    `Median group`       = fmt(g_median, 1),
+    `SD group`           = fmt(g_sd, 2),
+    .is_spot = TRUE, .sub = 0
+  )
+
+sp_rows <- sp_sum %>%
+  transmute(
+    spot_name,
+    label                = paste0("\u2003", pretty_species(species)),   # indent species
+    Sightings            = as.character(sightings),
+    `Distance range (m)` = rng(d_min, d_max),
+    `Group range`        = rng(g_min, g_max),
+    Hours = "", `Sightings·h⁻¹` = "",
+    `Mean group`         = fmt(g_mean, 2),
+    `Median group`       = fmt(g_median, 1),
+    `SD group`           = fmt(g_sd, 2),
+    .is_spot = FALSE
+  ) %>%
+  group_by(spot_name) %>% mutate(.sub = row_number()) %>% ungroup()
+
+combined <- bind_rows(spot_rows, sp_rows) %>%
+  left_join(spot_order, by = "spot_name") %>%
+  arrange(.ord, .sub)
+
+spot_pos <- which(combined$.is_spot)          # row indices to emphasise
+
+disp <- combined %>%
+  select("Spot / Species" = label, Sightings, Hours,
+         "Sightings per hour" = `Sightings·h⁻¹`,
+         "Distance from observer" = `Distance range (m)`,
+         "Range"  = `Group range`,
+         "Mean"   = `Mean group`,
+         "Median" = `Median group`,
+         "SD"     = `SD group`)
+
+## --- 4. render ---------------------------------------------------------------
+## columns: 1 label | 2 Sightings | 3 Hours | 4 rate | 5 Distance | 6-9 Group block
+overview_tbl <- tt(
+  disp, width = c(4.7, 2, 1.3, 3, 4, 2.5, 2, 2, 2)
+) %>%
+  group_tt(j = list("Group Size" = 6:9)) %>%      # spanner over Range/Mean/Median/SD
+  style_tt(j = 2:9, align = "c") %>%
+  style_tt(i = spot_pos, bold = TRUE, background = "#212842", color = "white") %>%
+  style_tt(i = -1:0, bold = TRUE)                 # bold spanner + header rows
+#overview_tbl
+
+## Optional export
+# save_tt(overview_tbl, "summary_table.html", overwrite = TRUE)  # or .docx / .tex / .png
+```
+
+
+```{r}
+#| include: false
+#| output: false
+
+effort <- effort_log %>%
+  filter(!str_detect(survey_id, "off_effort")) %>%
+  mutate(date = dmy(date)) %>% 
+  filter(date > "2026-05-28") %>% 
+  mutate(
+    duration_min = as.numeric(difftime(observation_end, observation_start,
+                                        units = "mins"))
+  )
+ 
+# ---- 3. Detections: keep on-effort sightings -------------------------------
+sightings <- detection %>%
+  filter(on_effort == 1)
+
+ 
+# ---- 4. Sightings & individuals per scan -----------------------------------
+per_scan <- sightings %>%
+  group_by(survey_id) %>%
+  summarise(
+    n_sightings   = n(),
+    n_individuals = sum(group_size, na.rm = TRUE),  # one NA group size -> 0
+    .groups = "drop"
+  )
+ 
+# Join back onto the full effort table; scans with no sighting become 0 (NOT NA)
+effort <- effort %>%
+  left_join(per_scan, by = "survey_id") %>%
+  mutate(
+    n_sightings   = replace_na(n_sightings, 0),
+    n_individuals = replace_na(n_individuals, 0)
+  )
+ 
+# ---- 5. SPUE by spot -------------------------------------------------------
+spue_by_spot <- effort %>%
+  group_by(spot_name) %>%
+  summarise(
+    scans        = n(),
+    effort_hours = sum(duration_min, na.rm = TRUE) / 60,
+    sightings    = sum(n_sightings),
+    individuals  = sum(n_individuals),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    spue_per_scan   = sightings / scans,        # headline SPUE
+    sightings_per_h = sightings / effort_hours, # encounter rate
+    indiv_per_h     = individuals / effort_hours
+  ) %>%
+  arrange(desc(scans))
+ 
+# ---- 6. SPUE overall -------------------------------------------------------
+spue_overall <- effort %>%
+  summarise(
+    spot_name    = "TOTAL",
+    scans        = n(),
+    effort_hours = sum(duration_min, na.rm = TRUE) / 60,
+    sightings    = sum(n_sightings),
+    individuals  = sum(n_individuals)
+  ) %>%
+  mutate(
+    spue_per_scan   = sightings / scans,
+    sightings_per_h = sightings / effort_hours,
+    indiv_per_h     = individuals / effort_hours
+  )
+ 
+spue_summary <- bind_rows(spue_by_spot, spue_overall)
+ 
+# ---- 7. Report & export ----------------------------------------------------
+spue_report <- spue_summary %>%
+  mutate(across(c(effort_hours, spue_per_scan, sightings_per_h, indiv_per_h),
+                ~ round(.x, 3)))
+ 
+#print(spue_report, n = Inf)
+
+
+
+```
+
+```{r, Kruskal-Wallis and Dunn test}
+ #|include: false
+
+# Include the right df from datavis script
+
+ active <- c("Europa", "SandyBay", "PrinceGeorge")
+ scans  <- effort %>% filter(spot_name %in% active) # per-scan rows, NOT the summary
+
+# count(scans, spot_name)
+
+
+ SPUE_kru <- kruskal.test(n_sightings ~ spot_name, data = scans)
+
+ SPUE_dunn <- dunnTest(n_sightings ~ factor(spot_name), data = scans, method = "bh")
+
+```
+
+```{r, Distance function and test}
+ #|include: false
+ #|echo: false
+ #|output: false
+ #|fig-show: hide
+
+library(Distance)
+
+dis <- readRDS(here("temp", "dis.rds"))
+trunc <- 8000
+conversion.factor <- convert_units("Metre", NULL, "square metre")
+
+# Overall detection function (pooled)
+d.hn <- ds(data=dis %>% filter(!is.na(dis$size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc)
+d.hr <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc)
+
+
+# Significant is good so it does not fit the data
+gof_hn <- gof_ds(d.hn, plot = FALSE)
+
+# P value is not significant, good
+gof_hr <- gof_ds(d.hr, plot = FALSE)
+
+# height as a covariate
+d.ht <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height)
+# Region as covariate
+d.ss <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~sea_state)
+#Region and height
+d.wh <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula =~wave_height)
+d.ws <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~wind_speed)
+d.gl <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~glare)
+
+
+# Write summary table
+model_tab <- summarize_ds_models(d.hn, d.hr, d.ht, d.ss, d.wh, d.ws, d.gl, output = "plain")
+
+# Summary of the best model and abundance and density estimates
+sum_ht <- summary(d.ht)
+
+
+```
+
+```{r, Distance per spot}
+ #|include: false
+
+# Europa Point ------
+europa <- dis %>% filter(Region.Label == "Europa")
+
+eu.hn <- ds(data=europa %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500)
+eu.hr <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500)
+
+eu.AIC <- AIC(eu.hn, eu.hr)
+
+# Significant is good so it does not fit the data
+gof_hn_eu <- gof_ds(eu.hn, plot = FALSE)
+# P value is not significant, good
+gof_hr_eu <- gof_ds(eu.hr, plot = FALSE)
+
+# covariates
+eu.gl <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500, formula = ~glare)
+eu.ss <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500, formula = ~sea_state)
+eu.wh <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500, formula = ~wave_height)
+eu.ws <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=4500, formula = ~wind_speed)
+# Write summary table
+model_europa <- summarize_ds_models(eu.hn, eu.hr, eu.gl, eu.ss, eu.wh, eu.ws, output = "plain")
+
+# Best model
+bf.europa <- summary(eu.ss)
+
+# Sandy Bay ------
+sandy <- dis %>% filter(Region.Label == "SandyBay")
+
+sb.hn <- ds(data=sandy %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000)
+sb.hr <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000)
+
+sb.AIC <- AIC(sb.hn, sb.hr)
+
+# Significant is good so it does not fit the data
+gof_hn_sb <- gof_ds(sb.hn, plot = FALSE)
+# P value is not significant, good
+gof_hr_sb <- gof_ds(sb.hr, plot = FALSE)
+
+# covariates
+sb.gl <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000, formula = ~glare)
+sb.ss <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000, formula = ~sea_state)
+sb.wh <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000, formula = ~wave_height)
+sb.ws <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=12000, formula = ~wind_speed)
+
+model_sandy <- summarize_ds_models(sb.hn, sb.hr, sb.gl, sb.ss, sb.wh, sb.ws, output = "plain")
+
+# Best model
+bf.sandy <- summary(sb.hr)
+
+# Prince George ------
+prince <- dis %>% filter(Region.Label == "PrinceGeorge")
+
+pg.hn <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000)
+pg.hr <- ds(data=prince %>% filter(!is.na(size)), key="hr", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000)
+
+pg.AIC <- AIC(pg.hn, pg.hr)
+
+# Significant is good so it does not fit the data
+gof_hn_pg <- gof_ds(pg.hn, plot = FALSE)
+# P value is not significant, good
+gof_hr_pg <- gof_ds(pg.hr, plot = FALSE)
+
+# covariates
+pg.gl <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000, formula = ~glare)
+pg.ss <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000, formula = ~sea_state)
+pg.wh <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000, formula = ~wave_height)
+pg.ws <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
+              transect="point", convert_units=conversion.factor, truncation=8000, formula = ~wind_speed)
+
+model_prince <- summarize_ds_models(pg.hn, pg.hr, pg.gl, pg.ss, pg.wh, pg.ws, output = "plain")
+
+# Best model
+bf.prince <- summary(pg.hn)
+
+```
+
+
+```{r, Clean ds data}
+ #|include: false
+
+
+# # Pooled data
+
+pool_group_dens <- sum_ht$dht$clusters$D %>%
+  transmute(Label,
+            "Density (km⁻²)"   = Estimate * 1e6,
+            "SE (km⁻²)" = se * 1e6,
+            "LCL (km⁻²)" = lcl * 1e6,
+            "UCL (km⁻²)" = ucl * 1e6,
+            CV = cv)
+
+pool_indiv_dens <- d.ht$dht$individuals$D %>%
+  transmute(Label,
+            "Density (km⁻²)"   = Estimate * 1e6,
+            "SE (km⁻²)" = se * 1e6,
+            "LCL (km⁻²)" = lcl * 1e6,
+            "UCL (km⁻²)" = ucl * 1e6,
+            CV = cv)
+# 
+# # Abundance
+
+pool <- sum_ht          # <- single pooled fit; change if d.ht is the intended one
+
+# n of groups per stratum (+ Total) from the clusters summary
+n_tbl <- pool$dht$clusters$summary %>% transmute(Label = Region, n_groups = n)
+
+# helper: pull a D or N block, tag columns, keep Label as the key
+pull_block <- function(df, scale = 1) {
+  df %>% transmute(Label,
+                   Estimate = Estimate * scale,
+                   SE = se * scale,
+                   LCL = lcl * scale,
+                   UCL = ucl * scale,
+                   CV  = cv)
+}
+
+grp_dens <- pull_block(pool$dht$clusters$D,    1e6)   # km^-2
+ind_dens <- pull_block(pool$dht$individuals$D, 1e6)   # km^-2
+grp_abun <- pull_block(pool$dht$clusters$N,    1)     # counts
+ind_abun <- pull_block(pool$dht$individuals$N, 1)     # counts
+
+pool_overview_tbl <- n_tbl %>%
+  left_join(grp_dens, by = "Label") %>%
+  left_join(ind_dens, by = "Label", suffix = c(".gd", ".id")) %>%
+  left_join(grp_abun, by = "Label") %>%
+  left_join(ind_abun, by = "Label", suffix = c(".ga", ".ia")) %>%
+  rename(Station = Label)
+
+# rename to the exact column set your per-spot table used
+names(pool_overview_tbl) <- c(
+  "Station", "n of Groups",
+  "Group Dens. Estimate","Group Dens. SE","Group Dens. LCL","Group Dens. UCL","Group Dens. CV",
+  "Indiv. Dens. Estimate","Indiv. Dens. SE","Indiv. Dens. LCL","Indiv. Dens. UCL","Indiv. Dens. CV",
+  "Group Abun. Estimate","Group Abun. SE","Group Abun. LCL","Group Abun. UCL","Group Abun. CV",
+  "Indiv. Abun. Estimate","Indiv. Abun. SE","Indiv. Abun. LCL","Indiv. Abun. UCL","Indiv. Abun. CV"
+)
+
+pooled_tbl <- as.data.frame(pool_overview_tbl, check.names = FALSE)
+colnames(pooled_tbl) <- c("Station","n of Groups", rep(c("Estimate","SE","LCL","UCL","CV"), 4))
+
+pool_dens_tbl <- pooled_tbl[, c(1, 2, 3:12)]
+names(pool_dens_tbl) <- c("Station", "n of Groups",
+                          rep(c("Estimate","SE","LCL","UCL","CV"), 2))
+
+pool_abun_tbl <- pooled_tbl[, c(1, 2, 13:22)]
+names(pool_abun_tbl) <- c("Station", "n of Groups",
+                          rep(c("Estimate","SE","LCL","UCL","CV"), 2))
+
+```
+
+```{r, Spot overview table}
+ #|include: false
+
+d.models <- list(
+  PrinceGeorge = bf.prince,
+  Europa       = bf.europa,
+  SandyBay     = bf.sandy
+)
+
+extract_model <- function(model, station){
+  cl <- model$dht$clusters
+  ind <- model$dht$individuals
+  tibble(
+    Station        = station,
+    n_groups       = cl$summary$n,
+    # --- group (cluster) density ---
+    group_dens_es  = cl$D$Estimate,
+    group_dens_se  = cl$D$se,
+    group_dens_lcl = cl$D$lcl,
+    group_dens_ucl = cl$D$ucl,
+    group_dens_cv  = cl$D$cv,
+    # --- individual density ---
+    indiv_dens_es  = ind$D$Estimate,
+    indiv_dens_se  = ind$D$se,
+    indiv_dens_lcl = ind$D$lcl,
+    indiv_dens_ucl = ind$D$ucl,
+    indiv_dens_cv  = ind$D$cv,
+    # --- group (cluster) abundance ---
+    group_abun_es  = cl$N$Estimate,
+    group_abun_se  = cl$N$se,
+    group_abun_lcl = cl$N$lcl,
+    group_abun_ucl = cl$N$ucl,
+    group_abun_cv  = cl$N$cv,
+    # --- individual abundance ---
+    indiv_abun_es  = ind$N$Estimate,
+    indiv_abun_se  = ind$N$se,
+    indiv_abun_lcl = ind$N$lcl,
+    indiv_abun_ucl = ind$N$ucl,
+    indiv_abun_cv  = ind$N$cv
+  )
+}
+
+model_overview_tbl <- imap_dfr(d.models, extract_model)
+
+clean_overview_tbl <- model_overview_tbl %>% 
+  transmute(
+  Station = Station,
+  "n of Groups" = n_groups,
+
+  # --- Group density (km^-2) ---
+  "Group Dens. Estimate" = group_dens_es  * 1e6,
+  "Group Dens. SE"       = group_dens_se  * 1e6,
+  "Group Dens. LCL"      = group_dens_lcl * 1e6,
+  "Group Dens. UCL"      = group_dens_ucl * 1e6,
+  "Group Dens. CV"       = group_dens_cv,          
+
+  # --- Individual density (km^-2) ---
+  "Indiv. Dens. Estimate" = indiv_dens_es  * 1e6,
+  "Indiv. Dens. SE"       = indiv_dens_se  * 1e6,
+  "Indiv. Dens. LCL"      = indiv_dens_lcl * 1e6,
+  "Indiv. Dens. UCL"      = indiv_dens_ucl * 1e6,
+  "Indiv. Dens. CV"       = indiv_dens_cv,          
+
+  # --- Group abundance (counts: no unit conversion) ---
+  "Group Abun. Estimate" = group_abun_es,
+  "Group Abun. SE"       = group_abun_se,
+  "Group Abun. LCL"      = group_abun_lcl,
+  "Group Abun. UCL"      = group_abun_ucl,
+  "Group Abun. CV"       = group_abun_cv,
+
+  # --- Individual abundance (counts: no unit conversion) ---
+  "Indiv. Abun. Estimate" = indiv_abun_es,
+  "Indiv. Abun. SE"       = indiv_abun_se,
+  "Indiv. Abun. LCL"      = indiv_abun_lcl,
+  "Indiv. Abun. UCL"      = indiv_abun_ucl,
+  "Indiv. Abun. CV"       = indiv_abun_cv
+)
+
+dens_tbl <- clean_overview_tbl[, c(1, 2, 3:12)]
+names(dens_tbl) <- c("Station", "n of Groups",
+                          rep(c("Estimate","SE","LCL","UCL","CV"), 2))
+
+
+abun_tbl <- clean_overview_tbl[, c(1, 2, 13:22)]
+names(abun_tbl) <- c("Station", "n of Groups",
+                          rep(c("Estimate","SE","LCL","UCL","CV"), 2))
+
+
+
+```
+
+```{r, truncation testing}
+ #|include: false
+
+# truncations for testing
+w_grid <- c(6000, 7000, 8000, 9000, 10000, 12000) 
+
+trunc_sens <- purrr::map_dfr(w_grid, function(w) {
+  m <- ds(dis, transect = "point", key = "hr",
+          formula = ~height, truncation = w, convert_units = conversion.factor)
+  d <- m$dht$individuals$D            # or your dht2 call
+  tibble::tibble(
+    spot = d$Label, 
+    w        = w,
+    n        = m$ddf$data |> nrow(),
+    "D̂"    = d$Estimate * 10^6,
+    CV       = d$cv,
+    "CvM p"    = gof_ds(m, plot = FALSE)$dsgof$CvM$p
+  )
+})
+
+
+```
+
+
+This study applied point-transect distance sampling to assess the distribution and density of small cetaceans within the BGTW. A modified point-transect protocol, adapted from approaches primarily used for birds and larger cetaceans [@bucklandIntroductionDistanceSampling2001a], was implemented for land-based surveys (see Appendix fo the full protocol). The following results describe the observed cetacean occurrence, spatial distribution, and density estimates across the study area.
+
+## Survey Results
+Overall, `r  full_sum$sightings` cetacean sightings were recorded between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`, point transect sampling was conducted including pilot studies and both vessel- and land-based surveys (@fig-totalmap). A total of two vessel-based surveys were conducted, accounting for `r spell_nr(full_source$boat)` of these sightings: `r spell_nr(boat_species$common_dolphin)` sightings of common dolphins (*Delphinus delphis*) and `r spell_nr(boat_species$striped_dolphin)` sightings of striped dolphins (*Stenella coeruleoalba*) and `r spell_nr(boat_species$delphinidae)` sighting where the species could not be identified. The group size for vessel-based sightings ranged from `r spell_nr(min(boat$group_size, na.rm = TRUE))` to `r spell_nr(max(boat$group_size, na.rm = TRUE))` (mean = `r round(mean(boat$group_size, na.rm = TRUE), 2)`, median = `r round(median(boat$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(boat$group_size, na.rm = TRUE), 2)`).
+
+![Geographic location of cetacean sightings recorded from boat-based surveys (in squares) and land-based surveys (in circles) during this project period. Where n represents the number of sightings recorded using each method.](figures/method_map.png){#fig-totalmap}
+
+In total `r total_land$surveys` land-based surveys were conducted, resulting in `r round(sum(er$hours), 2)` total on-effort hours and 58 off-effort hours over `r length(unique(effort$date))` survey days. `r length(data$survey_id)` cetacean sightings were recorded in this sampling period, of which `r sum(data$on_effort)` were on-effort and `r spell_nr(sum(!data$on_effort))` off-effort. Of these, `r by_familiy$odontoceti` sightings were Odontoceti, including `r by_species$common_dolphin` sightings of common dolphins, `r by_species$delphinidae` sightings of unidentified dolphins where the species could not certainly be defined and `r spell_nr(by_familiy$mysteciti)` Mysticeti sightings of  Fin whales (*Balaenoptera physalus*). `r spell_nr(by_species$unidentified)` sightings the species could not be reliably determined and were recorded as unidentified (@fig-sight_map, Figure **S13**). The group size for land-based sightings ranged from `r min(data$group_size, na.rm = TRUE)` to `r max(data$group_size, na.rm = TRUE)` (mean = `r round(mean(data$group_size, na.rm = TRUE), 2)`, median = `r round(median(data$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(data$group_size, na.rm = TRUE), 2)`). 
+
+![All sightings collected from land-based surveys between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`. The sightings were recorded from three different spots, Europa Point, Sandy Bay and Prince George's Battery (indicated as triangles).](figures/sightings_legend.png){#fig-sight_map}
+
+The overview of sightings (@tbl-overview) revealed variation in minimum and maximum sighting distances and group sizes among sampling locations. The farthest sighting occurred at a distance of `r round(max(er$max_dis)/1000, 2)` km from the observation platform. Despite equal on-effort observation time across all sampling locations, the number of sightings differed strongly among locations. The most frequently recorded species was the Common Dolphin (n = `r species$sightings[1]`), followed by unidentified dolphins (n = `r species$sightings[2]`). Unidentified dolphins accounted for the most distant sightings, recorded at approximately `r round(max(species$max_dis/1000), 2)` km (@tbl-overview).
+
+```{r}
+#| label: tbl-overview
+#| tbl-cap: "Statistics per observation platforms over the sampling period. Pilot studies were excluded in this table. Distance is calculated from the respective observation platform."
+
+overview_tbl
+```
+
+Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$sightings)]`, covering mainly the southern side (n = `r max(per_spot$sightings)`). Sighting frequency varied over the course of the day, showing a bimodal distribution with peaks in the late morning and mid-afternoon and a reduction around midday (Figure **SXX**). 
+
+
+## Spatial Distribution
+SPUE were highest at Europa (@tbl-spue_report, **Figure Sxx**). A Kruskal-Wallis test showed a significant difference in SPUE among spots (χ² = `r round(as.numeric(SPUE_kru$statistic),2)`, df = `r as.numeric(SPUE_kru$parameter)`, p = `r round(SPUE_kru$p.value,3)`), Dunn’s test, with a Benjamini-Hochberg correction, showed a significant difference between Europa and Prince George (adjusted p = `r round(SPUE_dunn$res[1,4],3)`) and between Europa and Sandy Bay (adjusted p = `r round(SPUE_dunn$res[2,4],3)`). Prince George and Sandy Bay did not differ significantly.
+
+```{r}
+#| label: tbl-spue_report
+#| tbl-cap: "Variation in SPUE and the number of individuals recorded across the three sampling locations."
+
+
+
+tbl_dat <- spue_report %>%
+  filter(spot_name %in% active_spots$spot_name | spot_name == "TOTAL") %>%
+  sf::st_drop_geometry() %>%                       # replaces cols_hide(geometry); use select(-geometry) if not an sf object
+  select(spot_name, scans, effort_hours, sightings,
+         individuals, spue_per_scan, sightings_per_h, indiv_per_h) %>%
+  rename(
+    "Spot Names"      = spot_name,
+    "Scans"           = scans,
+    "Hours"           = effort_hours,
+    "Sightings"       = sightings,
+    "Individuals"     = individuals,
+    "SPUE (per scan)" = spue_per_scan,
+    "Sightings per h" = sightings_per_h,
+    "Indiv. per h"    = indiv_per_h
+  )
+
+total_row <- which(tbl_dat[["Spot Names"]] == "TOTAL")   # robust to row order
+
+tt(tbl_dat,
+   width = c(1.6, 1, 1, 1,1, 1.5, 1, 1)) |>                                        # width = 1 → full text width
+  format_tt(j = c(3, 6, 7, 8), digits = 2,
+            num_fmt = "decimal", num_zero = TRUE) |>             # 2 decimals incl. trailing zeros
+  style_tt(i = 0, bold = TRUE) |>                                # i = 0 targets the column-label (header) row
+  style_tt(i = total_row, bold = TRUE) %>% 
+  style_tt(j = 2:8, align = "c")
+  
+  
+
+```
+
+Kernel density estimation (KDE) was used to assess the spatial distribution and identify areas of concentrated delphinidae occurrence. Sightings of identified Common Dolphins and unidentified delphinidae were used to generate the KDE map, while Fin Whale sightings were excluded from the analysis. Using group size as a weighting variable, the KDE indicated the highest density around the southwestern tip of the peninsula (approximately 36.09–36.11 °N, 5.34–5.37 °W; ~5 km²). The 50% isopleth of the pooled utilisation surface enclosed most of the southern sector, while the 95% isopleth extended around the peninsula across all three sectors (@fig-kde_map).
+
+![The Kernel Density Estimation (KDE) of the sightings collected from land-based surveys between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`. The KDE was calculated using group size as a weight variable. The highest density was found around the south western tip of the peninsula (approximately 36.09–36.11 °N, 5.34–5.37 °W; ~5 km²). Color of grid represents the density Utilisazion distribution.](figures/density_map.png){#fig-kde_map}
+
+Comparison with opportunistic records revealed a pronounced spatial mismatch between the two data sources (@fig-obis, @tbl-obis_comp). Non-systematic *Delphinus delphis* records retrieved from OBIS (n = 200) were strongly concentrated in the western sector (n = 141), with only four records in the eastern sector. Systematic surveys showed the opposite eastern coverage: despite the eastern sector being almost absent from the opportunistic record, 39 on-effort sightings were recorded there. This divergence illustrates the spatial bias inherent to platform-of-opportunity data, in which recording effort tracks vessel routes and observer access—concentrated here in the heavily trafficked western bay—rather than the underlying distribution of animals [@bucklandIntroductionDistanceSampling2001; @dawsonDesignFieldMethods2008]. Because opportunistic records carry no associated survey effort, these counts reflect where animals were *reported* rather than their relative density, and the systematic and opportunistic totals are not directly comparable. The systematic per-sector counts are likewise unstandardised and should be read alongside the effort-corrected encounter rates presented above (@tbl-spue_report). Notably, 45 OBIS records fell outside the three surveyed sectors, further indicating that existing records are spatially unrepresentative of the territory as a whole.
+
+![Opportunistic *Delphinus delphis* records from OBIS (squares) overlaid on the on-effort sightings recorded in the present study (circles), within the study area. Opportunistic records are concentrated in the western bay, while the eastern sector—almost absent from the opportunistic record, was covered only by systematic survey.](/figures/obis_comp.png){#fig-obis}
+
+```{r, sector tbl}
+#| label: tbl-obis_comp
+#| tbl-cap: "Number of cetacean records per sector from systematic survey (on-effort sightings, this study) and from opportunistic OBIS records (*Delphinus delphis*). Counts are unstandardised; opportunistic records carry no associated survey effort and reflect recording distribution rather than relative density."
+
+tt(obis_comp) %>% 
+  style_tt(i = 0, bold = TRUE)
+
+
+```
+
+
+## Detection model fitting{#model_fit .unnumbered}
+The distribution of sighting distances was examined separately for each sampling location (@fig-dis_spot) to inform truncation and detection-function fitting. Sandy Bay and Prince George showed the distance distribution characteristic of point-transect sampling, in which detections are sparse close to the observer and rise to a peak before declining, reflecting the increase in surveyed area with radius alongside decreasing detectability [@bucklandDistanceSamplingMethods2015]. Europa Point departed from this pattern: sightings were concentrated close to the observer and the distribution was positively skewed, with few detections at greater range. This is consistent with its lower observation height (18 m a.s.l.), which restricts the effective detection range and truncates the usable distance band.
+
+
+![Number of sightings against the Distance (in m) where they were recorded relative to the observation spot. Split up by the observation spots (Sandy Bay, Europa and Prince George (bin width = 550)).](figures/distance_facet.png){#fig-dis_spot}
+
+Right-truncation distances were therefore set per location by visual inspection of these distributions, retaining the reliably sampled range while excluding sparse long-distance tails: 4,500 m at Europa Point, 8,000 m at Prince George, and 12,000 m at Sandy Bay. The pooled truncation of 8,000 m retained the full range of Europa Point detections while excluding the sparse long-distance tail at Sandy Bay (@fig-dis_spot). Detection functions were then fitted separately for each location using the `Distance` package [@millerDistanceSampling2019], following a two-step procedure: the key function (half-normal or hazard-rate) was selected first by AIC, and candidate covariates were evaluated in the second step. The hazard-rate key function gave the lower AIC at Europa Point and Sandy Bay, whereas Prince George was best fitted by a half-normal key (@tbl-AICs).
+
+
+```{r}
+#| label: tbl-AICs
+#| tbl-cap: "AIC comparison of the different key functions for Europa Point (eu) and Sandy Bay (sb) and Prince George (pg). Emphasised rows highlight the lower AIC and the resulting key function."
+hnAIC <- eu.AIC %>% 
+  rows_append(sb.AIC) %>% 
+  rows_append(pg.AIC) %>% 
+  rownames_to_column(var = "Model")
+
+tt(hnAIC) %>% 
+  style_tt(i = c(0, 2, 4, 5), bold = TRUE)
+```
+
+The covariates sea state, glare, wind speed and wave height were tested individually with the best-fitting detection function. Owing to the small sample size, only one covariate was included at a time, as the data were insufficient to support models containing multiple covariates. Model selection was performed separately for each sampling location based on AIC, with the model yielding the lowest AIC selected as the best-fitting detection function. Goodness-of-fit tests did not reveal any significant lack of fit for the fitted detection functions. Three separate model selection tables were produced, one for each sampling location: Europa Point (**Table SXX**), Sandy Bay (**Table SXX**), and Prince George (**Table SXX**). The inclusion of covariates resulted in only minor improvements in model fit at Sandy Bay and Prince George (**Table SXX**; **Table SXX**), whereas greater differences in AIC were observed among the candidate models at Europa Point (**Table SXX**).
+
+Due to the limited number of observations per sampling location, independent detection functions could not be reliably estimated. Therefore, a pooled detection function (truncation = 8,000) was fitted using all observations combined, following the same two-step model selection procedure.
+
+Using the hazard-rate key function resulted in the lowest AIC value for the pooled function (hn = `r round(AIC(d.hn)[1,2],2)`; hr = `r round(AIC(d.hr)[1,2],2)`) and was therefore used for further analysis. The goodness of fit test confirmed the choice of the key function (hn p-value: `r round(gof_hn$dsgof$CvM$p,3)`; hr p-value = `r round(gof_hr$dsgof$CvM$p,3)`).
+To increase the fit of the function following covariates were fitted: glare, sea state, wave height, wind speed and height. Using height as covariate resulted in the lowest AIC (@tbl-model_summary).
+
+```{r}
+#| label: tbl-model_summary
+#| tbl-cap: "Summary of the models used to fit the detection function. The formula represents the covariates used."
+
+tt(model_tab, digits = 3) %>% 
+  style_tt(i = 0, bold = TRUE)
+
+```
+
+Using the hr key function along with height as a covariate the detection function was plotted (@fig-ht_model).
+
+```{r}
+#| label: fig-ht_model
+#| fig-cap: "Detection function using the hr key function along with height as covariate."
+#| fig-height: 4
+
+plot(d.ht, pdf = TRUE)
+```
+
+
+## Density and Abundance Estimates
+
+### Per spot estimates
+Using the best fitting detection function, per spot, the relative abundance of dolphins was calculated. The highest group density was estimated to be `r round(dens_tbl[[3]][2], 2)` per km² in the southern sector (surveyed from Europa Point). The highest individual density was also estimated to be in the southern sector with `r round(dens_tbl[[8]][2], 2)` per km² (@tbl-per_spot_dens).
+
+```{r}
+#| label: tbl-per_spot_dens
+#| tbl-cap: "Overview of the density estimated per spot. Density estimates were derived from the best-fitting detection function for each sampling location."
+
+
+tt(dens_tbl,
+    width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) |>
+  format_tt(j = 3:12, digits = 2) %>% 
+  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
+  style_tt(i = -2:0, bold = TRUE) %>% 
+  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
+
+```
+
+The highest group abundance was estimated to be `r round(abun_tbl[[3]][2], 2)` per km² in the southern sector as well. As well as the highest individual abundance `r round(abun_tbl[[8]][2], 2)` (@tbl-per_spot_abun). 
+
+```{r}
+#| label: tbl-per_spot_abun
+#| tbl-cap: "Overview of the relative abundance estimated per spot. Relative abundance estimates were derived from the best-fitting detection function for each sampling location."
+
+
+tt(abun_tbl,
+   width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) |>
+  format_tt(j = 3:12, digits = 2) %>% 
+  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
+  style_tt(i = -2:0, bold = TRUE) %>% 
+  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
+
+```
+
+The detection-corrected density gradient confirmed earlier findings (**Figure Sxx**) of higher SPUE at Europa Point compared to the other vantage points.
+
+### Pooled estimates
+Using the best fitting pooled detection functions the relative abundance of dolphins was calculated for the pooled sightings. The highest group density was estimated to be `r round(sum_ht$dht$clusters$D$Estimate[1]* 1e6, 3)` per km² in the southern sector (surveyed from Europa Point) (95 % CI: `r round(pool_group_dens[1,4], 2)` - `r round(pool_group_dens[1,5], 2)`; CV: `r round(pool_group_dens$CV[1], 2)`). The highest individual density was estimated in the southern sector as well with `r round(sum_ht$dht$individuals$D$Estimate[1]* 1e6, 3)` individuals per km² (95 % CI: `r round(pool_indiv_dens[1,4], 2)` - `r round(pool_indiv_dens[1,5], 2)`; CV: `r round(pool_indiv_dens$CV[1], 2)`)(@tbl-pool_dens).
+
+```{r}
+#| label: tbl-pool_dens
+#| tbl-cap: "Overview of the density estimated for the pooled sightings. Density estimates were derived from the best-fitting detection function for all three sampling locations."
+
+tt(pool_dens_tbl, digits = 2,
+   width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) %>% 
+  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
+  style_tt(i = -2:0, bold = TRUE) %>% 
+  style_tt(i = 4, bold = TRUE) %>% 
+  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
+
+```
+
+For the pooled detection function, the highest group abundance estimate was also observed in the southern sector, with `r round(pool_abun_tbl[[3]][1], 2)` groups. Similarly, the highest individual abundance estimate occurred in the southern sector, with `r round(pool_abun_tbl[[8]][1], 2)` individuals (@tbl-pool_abun).
+
+```{r}
+#| label: tbl-pool_abun
+#| tbl-cap: "Overview of the relative abundance estimated for the pooled locations. Relative abundance estimates were derived from the best-fitting detection function for the pooled sighting dataset."
+
+tt(pool_abun_tbl,
+   width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) %>% 
+  format_tt(j = 3:12, digits = 2) %>% 
+  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
+  style_tt(i = -2:0, bold = TRUE) %>% 
+  style_tt(i = 4, bold = TRUE) %>% 
+  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
+```
+
+To assess the influence of the right-truncation distance on the density estimates, the pooled detection function was refitted across a range of truncation distances (6,000-12,000 m) while holding the model structure (hazard-rate key function with height as a covariate) constant (**Table SXX**). The selected truncation of 8,000 m retained 95% of on-effort detections (98 of 103) and yielded among the strongest goodness-of-fit values in the tested range, while excluding the sparse, high-variance long-distance tail that disproportionately influences point-transect estimates. The density estimates were therefore considered robust to the choice of truncation distance.
+

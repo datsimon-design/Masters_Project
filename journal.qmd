@@ -37,9 +37,10 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 
 # Introduction
 
+{{< include ./journal_chapters/j_intro.qmd >}}
 
 
-
+{{< pagebreak >}}
 
 # Methods {#methods-sec}
 
@@ -50,11 +51,13 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 
 # Results
 
+{{< include ./journal_chapters/j_results.qmd >}}
 
 {{< pagebreak >}}
 
 # Discussion
 
+{{< include ./journal_chapters/j_discussion.qmd >}}
 
 {{< pagebreak >}}
 
@@ -64,6 +67,7 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 
 # Acknowledgements 
 
+{{< include ./journal_chapters/j_acknowl.qmd >}}
 
 {{< pagebreak >}}
 
@@ -71,7 +75,7 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.
 
 # Supplementary Material{.unnumbered}
-Please see Supplementary Material for further information related to this study.
+Please see Supplementary Material with Appendices for further information related to this study.
 
 # Science Communication output
 

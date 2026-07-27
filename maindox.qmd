@@ -60,6 +60,11 @@ This is just a short test summary of how AI was used. See Declaration of Origina
     level: 1
   ): set block(above: 1.2em)
 
+  #show outline.entry.where(level: 1): set text(
+  weight: "bold",
+  size: 1.1em,
+  )
+
   #outline(
     title: []
   )
@@ -169,7 +174,7 @@ This is just a short test summary of how AI was used. See Declaration of Origina
 
 {{< pagebreak >}}
 
-# Appendices
+# Appendix
 
 {{< include ./chapters/appendix.qmd >}}
 
