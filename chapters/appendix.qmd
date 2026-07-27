@@ -83,8 +83,12 @@ coast_distance <- function(observer, bearing, land, max_range = 60000) {
 Custom function in R to calculate distance from reticles and observer height; factor needs to be adjusted for each binocular. For the west side the code was adjusted to calculate the distance to the coastline based on the observer position and bearing.
 :::
 
-
+## Inclinometer guide
 ![Visual representation of the calculation of the distance used in the data cleaning pipeline. The observer height $h$ was adapted per spot and the angle $\theta$ was derived from the reticles inside the binoculars.](/misc/Inclinometer.png){#app-incl}
+
+In order to use the inclinometer one must first calibrate the angle board using a leveller or a phone with built in leveller. The scope can be adjusted a bit and tightened back using the two screws on the back. Although the components are securely attached, slight movement may occur during transport or handling, making calibration necessary before each survey. Once calibrated, the inclinometer is ready for use. The scope should be aligned with the target sighting and held as steadily as possible while measuring the angle of depression. Maintaining a stable position can be challenging on a moving vessel, particularly in rough sea conditions. Before recording the angle, the weighted string should be allowed to stabilise to ensure an accurate reading. Angle measurements taken from vessels with a low observation height are highly sensitive to small measurement errors. It is therefore recommended to record multiple angle measurements for each sighting and use their average in subsequent calculations. To minimise temporal error, one observer should measure and record the angle of depression while a second observer simultaneously measures and records the bearing, ensuring that both measurements correspond to the same surfacing event (@app-inclinometer).
+
+![The inclinometer used for the two vessel-based surveys, built with basic materials. The sighting was aligned through the scope using the crosshair, while the weighted string acted as a plumb line to indicate the angle of depression, which was then read from the calibrated angle board.](/misc/incl_anleitung.png){#app-inclinometer}
 
 {{< pagebreak >}}
 
