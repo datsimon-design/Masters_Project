@@ -81,29 +81,32 @@ Observations were carried out both with the naked eye and using binoculars (Fuji
 
 
 ## Data Cleaning
-To streamline data handling and ensure reproducibility, a data-cleaning pipeline was implemented in R [@zotero-item-2907]. The pipeline automatically imported the field data sheets and applied a set of quality-control checks, validation rules that halt execution when a record violates a predefined criterion, prior to any downstream processing. Custom functions then derived sighting distances from the recorded reticle readings and bearings (see [Distance calculation](#calc-dis), @app-disR), yielding a cleaned dataset for subsequent analysis.
+To streamline data handling and ensure reproducibility, a data-cleaning pipeline was implemented in R [@zotero-item-2907]. The pipeline automatically imported the field data sheets and applied a set of quality-control checks, validation rules that halt execution when a record violates a predefined criterion, prior to any downstream processing. Custom functions then derived sighting distances from the recorded reticle readings and bearings (see Distance calculation, @app-disR), yielding a cleaned dataset for subsequent analysis.
 
 
 ## Data Analysis
-### Calculating distance {#calc-dis .unnumbered}
-To calculate the distance of the sighting ($d$), the number of reticles ($r$) from the horizon line or, in the case of the western side, the coastline, was recorded. Utilising the observers' height ($h$), the reticle factor ($F$) and the provided formula, the distance can be calculated [@bucklandIntroductionDistanceSampling2001]. Implementing the Earth's radius ($R$) was used to make the formula more accurate [@lerczakCalculatingSightingDistances1998]:
+### Distance calculation
+Radial distance to each sighting ($d$) was derived from reticle readings following the shore-based principle of Lerczak and Hobbs [-@lerczakCalculatingSightingDistances1998], adapted here to account for sea-surface curvature and, at the western station, for a coastline reference. The depression angle to a target at horizontal distance $d$ was modelled as
 
 $$
-d=\frac{h}{\tan{\left(r\times F+\sqrt{\frac{2\times h}{R}}\right)}}
+\theta = \frac{h}{d} + \frac{d}{2R}
 $$
 
-Using the distance and the bearing a circle can be projected from the observers' position and the location can be calculated and plotted (@app-incl).
-
-Because of the enclosed nature of the western survey area (the Bay of Gibraltar), the far shore of the bay rather than the sea horizon was visible along most bearings from the Prince George station. As the reticle method derives distance from the angular separation between a sighting and a known reference line, the standard horizon-based formula could not be applied here: the coastline sits closer than the true horizon and therefore at a different (greater) angle of depression, so treating it as the horizon would overestimate sighting distances. As a trial, an inclinometer was constructed to estimate sighting distances by measuring the angle of depression using gravity and a calibrated angle board (see @app-inclinometer for details). However, following the transition from vessel-based to land-based surveys, this method was no longer applicable and was therefore not used during data collection.
-
-
-For this station the reference depression angle was derived from the distance to the coastline along each sighting's bearing instead. Using a detailed polygon of the bay's landmasses (including the detached mole off Algeciras, which forms the first visible obstacle on some bearings), a ray was projected from the observation point along the recorded horizontal bearing, and the distance to the first intersection with land was taken as the reference distance ($d_{ref}$). The depression angle of the reference line was then calculated as:
+where $h$ is the observer height and $R$ the Earth's radius (6,371 km); the second term corrects for the curvature of the sea surface between observer and target. The total depression angle to a sighting is the angle of the reference line ($\theta_{ref}$) plus the reticle angle,
 
 $$
-\theta_{ref}=\frac{h}{d_{ref}}+\frac{d_{ref}}{2R}
+\theta = \theta_{ref} + rF,
 $$
 
-where $h$ is the observer height and $R$ the Earth's radius, with the second term correcting for the curvature of the sea surface between observer and coastline. This replaces the horizon dip term ($\sqrt{\frac{2\times h}{R}}$) used at the open-water stations. The two expressions are equivalent when $d_{ref}$ equals the horizon distance. Bearings that pointed out of the bay mouth, where no coastline was intersected, reverted to the standard horizon reference. The sighting distance was then obtained from the total depression angle ($\theta_{ref}+reticleAngle$) as before (see @app-disR or [GitHub](https://github.com/datsimon-design/Masters_Project) for examples in R).
+where $r$ is the number of reticles subtended between the sighting and the reference line and $F$ the instrument-specific reticle factor (0.005 for the Fujinon 7 × 50 FMTRC-SX binoculars used here). Distance was then recovered by inverting the quadratic:
+
+$$
+d = R\theta - \sqrt{(R\theta)^2 - 2Rh}.
+$$
+
+At the open-water stations (Europa Point, Sandy Bay), the reference line was the sea horizon, for which $\theta_{ref} = \sqrt{2h/R}$. Combined with the horizontal bearing, each distance was used to project the sighting location from the observer's position for mapping (see Supplementary Material).
+
+Because of the enclosed nature of the western survey area (the Bay of Gibraltar), the far shore rather than the sea horizon was visible along most bearings from the Prince George station. The coastline sits closer than the true horizon and therefore at a greater angle of depression, so applying the horizon reference would overestimate sighting distances. For this station the reference distance ($d_{ref}$) was instead determined per bearing: using a detailed polygon of the bay's landmasses (including the detached mole off Algeciras, the first visible obstacle on some bearings), a ray was cast from the observation point along the recorded horizontal bearing, and the distance to the first intersection with land was taken as $d_{ref}$. The reference depression angle was then $\theta_{ref} = h/d_{ref} + d_{ref}/(2R)$, entering the same total-angle expression and inversion above. Bearings pointing out of the bay mouth, where no coastline was intersected, reverted to the horizon reference. Worked examples in R are provided in the Supplementary Material and repository ([GitHub](https://github.com/datsimon-design/Masters_Project)).
 
 ### Statistical Analysis
 All statistical analyses were carried out in R [@zotero-item-2907]. `#gls("spue")`{=typst}, calculated as the number of sightings per on-effort scan, was strongly right-skewed and zero-inflated and did not meet the assumptions of parametric analysis of variance (normality of residuals and homogeneity of variance). A non-parametric approach was therefore adopted, with each on-effort scan treated as the sampling unit. Differences in `#gls("spue")`{=typst} among the three active observation stations (Europa, Sandy Bay and Prince George) were tested using a Kruskal–Wallis rank-sum test [@KruskalWallis1952]. Where the omnibus test was significant, pairwise differences were identified using Dunn's post-hoc test [@dunnMultipleComparisonsUsing1964], which operates on the pooled ranks of the Kruskal–Wallis test and accounts appropriately for tied values. P-values were adjusted for multiple comparisons using the Benjamini–Hochberg false discovery rate procedure [@benjaminiControllingFalseDiscovery1995].
@@ -115,13 +118,13 @@ Because the per-station samples were insufficient to support stable detection fu
 
 
 ### Kernel Density Estimation (KDE)
-`#gls("kde")`{=typst} is a well-established tool for describing the spatial distribution and relative abundance of cetaceans [@raymentKernelDensityEstimates2009; @milmannTemporalSpatialDistribution2017]. It was used here to describe the relative spatial distribution of cetaceans within the BGTW. The locations of all on-effort sightings—derived from reticle-based radial distances and compass bearings (see [Calculation](#calc-dis)), were projected to UTM zone 30N so that smoothing was performed in metric units, and used as input to the kernel density estimation. A bivariate kernel density surface was computed in R using the `ks` package [@duongKsKernelSmoothing2005], with each sighting weighted by its group size so that the surface reflected the relative density of individuals rather than of sightings alone. The smoothing bandwidth was selected automatically using a plug-in bandwidth matrix [@duongPluginBandwidthMatrices2003], and density was evaluated over a 100 × 100 grid spanning the survey area. KDE is a well-established tool for describing the spatial distribution and relative abundance of cetaceans [@canales-caceresDistributionBehaviourStriped2023; @raymentKernelDensityEstimates2009; @milmannTemporalSpatialDistribution2017]. 
+`#gls("kde")`{=typst} is a well-established tool for describing the spatial distribution and relative abundance of cetaceans [@raymentKernelDensityEstimates2009; @milmannTemporalSpatialDistribution2017]. It was used here to describe the relative spatial distribution of cetaceans within the BGTW. The locations of all on-effort sightings—derived from reticle-based radial distances and compass bearings (see Calculation), were projected to UTM zone 30N so that smoothing was performed in metric units, and used as input to the kernel density estimation. A bivariate kernel density surface was computed in R using the `ks` package [@duongKsKernelSmoothing2005], with each sighting weighted by its group size so that the surface reflected the relative density of individuals rather than of sightings alone. The smoothing bandwidth was selected automatically using a plug-in bandwidth matrix [@duongPluginBandwidthMatrices2003], and density was evaluated over a 100 × 100 grid spanning the survey area. KDE is a well-established tool for describing the spatial distribution and relative abundance of cetaceans [@canales-caceresDistributionBehaviourStriped2023; @raymentKernelDensityEstimates2009; @milmannTemporalSpatialDistribution2017]. 
 
 Because the resulting surface is a normalised probability density (integrating to one), it provides a descriptive, relative measure of spatial concentration, it was not corrected for observation effort or imperfect detection, which were instead accounted for separately through the distance-sampling density estimation ([Detection Function](#det-func)). The surface was visualised over the study area and overlaid with the observation stations and individual sightings to identify areas of elevated cetacean occurrence.
 
 ### Comparison with opportunistic records
 To evaluate the systematic survey against existing opportunistic data, occurrence records of *Delphinus delphis* were retrieved from the `#gls("obis")`{=typst} ([OBIS Mapper](https://mapper.obis.org/)) using the `robis` package [@provoostRobisOceanBiodiversity2022], constrained to a bounding box encompassing the study area (-5.438/-5.248; 36.05/36.195). Records lacking coordinates were excluded, and the remainder were projected to CRS 4326 and assigned to survey sectors by spatial intersection with the stratum polygons. The spatial distribution of opportunistic records was then compared with that of the systematic on-effort sightings, both visually (@fig-obis) and by tabulating record counts per sector (@tbl-obis_comp). Because opportunistic records carry no associated survey effort, the comparison was restricted to spatial coverage and was not interpreted in terms of relative abundance.
 
-This study was carried out under the University of Gibraltar approval, Ethics ID: 259/2026/UniGib
+This study was carried out under the University of Gibraltar approval, Ethics ID: 259/2026/UniGib.
 
 

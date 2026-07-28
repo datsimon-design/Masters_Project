@@ -44,6 +44,8 @@ spots <- read_excel(path = "./data/datasheet_landsurvey.xlsx", sheet = "spots")
 # Gib Bay coastline
 coast <- st_read("./data/bayofalgib.gpkg")
 
+bgtw <- st_read("./data/GTW_split_acc.gpkg")
+
 # Clean the sighting data and import
 source("./land_survey.R")
 
@@ -226,11 +228,56 @@ ggsave(filename = "./figures/overview_map.png", overview, width = 2880, height =
 
 ```
 
-### Create overview map with satelite map 
+### Create overview map of BGTW
 
 ```{r}
 
+
+bgtw_map <- ggplot() +
+  geom_sf(data = bgtw, aes(fill = name), alpha = 0.8) +
+  geom_sf(data = coast) +
+  
+  coord_sf(crs = 4326, default_crs = 4326,
+           xlim = c(-5.41, -5.28), ylim = c(36.05, 36.16))+
+  
+  
+  # Add the scale bar
+  annotation_scale(
+    location = "bl",            # "bl" = bottom left
+    width_hint = 0.2,          # Bar length takes up approx 40% of map width
+    unit_category = "metric",   # Options: "metric", "imperial", or "nautical"
+    pad_y = unit(0.05, "npc")
+  ) +
+  
+  # Add the north arrow
+  annotation_north_arrow(
+    location = "br", # "tr" = top right
+    height = unit(0.12, "npc"),
+    width = unit(0.1, "npc"),
+    which_north = "true",       # Align arrow to true north pole instead of map grid
+    pad_x = unit(0.05, "npc"),    # X offset from the boundary
+    pad_y = unit(0.05, "npc"),    # Y offset from the boundary
+    style = north_arrow_nautical # Arrow graphic style
+  ) +
+  
+  labs(fill = "Sector") +
+  
+  scale_fill_manual(values = c(
+    South = darkblue,
+    West = midblue,
+    East = lightblue
+  )) +
+  my_theme_trans() +
+  theme(legend.position = "inside",
+        legend.position.inside = c(0.05,0.2))
+  
+  
 ```
+
+```{r}
+ggsave(filename = "./figures/bgtw_map.png", bgtw_map, width = 2880, height = 2880, dpi = 300, units = "px")
+```
+
 
 
 # Visualise the sightings
