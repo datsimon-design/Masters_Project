@@ -847,12 +847,6 @@ tt(obis_comp) %>%
 ## Detection model fitting{#model_fit .unnumbered}
 The distribution of sighting distances was examined separately for each sampling location (@fig-dis_spot) to inform truncation and detection-function fitting. Sandy Bay and Prince George showed the distance distribution characteristic of point-transect sampling, in which detections are sparse close to the observer and rise to a peak before declining, reflecting the increase in surveyed area with radius alongside decreasing detectability [@bucklandDistanceSamplingMethods2015]. Europa Point departed from this pattern: sightings were concentrated close to the observer and the distribution was positively skewed, with few detections at greater range. This is consistent with its lower observation height (18 m a.s.l.), which restricts the effective detection range and truncates the usable distance band.
 
-
-![Number of sightings against the Distance (in m) where they were recorded relative to the observation spot. Split up by the observation spots (Sandy Bay, Europa and Prince George (bin width = 550)).](figures/distance_facet.png){#fig-dis_spot}
-
-Right-truncation distances were therefore set per location by visual inspection of these distributions, retaining the reliably sampled range while excluding sparse long-distance tails: 4,500 m at Europa Point, 8,000 m at Prince George, and 12,000 m at Sandy Bay. The pooled truncation of 8,000 m retained the full range of Europa Point detections while excluding the sparse long-distance tail at Sandy Bay (@fig-dis_spot). Detection functions were then fitted separately for each location using the `Distance` package [@millerDistanceSampling2019], following a two-step procedure: the key function (half-normal or hazard-rate) was selected first by AIC, and candidate covariates were evaluated in the second step. The hazard-rate key function gave the lower AIC at Europa Point and Sandy Bay, whereas Prince George was best fitted by a half-normal key (@tbl-AICs).
-
-
 ```{r}
 #| label: tbl-AICs
 #| tbl-cap: "AIC comparison of the different key functions for Europa Point (eu) and Sandy Bay (sb) and Prince George (pg). Emphasised rows highlight the lower AIC and the resulting key function."
@@ -865,6 +859,8 @@ tt(hnAIC) %>%
   style_tt(i = c(0, 2, 4, 5), bold = TRUE)
 ```
 
+
+### Per Station Fitting
 The covariates sea state, glare, wind speed and wave height were tested individually with the best-fitting detection function. Owing to the small sample size, only one covariate was included at a time, as the data were insufficient to support models containing multiple covariates. Model selection was performed separately for each sampling location based on `#gls("aic")`{=typst}, with the model yielding the lowest `#gls("aic")`{=typst} selected as the best-fitting detection function. Goodness-of-fit tests did not reveal any significant lack of fit for the fitted detection functions. Three separate model selection tables were produced, one for each sampling location: Europa Point (@tbl-model_europa), Sandy Bay (@tbl-model_sandy), and Prince George (@tbl-model_prince). The inclusion of covariates resulted in only minor improvements in model fit at Sandy Bay and Prince George (@tbl-model_sandy; @tbl-model_prince), whereas greater differences in AIC were observed among the candidate models at Europa Point (@tbl-model_europa).
 
 
@@ -930,32 +926,13 @@ plot(pg.ss, pdf = TRUE)
 ```
 \ 
 
-Due to the limited number of observations per sampling location, independent detection functions could not be reliably estimated. Therefore, a pooled detection function (truncation = 8,000) was fitted using all observations combined, following the same two-step model selection procedure.
-
-Using the `#gls("hr")`{=typst} key function resulted in the lowest AIC value for the pooled function (hn = `r round(AIC(d.hn)[1,2],2)`; hr = `r round(AIC(d.hr)[1,2],2)`) and was therefore used for further analysis. The goodness of fit test confirmed the choice of the key function (hn p-value: `r round(gof_hn$dsgof$CvM$p,3)`; hr p-value = `r round(gof_hr$dsgof$CvM$p,3)`).
-To increase the fit of the function following covariates were fitted: glare, sea state, wave height, wind speed and height. Using height as covariate resulted in the lowest AIC (@tbl-model_summary).
-
-```{r}
-#| label: tbl-model_summary
-#| tbl-cap: "Summary of the models used to fit the detection function. The formula represents the covariates used."
-
-tt(model_tab, digits = 3) %>% 
-  style_tt(i = 0, bold = TRUE)
-
-```
-
-Using the `#gls("hr")`{=typst} key function along with height as a covariate the detection function was plotted (@fig-ht_model).
-
-```{r}
-#| label: fig-ht_model
-#| fig-cap: "Detection function using the hr key function along with height as covariate."
-#| fig-height: 4
-
-plot(d.ht, pdf = TRUE)
-```
+Due to the limited number of observations per sampling location, independent detection functions could not be reliably estimated. Therefore, a pooled detection function (truncation = 8,000) was fitted using all observations combined, following the same two-step model selection procedure (see Journal Article).
 
 
 ## Density and Abundance Estimates
+
+### Abundance disclaimer
+Abundance estimates are reported below for the three surveyed sectors(@tbl-per_spot_abun, @tbl-pool_abun). These are derived by scaling the sector-specific density estimates to the area of each surveyed sector, and therefore represent the estimated number of animals present within the areas actually covered by the land-based survey. They are not extrapolated to the full extent of the `#gls("bgtw")`{=typst}: because the fixed observation stations sampled only part of the territory and cetacean density was found to be strongly spatially structured, the surveyed sectors cannot be assumed representative of the unsurveyed area, and a design-based abundance for the territory as a whole is not supported by the realised survey design. The estimates below should therefore be interpreted as sector-level abundances for the surveyed areas rather than as a total population estimate for the `#gls("bgtw")`{=typst}.
 
 ### Per spot estimates
 Using the best fitting detection function, per spot, the relative abundance of dolphins was calculated. The highest group density was estimated to be `r round(dens_tbl[[3]][2], 2)` per km² in the southern sector (surveyed from Europa Point). The highest individual density was also estimated to be in the southern sector with `r round(dens_tbl[[8]][2], 2)` per km² (@tbl-per_spot_dens).
@@ -993,21 +970,6 @@ tt(abun_tbl,
 The detection-corrected density gradient confirmed earlier findings (@fig-SPUE) of higher SPUE at Europa Point compared to the other vantage points.
 
 ### Pooled estimates
-Using the best fitting pooled detection functions the relative abundance of dolphins was calculated for the pooled sightings. The highest group density was estimated to be `r round(sum_ht$dht$clusters$D$Estimate[1]* 1e6, 3)` per km² in the southern sector (surveyed from Europa Point) (95 % CI: `r round(pool_group_dens[1,4], 2)` - `r round(pool_group_dens[1,5], 2)`; CV: `r round(pool_group_dens$CV[1], 2)`). The highest individual density was estimated in the southern sector as well with `r round(sum_ht$dht$individuals$D$Estimate[1]* 1e6, 3)` individuals per km² (95 % CI: `r round(pool_indiv_dens[1,4], 2)` - `r round(pool_indiv_dens[1,5], 2)`; CV: `r round(pool_indiv_dens$CV[1], 2)`)(@tbl-pool_dens).
-
-```{r}
-#| label: tbl-pool_dens
-#| tbl-cap: "Overview of the density estimated for the pooled sightings. Density estimates were derived from the best-fitting detection function for all three sampling locations."
-
-tt(pool_dens_tbl, digits = 2,
-   width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) %>% 
-  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
-  style_tt(i = -2:0, bold = TRUE) %>% 
-  style_tt(i = 4, bold = TRUE) %>% 
-  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
-
-```
-
 For the pooled detection function, the highest group abundance estimate was also observed in the southern sector, with `r round(pool_abun_tbl[[3]][1], 2)` groups. Similarly, the highest individual abundance estimate occurred in the southern sector, with `r round(pool_abun_tbl[[8]][1], 2)` individuals (@tbl-pool_abun).
 
 ```{r}
@@ -1023,7 +985,9 @@ tt(pool_abun_tbl,
   style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
 ```
 
-To assess the influence of the right-truncation distance on the density estimates, the pooled detection function was refitted across a range of truncation distances (6,000-12,000 m) while holding the model structure (hazard-rate key function with height as a covariate) constant (@tbl-sens). The estimated density at Europa Point varied by less than 9% around the value obtained at the selected truncation of 8,000 m (4.66 individuals km⁻²), decreasing monotonically from 4.93 to 4.26 individuals km⁻² as truncation increased—substantially less than the sampling uncertainty of the estimate itself (CV ≈ 0.26 at 8,000 m). The relative ranking of sectors was preserved across the full range of truncation distances, with Europa Point exceeding both other locations by more than an order of magnitude throughout; the two lower-density sectors (Prince George and Sandy Bay) converged at wider truncations but did not reorder. Goodness-of-fit remained adequate at all truncation distances (Cramér–von Mises p > 0.7). The selected truncation of 8,000 m retained 95% of on-effort detections (98 of 103) and yielded among the strongest goodness-of-fit values in the tested range, while excluding the sparse, high-variance long-distance tail that disproportionately influences point-transect estimates. The density estimates were therefore considered robust to the choice of truncation distance.
+
+## Truncation senitivity testing
+To assess the influence of the right-truncation distance on the density estimates, the pooled detection function was refitted across a range of truncation distances (6,000-12,000 m) while holding the model structure (hazard-rate key function with height as a covariate) constant (@tbl-sens). The estimated density at Europa Point varied by less than 9% around the value obtained at the selected truncation of 8,000 m (4.66 individuals), decreasing monotonically from 4.93 to 4.26 individuals as truncation increased—substantially less than the sampling uncertainty of the estimate itself (CV ≈ 0.26 at 8,000 m). The relative ranking of sectors was preserved across the full range of truncation distances, with Europa Point exceeding both other locations by more than an order of magnitude throughout; the two lower-density sectors (Prince George and Sandy Bay) converged at wider truncations but did not reorder. Goodness-of-fit remained adequate at all truncation distances (Cramér–von Mises p > 0.7). The selected truncation of 8,000 m retained 95% of on-effort detections (98 of 103) and yielded among the strongest goodness-of-fit values in the tested range, while excluding the sparse, high-variance long-distance tail that disproportionately influences point-transect estimates. The density estimates were therefore considered robust to the choice of truncation distance.
 
 ```{r, sensitivty table}
 #| label: tbl-sens

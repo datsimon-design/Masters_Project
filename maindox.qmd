@@ -35,8 +35,8 @@ crossref:
   (key: "aic", short: "AIC", long: "Akaike Information Criterion"),
   (key: "kde", short: "KDE", long: "Kernel Density Estimation"),
   (key: "locoh", short: "LoCoH", long: "Local Convex Hull"),
-  (key: "hr", short: "hr", long: "Hazard-rate"),
-  (key: "hn", short: "hn", long: "Half-normal"),
+  (key: "hr", short: "hr", long: "hazard-rate"),
+  (key: "hn", short: "hn", long: "half-normal"),
   (key: "imma", short: "IMMA", long: "Important Marine Mammal Area"),
   (key: "accobams", short: "ACCOBAMS", long: "Agreement on the Conservation of Cetaceans of the Black Sea, Mediterranean Sea and contiguous Atlantic area"),
 )

@@ -756,14 +756,14 @@ trunc_sens <- purrr::map_dfr(w_grid, function(w) {
 ```
 
 
-This study applied point-transect distance sampling to assess the distribution and density of small cetaceans within the BGTW. A modified point-transect protocol, adapted from approaches primarily used for birds and larger cetaceans [@bucklandIntroductionDistanceSampling2001a], was implemented for land-based surveys (see Appendix fo the full protocol). The following results describe the observed cetacean occurrence, spatial distribution, and density estimates across the study area.
+This study applied point-transect distance sampling to assess the distribution and density of small cetaceans within the BGTW. A modified point-transect protocol, adapted from approaches primarily used for birds and larger cetaceans [@bucklandIntroductionDistanceSampling2001], was implemented for land-based surveys (see Appendix for the full protocol). The following results describe the observed cetacean occurrence, spatial distribution, and density estimates across the study area.
 
 ## Survey Results
 Overall, `r  full_sum$sightings` cetacean sightings were recorded between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`, point transect sampling was conducted including pilot studies and both vessel- and land-based surveys (@fig-totalmap). A total of two vessel-based surveys were conducted, accounting for `r spell_nr(full_source$boat)` of these sightings: `r spell_nr(boat_species$common_dolphin)` sightings of common dolphins (*Delphinus delphis*) and `r spell_nr(boat_species$striped_dolphin)` sightings of striped dolphins (*Stenella coeruleoalba*) and `r spell_nr(boat_species$delphinidae)` sighting where the species could not be identified. The group size for vessel-based sightings ranged from `r spell_nr(min(boat$group_size, na.rm = TRUE))` to `r spell_nr(max(boat$group_size, na.rm = TRUE))` (mean = `r round(mean(boat$group_size, na.rm = TRUE), 2)`, median = `r round(median(boat$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(boat$group_size, na.rm = TRUE), 2)`).
 
 ![Geographic location of cetacean sightings recorded from boat-based surveys (in squares) and land-based surveys (in circles) during this project period. Where n represents the number of sightings recorded using each method.](figures/method_map.png){#fig-totalmap}
 
-In total `r total_land$surveys` land-based surveys were conducted, resulting in `r round(sum(er$hours), 2)` total on-effort hours and 58 off-effort hours over `r length(unique(effort$date))` survey days. `r length(data$survey_id)` cetacean sightings were recorded in this sampling period, of which `r sum(data$on_effort)` were on-effort and `r spell_nr(sum(!data$on_effort))` off-effort. Of these, `r by_familiy$odontoceti` sightings were Odontoceti, including `r by_species$common_dolphin` sightings of common dolphins, `r by_species$delphinidae` sightings of unidentified dolphins where the species could not certainly be defined and `r spell_nr(by_familiy$mysteciti)` Mysticeti sightings of  Fin whales (*Balaenoptera physalus*). `r spell_nr(by_species$unidentified)` sightings the species could not be reliably determined and were recorded as unidentified (@fig-sight_map, Figure **S13**). The group size for land-based sightings ranged from `r min(data$group_size, na.rm = TRUE)` to `r max(data$group_size, na.rm = TRUE)` (mean = `r round(mean(data$group_size, na.rm = TRUE), 2)`, median = `r round(median(data$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(data$group_size, na.rm = TRUE), 2)`). 
+In total `r total_land$surveys` land-based surveys were conducted, resulting in `r round(sum(er$hours), 2)` total on-effort hours and 58 off-effort hours over `r length(unique(effort$date))` survey days. `r length(data$survey_id)` cetacean sightings were recorded in this sampling period, of which `r sum(data$on_effort)` were on-effort and `r spell_nr(sum(!data$on_effort))` off-effort. Of these, `r by_familiy$odontoceti` sightings were Odontoceti, including `r by_species$common_dolphin` sightings of common dolphins, `r by_species$delphinidae` sightings of unidentified dolphins where the species could not certainly be defined and `r spell_nr(by_familiy$mysteciti)` Mysticeti sightings of  Fin whales (*Balaenoptera physalus*). For `r spell_nr(by_species$unidentified)` sightings the species could not be reliably determined and were recorded as unidentified (@fig-sight_map, Figure **S13**). The group size for land-based sightings ranged from `r min(data$group_size, na.rm = TRUE)` to `r max(data$group_size, na.rm = TRUE)` (mean = `r round(mean(data$group_size, na.rm = TRUE), 2)`, median = `r round(median(data$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(data$group_size, na.rm = TRUE), 2)`). 
 
 ![All sightings collected from land-based surveys between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`. The sightings were recorded from three different spots, Europa Point, Sandy Bay and Prince George's Battery (indicated as triangles).](figures/sightings_legend.png){#fig-sight_map}
 
@@ -780,7 +780,9 @@ Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$
 
 
 ## Spatial Distribution
-SPUE were highest at Europa (@tbl-spue_report, **Figure Sxx**). A Kruskal-Wallis test showed a significant difference in SPUE among spots (χ² = `r round(as.numeric(SPUE_kru$statistic),2)`, df = `r as.numeric(SPUE_kru$parameter)`, p = `r round(SPUE_kru$p.value,3)`), Dunn’s test, with a Benjamini-Hochberg correction, showed a significant difference between Europa and Prince George (adjusted p = `r round(SPUE_dunn$res[1,4],3)`) and between Europa and Sandy Bay (adjusted p = `r round(SPUE_dunn$res[2,4],3)`). Prince George and Sandy Bay did not differ significantly.
+SPUE differed significantly among the three stations (Kruskal–Wallis χ² = `r round(as.numeric(SPUE_kru$statistic),2)`, df = `r as.numeric(SPUE_kru$parameter)`, p = `r round(SPUE_kru$p.value,3)`) and was highest at Europa Point (@tbl-spue_report, @fig-SPUE). Pairwise comparisons (Dunn's test, Benjamini–Hochberg adjusted) confirmed that Europa Point differed from both Prince George (p = `r round(SPUE_dunn$res[1,4],3)`) and Sandy Bay (p = `r round(SPUE_dunn$res[2,4],3)`), while Prince George and Sandy Bay did not differ.
+
+![Sightings per Unit Effort (SPUE) showed a significant difference between Europa Point and Prince George and Europa Point and Sandy Bay, using Kruksal-Wallis and Dunn's test.](figures/SPUE.png){#fig-SPUE}
 
 ```{r}
 #| label: tbl-spue_report
@@ -818,11 +820,12 @@ tt(tbl_dat,
 
 ```
 
-Kernel density estimation (KDE) was used to assess the spatial distribution and identify areas of concentrated delphinidae occurrence. Sightings of identified Common Dolphins and unidentified delphinidae were used to generate the KDE map, while Fin Whale sightings were excluded from the analysis. Using group size as a weighting variable, the KDE indicated the highest density around the southwestern tip of the peninsula (approximately 36.09–36.11 °N, 5.34–5.37 °W; ~5 km²). The 50% isopleth of the pooled utilisation surface enclosed most of the southern sector, while the 95% isopleth extended around the peninsula across all three sectors (@fig-kde_map).
+
+The kernel density surface, weighted by group size and derived from identified common dolphin and unidentified delphinid sightings (fin whales excluded), identified a single concentration of occurrence at the southern tip of the peninsula (approximately 36.09–36.11 °N, 5.34–5.37 °W; @fig-kde_map). The 50% isopleth enclosed most of the southern sector, while the 95% isopleth extended around the peninsula across all three sectors.
 
 ![The Kernel Density Estimation (KDE) of the sightings collected from land-based surveys between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`. The KDE was calculated using group size as a weight variable. The highest density was found around the south western tip of the peninsula (approximately 36.09–36.11 °N, 5.34–5.37 °W; ~5 km²). Color of grid represents the density Utilisazion distribution.](figures/density_map.png){#fig-kde_map}
 
-Comparison with opportunistic records revealed a pronounced spatial mismatch between the two data sources (@fig-obis, @tbl-obis_comp). Non-systematic *Delphinus delphis* records retrieved from OBIS (n = 200) were strongly concentrated in the western sector (n = 141), with only four records in the eastern sector. Systematic surveys showed the opposite eastern coverage: despite the eastern sector being almost absent from the opportunistic record, 39 on-effort sightings were recorded there. This divergence illustrates the spatial bias inherent to platform-of-opportunity data, in which recording effort tracks vessel routes and observer access—concentrated here in the heavily trafficked western bay—rather than the underlying distribution of animals [@bucklandIntroductionDistanceSampling2001; @dawsonDesignFieldMethods2008]. Because opportunistic records carry no associated survey effort, these counts reflect where animals were *reported* rather than their relative density, and the systematic and opportunistic totals are not directly comparable. The systematic per-sector counts are likewise unstandardised and should be read alongside the effort-corrected encounter rates presented above (@tbl-spue_report). Notably, 45 OBIS records fell outside the three surveyed sectors, further indicating that existing records are spatially unrepresentative of the territory as a whole.
+Comparison with opportunistic records revealed a pronounced spatial mismatch between the two data sources (@fig-obis, @tbl-obis_comp). Of 200 *Delphinus delphis* records retrieved from OBIS, 141 fell in the western sector and only four in the eastern, whereas systematic survey recorded 39 on-effort sightings in the east. The sector almost absent from the opportunistic record. A further 45 OBIS records fell outside the three surveyed sectors entirely. Because opportunistic records carry no associated survey effort, these counts reflect where animals were reported rather than their relative density. The two datasets are therefore not directly comparable, and the systematic per-sector counts should be read alongside the effort-corrected encounter rates above (@tbl-spue_report). The concentration of opportunistic records in the heavily trafficked western bay illustrates the spatial bias of platform-of-opportunity data, whose recording effort tracks vessel routes and observer access rather than animal distribution [@bucklandIntroductionDistanceSampling2001; @dawsonDesignFieldMethods2008].
 
 ![Opportunistic *Delphinus delphis* records from OBIS (squares) overlaid on the on-effort sightings recorded in the present study (circles), within the study area. Opportunistic records are concentrated in the western bay, while the eastern sector—almost absent from the opportunistic record, was covered only by systematic survey.](/figures/obis_comp.png){#fig-obis}
 
@@ -837,93 +840,40 @@ tt(obis_comp) %>%
 ```
 
 
-## Detection model fitting{#model_fit .unnumbered}
-The distribution of sighting distances was examined separately for each sampling location (@fig-dis_spot) to inform truncation and detection-function fitting. Sandy Bay and Prince George showed the distance distribution characteristic of point-transect sampling, in which detections are sparse close to the observer and rise to a peak before declining, reflecting the increase in surveyed area with radius alongside decreasing detectability [@bucklandDistanceSamplingMethods2015]. Europa Point departed from this pattern: sightings were concentrated close to the observer and the distribution was positively skewed, with few detections at greater range. This is consistent with its lower observation height (18 m a.s.l.), which restricts the effective detection range and truncates the usable distance band.
+
+## Detection function fitting {#model_fit}
+The distribution of sighting distances was examined separately for each station (@fig-dis_spot) to inform truncation and detection-function fitting. Sandy Bay and Prince George showed the distance distribution characteristic of point-transect sampling, in which detections are sparse close to the observer and rise to a peak before declining, reflecting the increase in surveyed area with radius alongside decreasing detectability [@bucklandDistanceSamplingMethods2015]. Europa Point departed from this pattern: detections were concentrated close to the observer and positively skewed, with few at greater range—consistent with its lower observation height (18 m a.s.l.), which restricts the effective detection range.
+
+![Distribution of sighting distances (m) relative to each observation station (Sandy Bay, Europa Point, Prince George; bin width = 550 m).](figures/distance_facet.png){#fig-dis_spot}
 
 
-![Number of sightings against the Distance (in m) where they were recorded relative to the observation spot. Split up by the observation spots (Sandy Bay, Europa and Prince George (bin width = 550)).](figures/distance_facet.png){#fig-dis_spot}
+Detection functions were fitted using the `Distance` package [@millerDistanceSampling2019] following a two-step procedure: the key function (half-normal or hazard-rate) was selected by AIC, and candidate covariates were evaluated in the second step. Functions were first fitted separately for each station—the hazard-rate key gave the lowest AIC at Europa Point and Sandy Bay, and the half-normal at Prince George—but per-station sample sizes were insufficient to support stable independent estimates (full per-station results in the Supplementary Material).
 
-Right-truncation distances were therefore set per location by visual inspection of these distributions, retaining the reliably sampled range while excluding sparse long-distance tails: 4,500 m at Europa Point, 8,000 m at Prince George, and 12,000 m at Sandy Bay. The pooled truncation of 8,000 m retained the full range of Europa Point detections while excluding the sparse long-distance tail at Sandy Bay (@fig-dis_spot). Detection functions were then fitted separately for each location using the `Distance` package [@millerDistanceSampling2019], following a two-step procedure: the key function (half-normal or hazard-rate) was selected first by AIC, and candidate covariates were evaluated in the second step. The hazard-rate key function gave the lower AIC at Europa Point and Sandy Bay, whereas Prince George was best fitted by a half-normal key (@tbl-AICs).
-
-
-```{r}
-#| label: tbl-AICs
-#| tbl-cap: "AIC comparison of the different key functions for Europa Point (eu) and Sandy Bay (sb) and Prince George (pg). Emphasised rows highlight the lower AIC and the resulting key function."
-hnAIC <- eu.AIC %>% 
-  rows_append(sb.AIC) %>% 
-  rows_append(pg.AIC) %>% 
-  rownames_to_column(var = "Model")
-
-tt(hnAIC) %>% 
-  style_tt(i = c(0, 2, 4, 5), bold = TRUE)
-```
-
-The covariates sea state, glare, wind speed and wave height were tested individually with the best-fitting detection function. Owing to the small sample size, only one covariate was included at a time, as the data were insufficient to support models containing multiple covariates. Model selection was performed separately for each sampling location based on AIC, with the model yielding the lowest AIC selected as the best-fitting detection function. Goodness-of-fit tests did not reveal any significant lack of fit for the fitted detection functions. Three separate model selection tables were produced, one for each sampling location: Europa Point (**Table SXX**), Sandy Bay (**Table SXX**), and Prince George (**Table SXX**). The inclusion of covariates resulted in only minor improvements in model fit at Sandy Bay and Prince George (**Table SXX**; **Table SXX**), whereas greater differences in AIC were observed among the candidate models at Europa Point (**Table SXX**).
-
-Due to the limited number of observations per sampling location, independent detection functions could not be reliably estimated. Therefore, a pooled detection function (truncation = 8,000) was fitted using all observations combined, following the same two-step model selection procedure.
-
-Using the hazard-rate key function resulted in the lowest AIC value for the pooled function (hn = `r round(AIC(d.hn)[1,2],2)`; hr = `r round(AIC(d.hr)[1,2],2)`) and was therefore used for further analysis. The goodness of fit test confirmed the choice of the key function (hn p-value: `r round(gof_hn$dsgof$CvM$p,3)`; hr p-value = `r round(gof_hr$dsgof$CvM$p,3)`).
-To increase the fit of the function following covariates were fitted: glare, sea state, wave height, wind speed and height. Using height as covariate resulted in the lowest AIC (@tbl-model_summary).
+A single pooled detection function was therefore fitted across all observations, following the same two-step procedure and right-truncated at 8,000 m. The distance retained all Europa Point detections while excluding the sparse long-distance tail at Sandy Bay. The hazard-rate key function gave the lower AIC (half-normal = `r round(AIC(d.hn)[1,2],2)`; hazard-rate = `r round(AIC(d.hr)[1,2],2)`) and adequate goodness of fit (Cramér–von Mises p = `r round(gof_hr$dsgof$CvM$p,3)`). Of the candidate covariates evaluated (glare, sea state, wave height, wind speed, and observation height), observation height gave the lowest AIC and was retained to accommodate between-station differences in detectability (@tbl-model_summary, @fig-ht_model).
 
 ```{r}
 #| label: tbl-model_summary
-#| tbl-cap: "Summary of the models used to fit the detection function. The formula represents the covariates used."
+#| tbl-cap: "Model selection for the pooled detection function. The formula column indicates the covariate included in each candidate model; models are ranked by AIC."
 
 tt(model_tab, digits = 3) %>% 
   style_tt(i = 0, bold = TRUE)
 
 ```
 
-Using the hr key function along with height as a covariate the detection function was plotted (@fig-ht_model).
 
 ```{r}
 #| label: fig-ht_model
-#| fig-cap: "Detection function using the hr key function along with height as covariate."
+#| fig-cap: "Pooled detection function (hazard-rate key function with observation height as a covariate)."
 #| fig-height: 4
 
 plot(d.ht, pdf = TRUE)
 ```
 
 
-## Density and Abundance Estimates
 
-### Per spot estimates
-Using the best fitting detection function, per spot, the relative abundance of dolphins was calculated. The highest group density was estimated to be `r round(dens_tbl[[3]][2], 2)` per km² in the southern sector (surveyed from Europa Point). The highest individual density was also estimated to be in the southern sector with `r round(dens_tbl[[8]][2], 2)` per km² (@tbl-per_spot_dens).
+## Density estimates
+Density was estimated from the pooled detection function (hazard-rate key with observation height as a covariate). The highest density occurred in the southern sector (surveyed from Europa Point), with a group density of `r round(sum_ht$dht$clusters$D$Estimate[1]* 1e6, 2)` groups km⁻² (95% CI: `r round(pool_group_dens[1,4], 2)`–`r round(pool_group_dens[1,5], 2)`; CV: `r round(pool_group_dens$CV[1], 2)`) and an individual density of `r round(sum_ht$dht$individuals$D$Estimate[1]* 1e6, 2)` individuals km⁻² (95% CI: `r round(pool_indiv_dens[1,4], 2)`–`r round(pool_indiv_dens[1,5], 2)`; CV: `r round(pool_indiv_dens$CV[1], 2)`) (@tbl-pool_dens). The detection-corrected density gradient reproduced the pattern seen in the raw encounter rate, with Europa Point exceeding the other sectors (@fig-SPUE). Density estimates were robust to the choice of truncation distance (Supplementary Material, Table S`sens`). Per-station density and sector-level abundance estimates are reported in the Supplementary Material (**Table S`xx` – S`yy`**).
 
-```{r}
-#| label: tbl-per_spot_dens
-#| tbl-cap: "Overview of the density estimated per spot. Density estimates were derived from the best-fitting detection function for each sampling location."
-
-
-tt(dens_tbl,
-    width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) |>
-  format_tt(j = 3:12, digits = 2) %>% 
-  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
-  style_tt(i = -2:0, bold = TRUE) %>% 
-  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
-
-```
-
-The highest group abundance was estimated to be `r round(abun_tbl[[3]][2], 2)` per km² in the southern sector as well. As well as the highest individual abundance `r round(abun_tbl[[8]][2], 2)` (@tbl-per_spot_abun). 
-
-```{r}
-#| label: tbl-per_spot_abun
-#| tbl-cap: "Overview of the relative abundance estimated per spot. Relative abundance estimates were derived from the best-fitting detection function for each sampling location."
-
-
-tt(abun_tbl,
-   width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) |>
-  format_tt(j = 3:12, digits = 2) %>% 
-  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
-  style_tt(i = -2:0, bold = TRUE) %>% 
-  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
-
-```
-
-The detection-corrected density gradient confirmed earlier findings (**Figure Sxx**) of higher SPUE at Europa Point compared to the other vantage points.
-
-### Pooled estimates
-Using the best fitting pooled detection functions the relative abundance of dolphins was calculated for the pooled sightings. The highest group density was estimated to be `r round(sum_ht$dht$clusters$D$Estimate[1]* 1e6, 3)` per km² in the southern sector (surveyed from Europa Point) (95 % CI: `r round(pool_group_dens[1,4], 2)` - `r round(pool_group_dens[1,5], 2)`; CV: `r round(pool_group_dens$CV[1], 2)`). The highest individual density was estimated in the southern sector as well with `r round(sum_ht$dht$individuals$D$Estimate[1]* 1e6, 3)` individuals per km² (95 % CI: `r round(pool_indiv_dens[1,4], 2)` - `r round(pool_indiv_dens[1,5], 2)`; CV: `r round(pool_indiv_dens$CV[1], 2)`)(@tbl-pool_dens).
 
 ```{r}
 #| label: tbl-pool_dens
@@ -938,20 +888,5 @@ tt(pool_dens_tbl, digits = 2,
 
 ```
 
-For the pooled detection function, the highest group abundance estimate was also observed in the southern sector, with `r round(pool_abun_tbl[[3]][1], 2)` groups. Similarly, the highest individual abundance estimate occurred in the southern sector, with `r round(pool_abun_tbl[[8]][1], 2)` individuals (@tbl-pool_abun).
-
-```{r}
-#| label: tbl-pool_abun
-#| tbl-cap: "Overview of the relative abundance estimated for the pooled locations. Relative abundance estimates were derived from the best-fitting detection function for the pooled sighting dataset."
-
-tt(pool_abun_tbl,
-   width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) %>% 
-  format_tt(j = 3:12, digits = 2) %>% 
-  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
-  style_tt(i = -2:0, bold = TRUE) %>% 
-  style_tt(i = 4, bold = TRUE) %>% 
-  style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
-```
-
-To assess the influence of the right-truncation distance on the density estimates, the pooled detection function was refitted across a range of truncation distances (6,000-12,000 m) while holding the model structure (hazard-rate key function with height as a covariate) constant (**Table SXX**). The selected truncation of 8,000 m retained 95% of on-effort detections (98 of 103) and yielded among the strongest goodness-of-fit values in the tested range, while excluding the sparse, high-variance long-distance tail that disproportionately influences point-transect estimates. The density estimates were therefore considered robust to the choice of truncation distance.
+To assess the influence of the right-truncation distance on the density estimates, the pooled detection function was refitted across a range of truncation distances (6,000-12,000 m) while holding the model structure (hazard-rate key function with height as a covariate) constant (**Table SXX**). The selected truncation of 8,000 m retained 95% of on-effort detections (98 of 103) and yielded among the strongest goodness-of-fit values in the tested range, while excluding the sparse, high-variance long-distance tail that disproportionately influences point-transect estimates. The density estimates were therefore considered robust to the choice of truncation distance. 
 
