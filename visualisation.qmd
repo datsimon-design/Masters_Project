@@ -34,6 +34,8 @@ darkblue = "#212842"
 midblue = "#4E5B9C"
 lightblue = "#5C9EAD"
 
+purple = "#756B8A"
+
 ```
 
 ```{r}
@@ -95,8 +97,13 @@ sectors <- do.call(rbind, lapply(seq_len(nrow(centres)), function(i) {
 
 sectors <- st_transform(sectors, 4326)   # back to lon/lat for the map
 
+clean_names <- data %>% select(spot_name, spot_clean) %>% 
+  distinct(spot_name, .keep_all = TRUE)
+
 sectors <- sectors  %>% 
   filter(name != "MedSteps" & name != "WestSide")
+
+centres <- left_join(centres, clean_names, by = join_by(name == "spot_name"), keep = FALSE)
 
 labels <- centres %>%
   filter(name != "MedSteps" & name != "WestSide") %>% 
@@ -113,7 +120,7 @@ sector_map <- ggplot() +
   geom_sf(data = sectors, aes(fill = name), colour = "black", alpha = 0.6) +
   geom_sf(data = st_set_geometry(data, "geometry") %>% filter(spot_name %in% active_spots$spot_name), shape = 25, fill = "gray10") +
   geom_sf_label(
-    aes(label = name),
+    aes(label = spot_clean),
     data = labels,
     nudge_x = labels$nudge_x,
     nudge_y = labels$nudge_y,
@@ -235,7 +242,7 @@ ggsave(filename = "./figures/overview_map.png", overview, width = 2880, height =
 
 bgtw_map <- ggplot() +
   geom_sf(data = bgtw, aes(fill = name), alpha = 0.8) +
-  geom_sf(data = coast) +
+  geom_sf(data = coast,fill = "lightgray") +
   
   coord_sf(crs = 4326, default_crs = 4326,
            xlim = c(-5.41, -5.28), ylim = c(36.05, 36.16))+
@@ -269,7 +276,9 @@ bgtw_map <- ggplot() +
   )) +
   my_theme_trans() +
   theme(legend.position = "inside",
-        legend.position.inside = c(0.05,0.2))
+        legend.position.inside = c(0.05,0.2),
+        legend.text = element_text(size = 13),
+        legend.title  = element_text(size = 20))
   
   
 ```
@@ -401,12 +410,12 @@ full_sum <- full %>%
 #--------------
 
 mt_levels = c("boat", "land")
-mt_groups = c("Method", "Method")
+mt_groups = c("Total Sightings", "Total Sightings")
 
 
 mt_fill = c(darkblue, lightblue)
 
-mt_fill_labs = c(paste0("Boat Transects (n = ", full_source$boat, ")"), paste0("Land Surveys (n = ", full_source$land, ")"))
+mt_fill_labs = c(paste0("Boat Transects (Sightings recorded = ", full_source$boat, ")"), paste0("Land Surveys (Sightings recorded = ", full_source$land, ")"))
 
 mt_headers = paste0(mt_groups, " (n = ", full_sum$sightings, ")")
 
@@ -464,7 +473,7 @@ method_map <- ggplot() +
     legend.text              = ggtext::element_markdown(),
     legendry.legend.subtitle = element_text(face = "bold"),   # styles the group headers
     legend.position = "inside",
-    legend.position.inside = c(0.12, 0.92)
+    legend.position.inside = c(0.16, 0.92)
   )
 
 method_map
@@ -1200,27 +1209,41 @@ location <- unique(spots$spot_name)
 #   
 # }
 
-data$spot_f <- factor(data$spot_name, levels = c("SandyBay", "Europa", "PrinceGeorge"))
+data$spot_f <- factor(data$spot_clean, levels = c("Sandy Bay", "Europa Point", "Prince George"))
+
+trunc <- data.frame(
+  spot_f = c("Europa Point", "Sandy Bay", "Prince George"),
+  xintercept = c(4500, 12000, 8000)
+)
 
 distance <- data %>% 
   filter(spot_name %in% active_spots$spot_name) %>% 
   ggplot() + 
   geom_histogram(aes(
     x = distance,
-    fill = spot_name
+    fill = spot_clean
   ), binwidth = 550, color = "white") +
+  
+  # add truncations
+  geom_vline(
+    data = trunc,
+    aes(xintercept = xintercept),
+    linetype = "dashed",
+    colour = "grey"
+  ) +
+  
   facet_wrap(~ spot_f) +
   
   scale_fill_manual(values = c(
-    "PrinceGeorge" = midblue,
-    "Europa" = darkblue,
-    "SandyBay" = lightblue
+    "Prince George" = midblue,
+    "Europa Point" = darkblue,
+    "Sandy Bay" = lightblue
   )) +
   
   labs(
     x = "Distance in m",
-    y = "n of Sightings",
-    fill = "Spot"
+    y = "Number of Sightings",
+    fill = "Observation Point"
   ) +
   
   my_theme_trans() +
@@ -1233,6 +1256,45 @@ distance
 
 ```{r}
 ggsave(filename = "./figures/distance_facet.png", distance, width = 1920, height = 1020, dpi = 300, units = "px")
+```
+
+```{r}
+pooled_dis <- data %>% 
+  ggplot() + 
+  geom_histogram(aes(
+    x = distance,
+  ), binwidth = 550, color = "white", fill = purple) +
+  
+  # add truncations
+  geom_vline(
+    xintercept = 8000,
+    linetype = "dashed",
+    colour = "grey"
+  ) +
+  
+  
+  labs(
+    x = "Distance in m",
+    y = "Number of Sightings"
+  ) +
+  
+  my_theme_trans()
+
+pooled_dis
+
+```
+
+```{r}
+facet_dis <- distance / pooled_dis +
+  labs(title = "Pooled") +
+  plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = "bold", size = 14),
+        plot.title = element_text(face = "bold", size = 10, hjust = 0.5))
+  
+```
+
+```{r}
+ggsave(filename = "./figures/distance_facet.png", facet_dis, width = 3020, height = 3020, dpi = 300, units = "px")
 ```
 
 
@@ -1279,7 +1341,10 @@ hr_lev   <- contourLevels(kde_fit, cont = 95)   # 95% home range
 core_lev <- contourLevels(kde_fit, cont = 50)   # 50% core area
 
 
+
 ```
+
+
 
 ### Visualise the density map
 
@@ -1317,7 +1382,7 @@ density_map <- ggplot() +
     breaks = c("95% home range", "50% core area")
   ) +
   
-  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.05, 36.23))  +  # Adjus t maybe later to account for all sightings, also outside the BGTW
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.062, 36.225))  +  # Adjus t maybe later to account for all sightings, also outside the BGTW
   
   labs(
     fill = "Density",
@@ -1330,7 +1395,188 @@ density_map <- ggplot() +
     width_hint = 0.2,          # Bar length takes up approx 40% of map width
     unit_category = "metric",   # Options: "metric", "imperial", or "nautical"
     pad_y = unit(0.05, "npc"),
-    text_col  = "white"
+    text_col  = "black"
+  ) +
+  
+  # Add the north arrow
+  annotation_north_arrow(
+    location = "br", # "tr" = top right
+    height = unit(0.12, "npc"),
+    width = unit(0.1, "npc"),
+    which_north = "true",       # Align arrow to true north pole instead of map grid
+    pad_x = unit(0.05, "npc"),    # X offset from the boundary
+    pad_y = unit(0.05, "npc"),    # Y offset from the boundary
+    style = north_arrow_nautical(text_col = "white") # Arrow graphic style
+    
+  ) +
+  
+  my_theme_trans() +
+  
+  
+  # Customize the colorbar, place on top and adjust spacing
+  guides(
+    fill = guide_colorbar(
+      barwidth = unit(0.4, "npc"),
+      barheight = unit(0.015, "npc"),
+      title.position = "top",
+      theme = theme(
+        legend.ticks = element_line(color = "lightgrey", linetype = 9),
+        legend.text.position = "top"
+      ), order = 1
+    ),
+    
+    size = guide_legend(override.aes = list(alpha = 1), order = 2),
+    
+    color = guide_legend(order = 3)
+  ) +
+  
+  
+  
+  theme(legend.direction = "horizontal",
+        legend.position = "inside",
+        legend.position.inside = c(0.25, 0.89),
+        #legend.background = element_roundrect("red", r = 0.25),
+        legend.spacing = unit(0, "cm"),
+        legend.margin = margin(t = 0, r = 0, b = 7, l = 0, unit = "pt"),
+        text = element_text(size = 10)
+    )
+
+ windows(width = 1920/25.4,
+         height = 1820/25.4)
+
+
+density_map
+```
+
+```{r}
+# ggsave(filename = "./figures/density_map.png", density_map, width = 1920, height = 1820, dpi = 200, units = "px")
+
+ggsave(filename = "./figures/density_map.png", density_map, width = 3200, height = 3032, dpi = 300, units = "px")
+```
+
+
+Export as csv to visualize in blender
+```{r}
+library(sf)
+
+# --- KDE grid -> long format (x, y, density) ---
+gx <- density$eval.points[[1]]
+gy <- density$eval.points[[2]]
+grid <- expand.grid(x = gx, y = gy)
+grid$density <- as.vector(density$estimate)
+
+# shared local origin (note these numbers down)
+ox <- min(grid$x); oy <- min(grid$y)
+grid$x <- grid$x - ox
+grid$y <- grid$y - oy
+write.csv(grid, "kde_grid.csv", row.names = FALSE)
+
+# --- coastline, SAME origin shift so it aligns ---
+coast_utm <- st_transform(coast, 32630)        # your bay landmass polygon
+co <- as.data.frame(st_coordinates(coast_utm)) # gives X, Y, L1[, L2, L3]
+co$X <- co$X - ox
+co$Y <- co$Y - oy
+write.csv(co, "coastline.csv", row.names = FALSE)
+```
+
+```{r}
+png(density, "density.png")
+```
+
+### Create KDE for obis data 
+
+```{r}
+
+# Select on effort sightings
+ob <- obis_sf
+
+message(nrow(ob), " on-effort sightings parsed")
+
+#"decimalLongitude", "decimalLatitude"
+
+# Reproject so lon lat -> metres (Use same df as on otherwise error in kde)
+sight_coords <- st_coordinates(ob$geometry)
+
+# Weight the sightings by group size, larger group = larger weoght
+weights <- as.numeric(ob$individualCount)
+weights[is.na(weights)] <- 1
+
+# Transform into a factor that can be used by ks
+weights <- weights * length(weights) / sum(weights)
+
+
+# Fit the KDE
+kde_fit <- kde(x = sight_coords, H = Hpi(sight_coords),
+               binned = FALSE, gridsize = c(100, 100))
+
+
+# Turn the kde df into a tidy table
+grid_x  <- kde_fit$eval.points[[1]]
+grid_y  <- kde_fit$eval.points[[2]]
+density <- expand.grid(x = grid_x, y = grid_y)
+density$z <- as.vector(kde_fit$estimate)
+density$z[density$z < max(density$z) * 0.01]
+
+# Create df for sightings
+sightings_df <- data.frame(x = sight_coords[, 1], y = sight_coords[, 2],
+                           group_size = ob$individualCount)
+
+# Get 95% (home range) and 50% (core area)  contour levels
+hr_lev   <- contourLevels(kde_fit, cont = 95)   # 95% home range
+core_lev <- contourLevels(kde_fit, cont = 50)   # 50% core area
+
+
+```
+
+```{r, obis kde}
+
+obis_kde <- ggplot() +
+  
+  # Plot density data
+  geom_raster(data = density, aes(x, y, fill = z)) +
+  
+  # Contour the home range and core area
+  geom_contour(data = density, aes(x = x, y = y, z = z, colour = "95% home range"),
+               breaks = hr_lev,   linewidth = 0.7) +
+  geom_contour(data = density, aes(x = x, y = y, z = z, colour = "50% core area"),
+               breaks = core_lev, linewidth = 0.9, linetype = "32") +
+  
+  
+  # Overlay sightings
+  geom_point(data = sightings_df, aes(x, y),
+             colour = "white", alpha = 0.35, size = 3) +
+  
+  # Add shapefile overlay
+  geom_sf(data = coast, fill = "lightgray") +
+  
+  # Overlay spots
+  geom_point(data = spots %>% 
+               filter(spot_name %in% active_spots$spot_name),
+             aes(x = lon, y = lat),
+             shape = 25, fill = "gray10") +
+  
+  scale_size_continuous(range = c(1.5, 8), name = "Group size") +
+  
+    scale_colour_manual(
+    name   = NULL,
+    values = c("95% home range" = "white", "50% core area" = "white"),
+    breaks = c("95% home range", "50% core area")
+  ) +
+  
+  coord_sf(xlim = c(-5.50, -5.248), ylim = c(36.04, 36.21))  +  # Adjus t maybe later to account for all sightings, also outside the BGTW
+  
+  labs(
+    fill = "Density",
+    x = "",
+    y = ""
+  ) +
+  # Add the scale bar
+  annotation_scale(
+    location = "bl",            # "bl" = bottom left
+    width_hint = 0.2,          # Bar length takes up approx 40% of map width
+    unit_category = "metric",   # Options: "metric", "imperial", or "nautical"
+    pad_y = unit(0.05, "npc"),
+    text_col  = "black"
   ) +
   
   # Add the north arrow
@@ -1380,44 +1626,23 @@ density_map <- ggplot() +
          height = 1820/25.4)
 
 
-density_map
+obis_kde
 ```
 
 ```{r}
-# ggsave(filename = "./figures/density_map.png", density_map, width = 1920, height = 1820, dpi = 200, units = "px")
-
-ggsave(filename = "./figures/density_map.png", density_map, width = 3200, height = 3032, dpi = 300, units = "px")
-```
-
-
-Export as csv to visualize in blender
-```{r}
-library(sf)
-
-# --- KDE grid -> long format (x, y, density) ---
-gx <- density$eval.points[[1]]
-gy <- density$eval.points[[2]]
-grid <- expand.grid(x = gx, y = gy)
-grid$density <- as.vector(density$estimate)
-
-# shared local origin (note these numbers down)
-ox <- min(grid$x); oy <- min(grid$y)
-grid$x <- grid$x - ox
-grid$y <- grid$y - oy
-write.csv(grid, "kde_grid.csv", row.names = FALSE)
-
-# --- coastline, SAME origin shift so it aligns ---
-coast_utm <- st_transform(coast, 32630)        # your bay landmass polygon
-co <- as.data.frame(st_coordinates(coast_utm)) # gives X, Y, L1[, L2, L3]
-co$X <- co$X - ox
-co$Y <- co$Y - oy
-write.csv(co, "coastline.csv", row.names = FALSE)
+ggsave(filename = "./figures/obis_kde.png", obis_kde, width = 3200, height = 3032, dpi = 300, units = "px")
 ```
 
 ```{r}
-png(density, "density.png")
+kde_comp <- density_map + obis_kde +
+  #plot_layout(widths = c(1, 1)) +
+  plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = "bold", size = 14))
 ```
 
+```{r}
+ggsave(filename = "./figures/kde_comp.png", kde_comp, width = 5200, height = 2532, dpi = 300, units = "px")
+```
 
 # Create detection function per spot
 

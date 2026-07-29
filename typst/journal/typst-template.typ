@@ -57,7 +57,7 @@
     University of Gibraltar
   ],
 
-  [Advisor:], [
+  [Secondary Supervisor:], [
     *Dr. Awantha Dissanayake* \
     University of Gibraltar
   ],
@@ -146,7 +146,7 @@
 
   #v(1.4em)
 
-  #text(weight: "bold")[#author#super[1], Dr. Stephen Chan#super[1]]
+  #text(weight: "bold")[#author#super[1], Stephen Chan#super[1], Awantha Dissanayake#super[1]]
 
   #v(0.1em)
   #text(size: 9pt)[#super[1]#h(0.35em)School of Marine and Environmental Science, University of Gibraltar, GX11 1AA] 
@@ -154,7 +154,7 @@
   #v(1.5em)
   #text(weight: "bold")[\*Correspondence:] \
   #author \
-  #text()[SMES\@unigib.edu.gi]
+  #text()[SoMES\@unigib.edu.gi]
 
   #v(1.5em)
   #text(style: "italic")[Keywords: #keywords.join(", ")]

@@ -69,11 +69,15 @@ full <- readRDS("./temp/full.rds")
 
 obis_comp <- readRDS("./temp/obis.rds")
 
+clean <- active %>% select(spot_name, spot_clean) %>%  distinct(spot_name, .keep_all = TRUE)
+
 
 # Set active spots as variable
 active_spots <- spots %>%  
   filter(spot_name != "MedSteps" & spot_name != "WestSide") %>% 
   select(spot_name)
+
+active_spots <- active_spots %>% left_join(clean, by = "spot_name")
 
 odontoceti <- c("common_dolphin", "striped_dolphin", "bottlenose_dolphin", "delphinidae")
 mysteciti <- c("fin_whale")
@@ -207,7 +211,11 @@ library(tinytable)
 ## NA (not Inf) for all-missing subsets; en-dash range, em-dash for empty.
 smin <- function(x) { x <- x[!is.na(x)]; if (length(x)) min(x) else NA_real_ }
 smax <- function(x) { x <- x[!is.na(x)]; if (length(x)) max(x) else NA_real_ }
-rng  <- function(a, b) ifelse(is.na(a) | is.na(b), "—", paste0(a, " – ", b))
+rng  <- function(a, b) {
+  ifelse(is.na(a) | is.na(b), "—",
+         ifelse(a == b, as.character(a),
+                paste0(a, " – ", b)))
+}
 ## NA/NaN-safe numeric formatting (single-sighting species -> SD is NA)
 fmt  <- function(x, d) ifelse(is.na(x), "—", sprintf(paste0("%.", d, "f"), x))
 
@@ -224,6 +232,8 @@ pretty_species <- function(x) {
 
 active <- data %>% filter(spot_name %in% active_spots$spot_name)
 
+clean <- active %>% select(spot_name, spot_clean) %>%  distinct(spot_name, .keep_all = TRUE)
+
 ## --- 1. spot-level summary (== your `er` table) ------------------------------
 spot_sum <- active %>%
   summarise(
@@ -236,7 +246,7 @@ spot_sum <- active %>%
     g_median     = median(group_size, na.rm = TRUE),
     g_sd         = sd(group_size,     na.rm = TRUE),
     .by = spot_name
-  ) %>%
+  ) %>% 
   left_join(
     effort %>% group_by(spot_name) %>%
       summarise(hours = sum(effort_time) / 60^2, .groups = "drop"),
@@ -245,6 +255,8 @@ spot_sum <- active %>%
   mutate(per_hour = round(sightings / hours, 2),
          hours    = round(hours, 1)) %>%
   arrange(desc(per_hour))            # spot ordering = descending encounter rate
+
+spot_sum <- spot_sum %>%  left_join(clean, by = "spot_name")
 
 ## --- 2. species-level split within each spot ---------------------------------
 sp_sum <- active %>%
@@ -257,18 +269,18 @@ sp_sum <- active %>%
     g_mean    = mean(group_size,   na.rm = TRUE),
     g_median  = median(group_size, na.rm = TRUE),
     g_sd      = sd(group_size,     na.rm = TRUE),
-    .by = c(spot_name, species)
+    .by = c(spot_clean, species)
   ) %>%
-  arrange(match(spot_name, spot_sum$spot_name), desc(sightings))
+  arrange(match(spot_clean, spot_sum$spot_clean), desc(sightings))
 
 ## --- 3. build interleaved display rows ---------------------------------------
-spot_order <- tibble(spot_name = spot_sum$spot_name,
-                     .ord = seq_along(spot_sum$spot_name))
+spot_order <- tibble(spot_clean = spot_sum$spot_clean,
+                     .ord = seq_along(spot_sum$spot_clean))
 
 spot_rows <- spot_sum %>%
   transmute(
-    spot_name,
-    label                = spot_name,
+    spot_clean,
+    label                = spot_clean,
     Sightings            = as.character(sightings),
     `Distance range (m)` = rng(d_min, d_max),
     `Group range`        = rng(g_min, g_max),
@@ -282,7 +294,7 @@ spot_rows <- spot_sum %>%
 
 sp_rows <- sp_sum %>%
   transmute(
-    spot_name,
+    spot_clean,
     label                = paste0("\u2003", pretty_species(species)),   # indent species
     Sightings            = as.character(sightings),
     `Distance range (m)` = rng(d_min, d_max),
@@ -293,16 +305,17 @@ sp_rows <- sp_sum %>%
     `SD group`           = fmt(g_sd, 2),
     .is_spot = FALSE
   ) %>%
-  group_by(spot_name) %>% mutate(.sub = row_number()) %>% ungroup()
+  group_by(spot_clean) %>% mutate(.sub = row_number()) %>% ungroup()
 
 combined <- bind_rows(spot_rows, sp_rows) %>%
-  left_join(spot_order, by = "spot_name") %>%
+  left_join(spot_order, by = "spot_clean") %>%
   arrange(.ord, .sub)
 
 spot_pos <- which(combined$.is_spot)          # row indices to emphasise
 
 disp <- combined %>%
-  select("Spot / Species" = label, Sightings, Hours,
+  select("Location / Taxon" = label, Sightings,
+         "On-effort hours" = Hours,
          "Sightings per hour" = `Sightings·h⁻¹`,
          "Distance from observer" = `Distance range (m)`,
          "Range"  = `Group range`,
@@ -321,8 +334,7 @@ overview_tbl <- tt(
   style_tt(i = -1:0, bold = TRUE)                 # bold spanner + header rows
 #overview_tbl
 
-## Optional export
-# save_tt(overview_tbl, "summary_table.html", overwrite = TRUE)  # or .docx / .tex / .png
+
 ```
 
 
@@ -338,6 +350,10 @@ effort <- effort_log %>%
     duration_min = as.numeric(difftime(observation_end, observation_start,
                                         units = "mins"))
   )
+
+clean <- data %>% select(spot_name, spot_clean) %>%  distinct(spot_name, .keep_all = TRUE)
+
+effort <- effort %>% left_join(clean, by = "spot_name")
  
 # ---- 3. Detections: keep on-effort sightings -------------------------------
 sightings <- detection %>%
@@ -363,7 +379,7 @@ effort <- effort %>%
  
 # ---- 5. SPUE by spot -------------------------------------------------------
 spue_by_spot <- effort %>%
-  group_by(spot_name) %>%
+  group_by(spot_clean) %>%
   summarise(
     scans        = n(),
     effort_hours = sum(duration_min, na.rm = TRUE) / 60,
@@ -381,7 +397,7 @@ spue_by_spot <- effort %>%
 # ---- 6. SPUE overall -------------------------------------------------------
 spue_overall <- effort %>%
   summarise(
-    spot_name    = "TOTAL",
+    spot_clean    = "TOTAL",
     scans        = n(),
     effort_hours = sum(duration_min, na.rm = TRUE) / 60,
     sightings    = sum(n_sightings),
@@ -759,13 +775,14 @@ trunc_sens <- purrr::map_dfr(w_grid, function(w) {
 This study applied point-transect distance sampling to assess the distribution and density of small cetaceans within the BGTW. A modified point-transect protocol, adapted from approaches primarily used for birds and larger cetaceans [@bucklandIntroductionDistanceSampling2001], was implemented for land-based surveys (see Appendix for the full protocol). The following results describe the observed cetacean occurrence, spatial distribution, and density estimates across the study area.
 
 ## Survey Results
-Overall, `r  full_sum$sightings` cetacean sightings were recorded between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`, point transect sampling was conducted including pilot studies and both vessel- and land-based surveys (@fig-totalmap). A total of two vessel-based surveys were conducted, accounting for `r spell_nr(full_source$boat)` of these sightings: `r spell_nr(boat_species$common_dolphin)` sightings of common dolphins (*Delphinus delphis*) and `r spell_nr(boat_species$striped_dolphin)` sightings of striped dolphins (*Stenella coeruleoalba*) and `r spell_nr(boat_species$delphinidae)` sighting where the species could not be identified. The group size for vessel-based sightings ranged from `r spell_nr(min(boat$group_size, na.rm = TRUE))` to `r spell_nr(max(boat$group_size, na.rm = TRUE))` (mean = `r round(mean(boat$group_size, na.rm = TRUE), 2)`, median = `r round(median(boat$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(boat$group_size, na.rm = TRUE), 2)`).
-
-![Geographic location of cetacean sightings recorded from boat-based surveys (in squares) and land-based surveys (in circles) during this project period. Where n represents the number of sightings recorded using each method.](figures/method_map.png){#fig-totalmap}
-
 In total `r total_land$surveys` land-based surveys were conducted, resulting in `r round(sum(er$hours), 2)` total on-effort hours and 58 off-effort hours over `r length(unique(effort$date))` survey days. `r length(data$survey_id)` cetacean sightings were recorded in this sampling period, of which `r sum(data$on_effort)` were on-effort and `r spell_nr(sum(!data$on_effort))` off-effort. Of these, `r by_familiy$odontoceti` sightings were Odontoceti, including `r by_species$common_dolphin` sightings of common dolphins, `r by_species$delphinidae` sightings of unidentified dolphins where the species could not certainly be defined and `r spell_nr(by_familiy$mysteciti)` Mysticeti sightings of  Fin whales (*Balaenoptera physalus*). For `r spell_nr(by_species$unidentified)` sightings the species could not be reliably determined and were recorded as unidentified (@fig-sight_map, Figure **S13**). The group size for land-based sightings ranged from `r min(data$group_size, na.rm = TRUE)` to `r max(data$group_size, na.rm = TRUE)` (mean = `r round(mean(data$group_size, na.rm = TRUE), 2)`, median = `r round(median(data$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(data$group_size, na.rm = TRUE), 2)`). 
 
 ![All sightings collected from land-based surveys between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`. The sightings were recorded from three different spots, Europa Point, Sandy Bay and Prince George's Battery (indicated as triangles).](figures/sightings_legend.png){#fig-sight_map}
+
+<!-- maybe remove the boat part -->
+Overall, `r  full_sum$sightings` cetacean sightings were recorded between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`, distance sampling sureys were conducted including pilot studies and both vessel- and land-based surveys (@fig-totalmap). A total of two vessel-based surveys were conducted, accounting for `r spell_nr(full_source$boat)` of these sightings: `r spell_nr(boat_species$common_dolphin)` sightings of common dolphins (*Delphinus delphis*) and `r spell_nr(boat_species$striped_dolphin)` sightings of striped dolphins (*Stenella coeruleoalba*) and `r spell_nr(boat_species$delphinidae)` sighting where the species could not be identified. The group size for vessel-based sightings ranged from `r spell_nr(min(boat$group_size, na.rm = TRUE))` to `r spell_nr(max(boat$group_size, na.rm = TRUE))` (mean = `r round(mean(boat$group_size, na.rm = TRUE), 2)`, median = `r round(median(boat$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(boat$group_size, na.rm = TRUE), 2)`).
+
+![Geographic location of cetacean sightings recorded from boat-based surveys (in squares) and land-based surveys (in circles) during this project period. Where n represents the number of sightings recorded using each method.](figures/method_map.png){#fig-totalmap}
 
 The overview of sightings (@tbl-overview) revealed variation in minimum and maximum sighting distances and group sizes among sampling locations. The farthest sighting occurred at a distance of `r round(max(er$max_dis)/1000, 2)` km from the observation platform. Despite equal on-effort observation time across all sampling locations, the number of sightings differed strongly among locations. The most frequently recorded species was the Common Dolphin (n = `r species$sightings[1]`), followed by unidentified dolphins (n = `r species$sightings[2]`). Unidentified dolphins accounted for the most distant sightings, recorded at approximately `r round(max(species$max_dis/1000), 2)` km (@tbl-overview).
 
@@ -776,7 +793,7 @@ The overview of sightings (@tbl-overview) revealed variation in minimum and maxi
 overview_tbl
 ```
 
-Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$sightings)]`, covering mainly the southern side (n = `r max(per_spot$sightings)`). Sighting frequency varied over the course of the day, showing a bimodal distribution with peaks in the late morning and mid-afternoon and a reduction around midday (Figure **SXX**). 
+Most of the sightings were recorded at Europa Point, covering mainly the southern side (n = `r max(per_spot$sightings)`). Sighting frequency varied over the course of the day, showing a trimodal distribution with peaks in the late morning and mid-afternoon and a reduction around midday (Figure **SXX**). 
 
 
 ## Spatial Distribution
@@ -791,12 +808,12 @@ SPUE differed significantly among the three stations (Kruskal–Wallis χ² = `r
 
 
 tbl_dat <- spue_report %>%
-  filter(spot_name %in% active_spots$spot_name | spot_name == "TOTAL") %>%
+  filter(spot_clean %in% active_spots$spot_clean | spot_clean == "TOTAL") %>%
   sf::st_drop_geometry() %>%                       # replaces cols_hide(geometry); use select(-geometry) if not an sf object
-  select(spot_name, scans, effort_hours, sightings,
+  select(spot_clean, scans, effort_hours, sightings,
          individuals, spue_per_scan, sightings_per_h, indiv_per_h) %>%
   rename(
-    "Spot Names"      = spot_name,
+    "Spot Names"      = spot_clean,
     "Scans"           = scans,
     "Hours"           = effort_hours,
     "Sightings"       = sightings,
@@ -825,9 +842,12 @@ The kernel density surface, weighted by group size and derived from identified c
 
 ![The Kernel Density Estimation (KDE) of the sightings collected from land-based surveys between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`. The KDE was calculated using group size as a weight variable. The highest density was found around the south western tip of the peninsula (approximately 36.09–36.11 °N, 5.34–5.37 °W; ~5 km²). Color of grid represents the density Utilisazion distribution.](figures/density_map.png){#fig-kde_map}
 
-Comparison with opportunistic records revealed a pronounced spatial mismatch between the two data sources (@fig-obis, @tbl-obis_comp). Of 200 *Delphinus delphis* records retrieved from OBIS, 141 fell in the western sector and only four in the eastern, whereas systematic survey recorded 39 on-effort sightings in the east. The sector almost absent from the opportunistic record. A further 45 OBIS records fell outside the three surveyed sectors entirely. Because opportunistic records carry no associated survey effort, these counts reflect where animals were reported rather than their relative density. The two datasets are therefore not directly comparable, and the systematic per-sector counts should be read alongside the effort-corrected encounter rates above (@tbl-spue_report). The concentration of opportunistic records in the heavily trafficked western bay illustrates the spatial bias of platform-of-opportunity data, whose recording effort tracks vessel routes and observer access rather than animal distribution [@bucklandIntroductionDistanceSampling2001; @dawsonDesignFieldMethods2008].
+### Systematic vs. opportunistic sampling
+Comparison with opportunistic records revealed a pronounced spatial mismatch between the two data sources (@fig-obis, @fig-kde_comp, @tbl-obis_comp). Of 200 *Delphinus delphis* records retrieved from OBIS, 141 fell in the western sector and only four in the eastern, whereas systematic survey recorded 39 on-effort sightings in the east. The sector almost absent from the opportunistic record. A further 45 OBIS records fell outside the three surveyed sectors entirely. Because opportunistic records carry no associated survey effort, these counts reflect where animals were reported rather than their relative density. The two datasets are therefore not directly comparable, and the systematic per-sector counts should be read alongside the effort-corrected encounter rates above (@tbl-spue_report). The concentration of opportunistic records in the heavily trafficked western bay illustrates the spatial bias of platform-of-opportunity data, whose recording effort tracks vessel routes and observer access rather than animal distribution [@bucklandIntroductionDistanceSampling2001; @dawsonDesignFieldMethods2008].
 
 ![Opportunistic *Delphinus delphis* records from OBIS (squares) overlaid on the on-effort sightings recorded in the present study (circles), within the study area. Opportunistic records are concentrated in the western bay, while the eastern sector—almost absent from the opportunistic record, was covered only by systematic survey.](/figures/obis_comp.png){#fig-obis}
+
+![KDE map from this study (A) and from the OBIS dataset (B) showed a strong discreptency of sighting density around the peninsula. The OBIS data suggests the 90% isopleth inside the Bay of Gibraltar while this study shows a distribution around the whole peninsula.](/figures/kde_comparison.png){#fig-kde_comp}
 
 ```{r, sector tbl}
 #| label: tbl-obis_comp
@@ -844,7 +864,7 @@ tt(obis_comp) %>%
 ## Detection function fitting {#model_fit}
 The distribution of sighting distances was examined separately for each station (@fig-dis_spot) to inform truncation and detection-function fitting. Sandy Bay and Prince George showed the distance distribution characteristic of point-transect sampling, in which detections are sparse close to the observer and rise to a peak before declining, reflecting the increase in surveyed area with radius alongside decreasing detectability [@bucklandDistanceSamplingMethods2015]. Europa Point departed from this pattern: detections were concentrated close to the observer and positively skewed, with few at greater range—consistent with its lower observation height (18 m a.s.l.), which restricts the effective detection range.
 
-![Distribution of sighting distances (m) relative to each observation station (Sandy Bay, Europa Point, Prince George; bin width = 550 m).](figures/distance_facet.png){#fig-dis_spot}
+![Distribution of sighting distances (m) by observation station (A) and for the pooled dataset (B). Histograms were used to visually assess distance distributions and determine appropriate truncation distances. Dashed lines indicate the selected truncation distance for each station (bin width = 550 m).](figures/distance_facet.png){#fig-dis_spot}
 
 
 Detection functions were fitted using the `Distance` package [@millerDistanceSampling2019] following a two-step procedure: the key function (half-normal or hazard-rate) was selected by AIC, and candidate covariates were evaluated in the second step. Functions were first fitted separately for each station—the hazard-rate key gave the lowest AIC at Europa Point and Sandy Bay, and the half-normal at Prince George—but per-station sample sizes were insufficient to support stable independent estimates (full per-station results in the Supplementary Material).
