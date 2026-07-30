@@ -22,19 +22,6 @@ csl: "SoMESHarvard.csl"
 
 {{< pagebreak >}}
 
-```{=typst}
-#[
-```
-
-# Generative AI (GenAI) Use{.unnumbered}
-This is just a short summary of how AI was used. See Declaration of Originality and use of Gen AI for more details.
-
-{{< pagebreak >}}
-
-```{=typst}
-] <no-wc>
-```
-
 # Introduction
 
 {{< include ./journal_chapters/j_intro.qmd >}}
@@ -71,17 +58,23 @@ This is just a short summary of how AI was used. See Declaration of Originality 
 
 {{< pagebreak >}}
 
+# Science Communication output
+
+{{< include ./chapters/comms.qmd >}}
+
+{{< pagebreak >}}
+
+# Generative AI (GenAI) Use{.unnumbered}
+This is just a short summary of how AI was used. See Declaration of Originality and use of Gen AI for more details.
+
 # Conflict of Interest{.unnumbered}
 The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.
 
 # Supplementary Material{.unnumbered}
 Please see Supplementary Material with Appendices for further information related to this study.
 
-# Science Communication output
-
-{{< include ./chapters/comms.qmd >}}
-
 {{< pagebreak >}}
+
 
 # References{.unnumbered}
 ::: {#refs}

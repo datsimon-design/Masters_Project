@@ -38,9 +38,10 @@ crossref:
   (key: "locoh", short: "LoCoH", long: "Local Convex Hull"),
   (key: "hr", short: "hr", long: "hazard-rate"),
   (key: "hn", short: "hn", long: "half-normal"),
-  (key: "SE", short: "SE", long: "Standard Error"),
-  (key: "LCL / UCL", short: "LCL / UCL", long: "Lower- / Upper Confidence Limit"),
-  (key: "CV", short: "CV", long: "Coefficient of Variance"),
+  (key: "se", short: "SE", long: "Standard Error"),
+  (key: "utm", short: "UTM", long: "Universal Transverse Mercator"),
+  (key: "lcl / ucl", short: "LCL / UCL", long: "Lower- / Upper Confidence Limit"),
+  (key: "cv", short: "CV", long: "Coefficient of Variance"),
   (key: "imma", short: "IMMA", long: "Important Marine Mammal Area"),
   (key: "accobams", short: "ACCOBAMS", long: "Agreement on the Conservation of Cetaceans of the Black Sea, Mediterranean Sea and contiguous Atlantic area"),
 )

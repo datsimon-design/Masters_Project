@@ -100,6 +100,13 @@
   show figure.where(kind: "quarto-float-app"): set block(breakable: true)
   show figure.where(kind: "quarto-float-app"): set align(left)
 
+  show link: it => {
+  if it.dest.starts-with("http") {
+    set text(fill: rgb("#4A8797"))
+  }
+  it
+  }
+
 
   //Add the S prefic to fig and table, remove for journal article
   show figure.where(kind: "quarto-float-fig"): set figure(numbering: (..n) => "S" + str(n.at(-1)))

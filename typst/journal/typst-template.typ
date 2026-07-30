@@ -189,6 +189,8 @@
   show figure.where(kind: "quarto-float-app"): set block(breakable: true)
   show figure.where(kind: "quarto-float-app"): set align(left)
 
+  show link: set text(fill: rgb("#4A8797"))
+
 
   //Add the S prefix to fig and table, remove for journal article
   
