@@ -69,7 +69,8 @@ full <- readRDS("./temp/full.rds")
 
 obis_comp <- readRDS("./temp/obis.rds")
 
-clean <- active %>% select(spot_name, spot_clean) %>%  distinct(spot_name, .keep_all = TRUE)
+
+
 
 
 # Set active spots as variable
@@ -77,14 +78,20 @@ active_spots <- spots %>%
   filter(spot_name != "MedSteps" & spot_name != "WestSide") %>% 
   select(spot_name)
 
-active_spots <- active_spots %>% left_join(clean, by = "spot_name")
+
 
 odontoceti <- c("common_dolphin", "striped_dolphin", "bottlenose_dolphin", "delphinidae")
 mysteciti <- c("fin_whale")
 
+active <- data %>% filter(spot_name %in% active_spots$spot_name)
+
+clean <- active %>% select(spot_name, spot_clean) %>%  distinct(spot_name, .keep_all = TRUE)
+
+active_spots <- active_spots %>% left_join(clean, by = "spot_name")
 
 
 ```
+
 
 ```{r}
 #|include: false
@@ -447,14 +454,14 @@ spue_report <- spue_summary %>%
 
 library(Distance)
 
-dis <- readRDS(here("temp", "dis.rds"))
+pool_dis <- readRDS(here("temp", "pool_dis.rds"))
 trunc <- 8000
 conversion.factor <- convert_units("Metre", NULL, "square metre")
 
 # Overall detection function (pooled)
-d.hn <- ds(data=dis %>% filter(!is.na(dis$size)), key="hn", adjustment= NULL,
+d.hn <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hn", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc)
-d.hr <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.hr <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc)
 
 
@@ -465,17 +472,17 @@ gof_hn <- gof_ds(d.hn, plot = FALSE)
 gof_hr <- gof_ds(d.hr, plot = FALSE)
 
 # height as a covariate
-d.ht <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.ht <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height)
 # Region as covariate
-d.ss <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.ss <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~sea_state)
 #Region and height
-d.wh <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.wh <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula =~wave_height)
-d.ws <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.ws <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~wind_speed)
-d.gl <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.gl <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~glare)
 
 
@@ -490,6 +497,9 @@ sum_ht <- summary(d.ht)
 
 ```{r, Distance per spot}
  #|include: false
+
+dis <- readRDS(here("temp", "dis.rds"))
+
 
 # Europa Point ------
 europa <- dis %>% filter(Region.Label == "Europa")
@@ -755,7 +765,7 @@ names(abun_tbl) <- c("Station", "n of Groups",
 w_grid <- c(6000, 7000, 8000, 9000, 10000, 12000) 
 
 trunc_sens <- purrr::map_dfr(w_grid, function(w) {
-  m <- ds(dis, transect = "point", key = "hr",
+  m <- ds(pool_dis, transect = "point", key = "hr",
           formula = ~height, truncation = w, convert_units = conversion.factor)
   d <- m$dht$individuals$D            # or your dht2 call
   tibble::tibble(
@@ -891,22 +901,43 @@ plot(d.ht, pdf = TRUE)
 
 
 
-## Density estimates
-Density was estimated from the pooled detection function (hazard-rate key with observation height as a covariate). The highest density occurred in the southern sector (surveyed from Europa Point), with a group density of `r round(sum_ht$dht$clusters$D$Estimate[1]* 1e6, 2)` groups km⁻² (95% CI: `r round(pool_group_dens[1,4], 2)`–`r round(pool_group_dens[1,5], 2)`; CV: `r round(pool_group_dens$CV[1], 2)`) and an individual density of `r round(sum_ht$dht$individuals$D$Estimate[1]* 1e6, 2)` individuals km⁻² (95% CI: `r round(pool_indiv_dens[1,4], 2)`–`r round(pool_indiv_dens[1,5], 2)`; CV: `r round(pool_indiv_dens$CV[1], 2)`) (@tbl-pool_dens). The detection-corrected density gradient reproduced the pattern seen in the raw encounter rate, with Europa Point exceeding the other sectors (@fig-SPUE). Density estimates were robust to the choice of truncation distance (Supplementary Material, Table S`sens`). Per-station density and sector-level abundance estimates are reported in the Supplementary Material (**Table S`xx` – S`yy`**).
-
+## Density and abundance estimates
+Density was estimated from the pooled detection function (hazard-rate key with observation height as a covariate). The highest density occurred in the southern sector (surveyed from Europa Point), with a group density of `r round(sum_ht$dht$clusters$D$Estimate[1]* 1e6, 2)` groups km⁻² (95% CI: `r round(pool_group_dens[1,4], 2)`–`r round(pool_group_dens[1,5], 2)`; CV: `r round(pool_group_dens$CV[1], 2)`) and an individual density of `r round(sum_ht$dht$individuals$D$Estimate[1]* 1e6, 0)` individuals km⁻² (95% CI: `r round(pool_indiv_dens[1,4], 2)`–`r round(pool_indiv_dens[1,5], 2)`; CV: `r round(pool_indiv_dens$CV[1], 2)`) (@tbl-pool_dens). 
 
 ```{r}
 #| label: tbl-pool_dens
-#| tbl-cap: "Overview of the density estimated for the pooled sightings. Density estimates were derived from the best-fitting detection function for all three sampling locations."
+#| tbl-cap: "Overview of the density estimated for the pooled sightings. Density estimates (km⁻²) were derived from the best-fitting detection function for all three sampling locations. With standard error (SE), lower- and upper confidence limit (LCL/UCL) and coefficient of variance (CV). "
 
 tt(pool_dens_tbl, digits = 2,
    width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) %>% 
-  group_tt(j = list("Group" = 3:7,   "Individual" = 8:12)) %>% 
+  group_tt(j = list("Group Density (km⁻²)" = 3:7,   "Individual Density (km⁻²)" = 8:12)) %>% 
   style_tt(i = -2:0, bold = TRUE) %>% 
   style_tt(i = 4, bold = TRUE) %>% 
   style_tt(j = c(3, 8), line = "l", line_width = 0.1, line_color = "lightgrey")
 
 ```
 
-To assess the influence of the right-truncation distance on the density estimates, the pooled detection function was refitted across a range of truncation distances (6,000-12,000 m) while holding the model structure (hazard-rate key function with height as a covariate) constant (**Table SXX**). The selected truncation of 8,000 m retained 95% of on-effort detections (98 of 103) and yielded among the strongest goodness-of-fit values in the tested range, while excluding the sparse, high-variance long-distance tail that disproportionately influences point-transect estimates. The density estimates were therefore considered robust to the choice of truncation distance. 
 
+Scaling these densities to the surveyed area at each station (the scanned sector to 8 km) yielded a covered-area abundance of `r round(sum_ht$dht$individuals$N$Estimate[1], 0)` individuals at Europa Point (95% CI: `r round(sum_ht$dht$individuals$N$lcl[1], 0)`–`r round(sum_ht$dht$individuals$N$ucl[1], 0)`), against `r round(sum_ht$dht$individuals$N$Estimate[2], 0)` and `r round(sum_ht$dht$individuals$N$Estimate[3], 0)` at Prince George and Sandy Bay respectively; because the fixed stations sampled only part of the territory and density was strongly spatially structured, these represent the surveyed areas rather than a territory-wide total and were not extrapolated to the full BGTW. The detection-corrected gradient reproduced the pattern seen in the raw encounter rate, with Europa Point exceeding the other sectors (@fig-SPUE). Per-station density and abundance estimates are reported in the Supplementary Material (**Table S`xx` – S`yy`**).
+
+
+```{r}
+#| label: tbl-pool_abun
+#| tbl-cap: "Overview of the relative abundance estimated for the pooled sightings. Relative abundance estimates were derived from the best-fitting detection function for the pooled sighting dataset. With standard error (SE), lower- and upper confidence limit (LCL/UCL) and coefficient of variance (CV)."
+
+pool_abun_tbl %>% 
+  select(c(1,2, 8:12)) %>% 
+  tt(
+   width = c(2.5, 1.5,1.5, 1, 1, 1, 1)) %>% 
+  format_tt(j = 3:7, digits = 2) %>% 
+  group_tt(j = list("Individual Abundance" = 3:7)) %>% 
+  style_tt(i = -2:0, bold = TRUE) %>% 
+  style_tt(i = 4, bold = TRUE) %>% 
+  #style_tt(j = 3:7, align = "d") %>% 
+  style_tt(j = c(3), line = "l", line_width = 0.1, line_color = "lightgrey")
+
+```
+
+
+### Truncation sensitivity test
+To assess the influence of the right-truncation distance on the density estimates, the pooled detection function was refitted across a range of truncation distances (6,000-12,000 m) while holding the model structure (hazard-rate key function with height as a covariate) constant (**Table SXX**). The selected truncation of 8,000 m retained 95% of on-effort detections (98 of 103) and yielded among the strongest goodness-of-fit values in the tested range, while excluding the sparse, high-variance long-distance tail that disproportionately influences point-transect estimates. The density and abundance estimates were therefore considered robust to the choice of truncation distance. 

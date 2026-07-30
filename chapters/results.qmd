@@ -70,17 +70,28 @@ full <- readRDS("./temp/full.rds")
 obis_comp <- readRDS("./temp/obis.rds")
 
 
+
+
+
 # Set active spots as variable
 active_spots <- spots %>%  
   filter(spot_name != "MedSteps" & spot_name != "WestSide") %>% 
   select(spot_name)
 
+
+
 odontoceti <- c("common_dolphin", "striped_dolphin", "bottlenose_dolphin", "delphinidae")
 mysteciti <- c("fin_whale")
 
+active <- data %>% filter(spot_name %in% active_spots$spot_name)
+
+clean <- active %>% select(spot_name, spot_clean) %>%  distinct(spot_name, .keep_all = TRUE)
+
+active_spots <- active_spots %>% left_join(clean, by = "spot_name")
 
 
 ```
+
 
 ```{r}
 #|include: false
@@ -207,7 +218,11 @@ library(tinytable)
 ## NA (not Inf) for all-missing subsets; en-dash range, em-dash for empty.
 smin <- function(x) { x <- x[!is.na(x)]; if (length(x)) min(x) else NA_real_ }
 smax <- function(x) { x <- x[!is.na(x)]; if (length(x)) max(x) else NA_real_ }
-rng  <- function(a, b) ifelse(is.na(a) | is.na(b), "—", paste0(a, " – ", b))
+rng  <- function(a, b) {
+  ifelse(is.na(a) | is.na(b), "—",
+         ifelse(a == b, as.character(a),
+                paste0(a, " – ", b)))
+}
 ## NA/NaN-safe numeric formatting (single-sighting species -> SD is NA)
 fmt  <- function(x, d) ifelse(is.na(x), "—", sprintf(paste0("%.", d, "f"), x))
 
@@ -224,6 +239,8 @@ pretty_species <- function(x) {
 
 active <- data %>% filter(spot_name %in% active_spots$spot_name)
 
+clean <- active %>% select(spot_name, spot_clean) %>%  distinct(spot_name, .keep_all = TRUE)
+
 ## --- 1. spot-level summary (== your `er` table) ------------------------------
 spot_sum <- active %>%
   summarise(
@@ -236,7 +253,7 @@ spot_sum <- active %>%
     g_median     = median(group_size, na.rm = TRUE),
     g_sd         = sd(group_size,     na.rm = TRUE),
     .by = spot_name
-  ) %>%
+  ) %>% 
   left_join(
     effort %>% group_by(spot_name) %>%
       summarise(hours = sum(effort_time) / 60^2, .groups = "drop"),
@@ -245,6 +262,8 @@ spot_sum <- active %>%
   mutate(per_hour = round(sightings / hours, 2),
          hours    = round(hours, 1)) %>%
   arrange(desc(per_hour))            # spot ordering = descending encounter rate
+
+spot_sum <- spot_sum %>%  left_join(clean, by = "spot_name")
 
 ## --- 2. species-level split within each spot ---------------------------------
 sp_sum <- active %>%
@@ -257,18 +276,18 @@ sp_sum <- active %>%
     g_mean    = mean(group_size,   na.rm = TRUE),
     g_median  = median(group_size, na.rm = TRUE),
     g_sd      = sd(group_size,     na.rm = TRUE),
-    .by = c(spot_name, species)
+    .by = c(spot_clean, species)
   ) %>%
-  arrange(match(spot_name, spot_sum$spot_name), desc(sightings))
+  arrange(match(spot_clean, spot_sum$spot_clean), desc(sightings))
 
 ## --- 3. build interleaved display rows ---------------------------------------
-spot_order <- tibble(spot_name = spot_sum$spot_name,
-                     .ord = seq_along(spot_sum$spot_name))
+spot_order <- tibble(spot_clean = spot_sum$spot_clean,
+                     .ord = seq_along(spot_sum$spot_clean))
 
 spot_rows <- spot_sum %>%
   transmute(
-    spot_name,
-    label                = spot_name,
+    spot_clean,
+    label                = spot_clean,
     Sightings            = as.character(sightings),
     `Distance range (m)` = rng(d_min, d_max),
     `Group range`        = rng(g_min, g_max),
@@ -282,7 +301,7 @@ spot_rows <- spot_sum %>%
 
 sp_rows <- sp_sum %>%
   transmute(
-    spot_name,
+    spot_clean,
     label                = paste0("\u2003", pretty_species(species)),   # indent species
     Sightings            = as.character(sightings),
     `Distance range (m)` = rng(d_min, d_max),
@@ -293,16 +312,17 @@ sp_rows <- sp_sum %>%
     `SD group`           = fmt(g_sd, 2),
     .is_spot = FALSE
   ) %>%
-  group_by(spot_name) %>% mutate(.sub = row_number()) %>% ungroup()
+  group_by(spot_clean) %>% mutate(.sub = row_number()) %>% ungroup()
 
 combined <- bind_rows(spot_rows, sp_rows) %>%
-  left_join(spot_order, by = "spot_name") %>%
+  left_join(spot_order, by = "spot_clean") %>%
   arrange(.ord, .sub)
 
 spot_pos <- which(combined$.is_spot)          # row indices to emphasise
 
 disp <- combined %>%
-  select("Spot / Species" = label, Sightings, Hours,
+  select("Location / Taxon" = label, Sightings,
+         "On-effort hours" = Hours,
          "Sightings per hour" = `Sightings·h⁻¹`,
          "Distance from observer" = `Distance range (m)`,
          "Range"  = `Group range`,
@@ -321,8 +341,7 @@ overview_tbl <- tt(
   style_tt(i = -1:0, bold = TRUE)                 # bold spanner + header rows
 #overview_tbl
 
-## Optional export
-# save_tt(overview_tbl, "summary_table.html", overwrite = TRUE)  # or .docx / .tex / .png
+
 ```
 
 
@@ -338,6 +357,10 @@ effort <- effort_log %>%
     duration_min = as.numeric(difftime(observation_end, observation_start,
                                         units = "mins"))
   )
+
+clean <- data %>% select(spot_name, spot_clean) %>%  distinct(spot_name, .keep_all = TRUE)
+
+effort <- effort %>% left_join(clean, by = "spot_name")
  
 # ---- 3. Detections: keep on-effort sightings -------------------------------
 sightings <- detection %>%
@@ -363,7 +386,7 @@ effort <- effort %>%
  
 # ---- 5. SPUE by spot -------------------------------------------------------
 spue_by_spot <- effort %>%
-  group_by(spot_name) %>%
+  group_by(spot_clean) %>%
   summarise(
     scans        = n(),
     effort_hours = sum(duration_min, na.rm = TRUE) / 60,
@@ -381,7 +404,7 @@ spue_by_spot <- effort %>%
 # ---- 6. SPUE overall -------------------------------------------------------
 spue_overall <- effort %>%
   summarise(
-    spot_name    = "TOTAL",
+    spot_clean    = "TOTAL",
     scans        = n(),
     effort_hours = sum(duration_min, na.rm = TRUE) / 60,
     sightings    = sum(n_sightings),
@@ -431,14 +454,14 @@ spue_report <- spue_summary %>%
 
 library(Distance)
 
-dis <- readRDS(here("temp", "dis.rds"))
+pool_dis <- readRDS(here("temp", "pool_dis.rds"))
 trunc <- 8000
 conversion.factor <- convert_units("Metre", NULL, "square metre")
 
 # Overall detection function (pooled)
-d.hn <- ds(data=dis %>% filter(!is.na(dis$size)), key="hn", adjustment= NULL,
+d.hn <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hn", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc)
-d.hr <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.hr <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc)
 
 
@@ -449,17 +472,17 @@ gof_hn <- gof_ds(d.hn, plot = FALSE)
 gof_hr <- gof_ds(d.hr, plot = FALSE)
 
 # height as a covariate
-d.ht <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.ht <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~height)
 # Region as covariate
-d.ss <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.ss <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~sea_state)
 #Region and height
-d.wh <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.wh <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula =~wave_height)
-d.ws <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.ws <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~wind_speed)
-d.gl <- ds(data=dis %>% filter(!is.na(dis$size)), key="hr", adjustment= NULL,
+d.gl <- ds(data=pool_dis %>% filter(!is.na(pool_dis$size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=trunc, formula = ~glare)
 
 
@@ -475,6 +498,9 @@ sum_ht <- summary(d.ht)
 ```{r, Distance per spot}
  #|include: false
 
+dis <- readRDS(here("temp", "dis.rds"))
+
+
 # Europa Point ------
 europa <- dis %>% filter(Region.Label == "Europa")
 
@@ -484,6 +510,8 @@ eu.hr <- ds(data=europa %>% filter(!is.na(size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=4500)
 
 eu.AIC <- AIC(eu.hn, eu.hr)
+eu.AIC$ΔAIC <- eu.AIC$AIC - min(eu.AIC$AIC)
+eu.AIC <- eu.AIC[order(eu.AIC$ΔAIC), ]
 
 # Significant is good so it does not fit the data
 gof_hn_eu <- gof_ds(eu.hn, plot = FALSE)
@@ -514,6 +542,8 @@ sb.hr <- ds(data=sandy %>% filter(!is.na(size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=12000)
 
 sb.AIC <- AIC(sb.hn, sb.hr)
+sb.AIC$ΔAIC <- sb.AIC$AIC - min(sb.AIC$AIC)
+sb.AIC <- sb.AIC[order(sb.AIC$ΔAIC), ]
 
 # Significant is good so it does not fit the data
 gof_hn_sb <- gof_ds(sb.hn, plot = FALSE)
@@ -544,6 +574,8 @@ pg.hr <- ds(data=prince %>% filter(!is.na(size)), key="hr", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=8000)
 
 pg.AIC <- AIC(pg.hn, pg.hr)
+pg.AIC$ΔAIC <- pg.AIC$AIC - min(pg.AIC$AIC)
+pg.AIC <- pg.AIC[order(pg.AIC$ΔAIC), ]
 
 # Significant is good so it does not fit the data
 gof_hn_pg <- gof_ds(pg.hn, plot = FALSE)
@@ -739,7 +771,7 @@ names(abun_tbl) <- c("Station", "n of Groups",
 w_grid <- c(6000, 7000, 8000, 9000, 10000, 12000) 
 
 trunc_sens <- purrr::map_dfr(w_grid, function(w) {
-  m <- ds(dis, transect = "point", key = "hr",
+  m <- ds(pool_dis, transect = "point", key = "hr",
           formula = ~height, truncation = w, convert_units = conversion.factor)
   d <- m$dht$individuals$D            # or your dht2 call
   tibble::tibble(
@@ -754,6 +786,7 @@ trunc_sens <- purrr::map_dfr(w_grid, function(w) {
 
 
 ```
+
 
 <!-- remove dups from journal -->
 
@@ -796,12 +829,12 @@ Most of the sightings were recorded at `r per_spot$spot_name[which.max(per_spot$
 
 
 tbl_dat <- spue_report %>%
-  filter(spot_name %in% active_spots$spot_name | spot_name == "TOTAL") %>%
+  filter(spot_clean %in% active_spots$spot_clean | spot_clean == "TOTAL") %>%
   sf::st_drop_geometry() %>%                       # replaces cols_hide(geometry); use select(-geometry) if not an sf object
-  select(spot_name, scans, effort_hours, sightings,
+  select(spot_clean, scans, effort_hours, sightings,
          individuals, spue_per_scan, sightings_per_h, indiv_per_h) %>%
   rename(
-    "Spot Names"      = spot_name,
+    "Spot Names"      = spot_clean,
     "Scans"           = scans,
     "Hours"           = effort_hours,
     "Sightings"       = sightings,
@@ -844,19 +877,33 @@ tt(obis_comp) %>%
 ```
 
 
-## Detection model fitting{#model_fit .unnumbered}
+## Detection model fitting{#model_fit}
 The distribution of sighting distances was examined separately for each sampling location (@fig-dis_spot) to inform truncation and detection-function fitting. Sandy Bay and Prince George showed the distance distribution characteristic of point-transect sampling, in which detections are sparse close to the observer and rise to a peak before declining, reflecting the increase in surveyed area with radius alongside decreasing detectability [@bucklandDistanceSamplingMethods2015]. Europa Point departed from this pattern: sightings were concentrated close to the observer and the distribution was positively skewed, with few detections at greater range. This is consistent with its lower observation height (18 m a.s.l.), which restricts the effective detection range and truncates the usable distance band.
 
 ```{r}
 #| label: tbl-AICs
-#| tbl-cap: "AIC comparison of the different key functions for Europa Point (eu) and Sandy Bay (sb) and Prince George (pg). Emphasised rows highlight the lower AIC and the resulting key function."
-hnAIC <- eu.AIC %>% 
-  rows_append(sb.AIC) %>% 
-  rows_append(pg.AIC) %>% 
-  rownames_to_column(var = "Model")
+#| tbl-cap: "AIC comparison of the different key functions for Europa Point (a) and Sandy Bay (b) and Prince George (c)."
+#| layout-ncol: 3
+#| tbl-subcap: ["Europa Point", "Sandy Bay", "Prince George"]
+#| subref-labels: upper-alpha
 
-tt(hnAIC) %>% 
-  style_tt(i = c(0, 2, 4, 5), bold = TRUE)
+eu.AIC %>% 
+  rownames_to_column(var = "Model") %>% 
+  tt(digits = 3) %>% 
+  style_tt(i = 0, bold = TRUE)
+
+sb.AIC %>% 
+  rownames_to_column(var = "Model") %>% 
+  tt(digits = 3) %>% 
+  style_tt(i = 0, bold = TRUE)
+
+pg.AIC %>% 
+  rownames_to_column(var = "Model") %>% 
+  tt(digits = 3) %>% 
+  style_tt(i = 0, bold = TRUE)
+
+
+
 ```
 
 
@@ -955,7 +1002,7 @@ The highest group abundance was estimated to be `r round(abun_tbl[[3]][2], 2)` p
 
 ```{r}
 #| label: tbl-per_spot_abun
-#| tbl-cap: "Overview of the relative abundance estimated per spot. Relative abundance estimates were derived from the best-fitting detection function for each sampling location."
+#| tbl-cap: "Overview of the relative abundance estimated per spot. Relative abundance estimates were derived from the best-fitting detection function for each sampling location. With standard error (SE), lower- and upper conficence limit (LCL/UCL) and coefficient of variance (CV)."
 
 
 tt(abun_tbl,
@@ -974,7 +1021,7 @@ For the pooled detection function, the highest group abundance estimate was also
 
 ```{r}
 #| label: tbl-pool_abun
-#| tbl-cap: "Overview of the relative abundance estimated for the pooled locations. Relative abundance estimates were derived from the best-fitting detection function for the pooled sighting dataset."
+#| tbl-cap: "Overview of the relative abundance estimated for the pooled locations. Relative abundance estimates were derived from the best-fitting detection function for the pooled sighting dataset. With standard error (SE), lower- and upper conficence limit (LCL/UCL) and coefficient of variance (CV)."
 
 tt(pool_abun_tbl,
    width = c(2.5, 1.5, 1.5, 1, 1, 1, 1, 1.5, 1, 1, 1, 1)) %>% 

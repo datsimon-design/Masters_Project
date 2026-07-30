@@ -48,7 +48,7 @@ This revision has two consequences for interpretation. First, the land-based sta
 
 
 ## Land-based Survey
-Following the logistical constraints described above, land-based cetacean surveys represent a viable and cost-effective alternative to the more expensive vessel-based surveys. The utilisation of vantage points facilitates a more profound interpretation of the observed behaviour. The behaviour state was defined using an adaptation of Neumann and Orams [-@neumannBehaviourEcologyCommon] and Hawkins and Gartside [-@hawkinsInteractiveBehavioursBottlenose2009] (@tbl-behave). In the context of behavioural studies, land-based surveys have been a particularly effective method of data collection, as they do not influence the behaviour of cetaceans or introduce bias via the survey vessel [@mannBehavioralSamplingMethods1999].
+Following the logistical constraints described above, land-based cetacean surveys represent a viable and cost-effective alternative to the more expensive vessel-based surveys. The utilisation of vantage points facilitates a more profound interpretation of the observed behaviour. The behaviour state was defined using an adaptation of Neumann and Orams [-@neumannBehaviourEcologyCommon] and Hawkins and Gartside [-@hawkinsInteractiveBehavioursBottlenose2009] (Travelling, Milling, Foraging, Socialising, and Resting) (@tbl-behave). In the context of behavioural studies, land-based surveys have been a particularly effective method of data collection, as they do not influence the behaviour of cetaceans or introduce bias via the survey vessel [@mannBehavioralSamplingMethods1999].
 
 
 | **Behaviour State** | **Description** |
@@ -125,6 +125,9 @@ Because the resulting surface is a normalised probability density (integrating t
 ### Comparison with opportunistic records
 To evaluate the systematic survey against existing opportunistic data, occurrence records of *Delphinus delphis* were retrieved from the `#gls("obis")`{=typst} ([OBIS Mapper](https://mapper.obis.org/)) using the `robis` package [@provoostRobisOceanBiodiversity2022], constrained to a bounding box encompassing the study area (-5.438/-5.248; 36.05/36.195). Records lacking coordinates were excluded, and the remainder were projected to CRS 4326 and assigned to survey sectors by spatial intersection with the stratum polygons. The spatial distribution of opportunistic records was then compared with that of the systematic on-effort sightings, both visually (@fig-obis) and by tabulating record counts per sector (@tbl-obis_comp). Because opportunistic records carry no associated survey effort, the comparison was restricted to spatial coverage and was not interpreted in terms of relative abundance.
 
+### Ethics statement
 This study was carried out under the University of Gibraltar approval, Ethics ID: 259/2026/UniGib.
 
+
+Abundance estimates are reported for the area covered by the survey at each station—that is, the density estimate scaled to the effectively surveyed area (the scanned sector out to the truncation distance) rather than to the full geographic extent of each stratum or the territory as a whole. This "covered-area" abundance [@buckland2001; @thomas2010] requires no extrapolation beyond the surveyed region and therefore does not depend on the assumption of randomised transect placement that underpins design-based extrapolation to a wider area [@buckland2015; @miller2019]. Because the fixed observation stations did not randomly sample the BGTW and cetacean density was strongly spatially structured, abundance was not extrapolated to the full territory; the estimates below quantify the number of animals estimated within the areas actually surveyed.
 

@@ -1651,11 +1651,55 @@ Clean data into clean df with only dolphin sightings and area size
 ```{r, clean data for ds}
 library(Distance)
 
+pool_centres <- as.data.frame(spots)
+pool_centres <- pool_centres %>% 
+  rename(name = spot_name,
+         start = spot_bearing1,
+         end = spot_bearing2) %>% 
+  mutate(r_m = 8000)
+
+radii <- tibble(name = c("WestSide", "MedSteps", "Europa", "SandyBay", "PrinceGeorge"), 
+                r_m = c(0, 0, 4500, 12000, 8000) )  # tibble(name, r_m)
+
+centres <- as.data.frame(spots) %>%
+  rename(name = spot_name, start = spot_bearing1, end = spot_bearing2) %>%
+  left_join(radii, by = "name")        
+
+stopifnot(!any(is.na(centres$r_m))) 
+
+
+# project the centres into metres
+xy <- st_coordinates(
+  st_transform(st_as_sf(pool_centres, coords = c("lon", "lat"), crs = 4326), proj)
+)
+xy <- st_coordinates(
+  st_transform(st_as_sf(centres, coords = c("lon", "lat"), crs = 4326), proj)
+)
+
+sectors <- do.call(rbind, lapply(seq_len(nrow(centres)), function(i) {
+  g <- make_wedge(xy[i, 1], xy[i, 2], centres$r_m[i],
+                  centres$start[i], centres$end[i], crs = proj)
+  st_sf(name = centres$name[i], geometry = g)
+}))
+pool_sectors <- do.call(rbind, lapply(seq_len(nrow(pool_centres)), function(i) {
+  g <- make_wedge(xy[i, 1], xy[i, 2], pool_centres$r_m[i],
+                  pool_centres$start[i], pool_centres$end[i], crs = proj)
+  st_sf(name = pool_centres$name[i], geometry = g)
+}))
+
+sectors <- st_transform(sectors, 4326)
+pool_sectors <- st_transform(pool_sectors, 4326)
+
 # Run wedge chunk before this
 sectors_m2 <- st_transform(sectors, 32630)            # back to metres
 sectors_m2$area_m2 <- as.numeric(st_area(sectors_m2))
+pool_sectors_m2 <- st_transform(pool_sectors, 32630)            # back to metres
+pool_sectors_m2$area_m2 <- as.numeric(st_area(pool_sectors_m2))
 
 sectors_m2 <- as.data.frame(sectors_m2) %>% 
+  select(-geometry) %>% 
+  rename("Region.Label" = name)
+pool_sectors_m2 <- as.data.frame(pool_sectors_m2) %>% 
   select(-geometry) %>% 
   rename("Region.Label" = name)
 
@@ -1681,6 +1725,31 @@ eff <- effort_log %>%
          wave_height, wind_dir, wind_speed, glare, sea_state) %>% 
   left_join(sectors_m2, by = "Region.Label")
 
+pool_eff <- effort_log %>% 
+  mutate(date = dmy(date)) %>% 
+  filter(date > "2026-05-28") %>% 
+  mutate(sector_deg = abs(spot_bearing2 - spot_bearing1)) %>% 
+  as.data.frame() %>% 
+  select(-geometry)%>% 
+  filter(spot_name %in% active_spots$spot_name) %>% 
+  mutate(Effort = sector_deg/360) %>% 
+  select("Region.Label" = spot_name,
+         "Sample.Label" = survey_id,
+         "height" = observer_height,
+         Effort,
+         wave_height, wind_dir, wind_speed, glare, sea_state) %>% 
+  left_join(pool_sectors_m2, by = "Region.Label")
+
+
+
+pool_dis <- pool_eff %>% 
+  as.data.frame() %>% 
+  left_join(sight, by = c("Sample.Label" = "survey_id")) %>% 
+  rename(Area = area_m2) %>% 
+  mutate(
+    size = replace_na(size, median(size, na.rm = TRUE))
+  )
+
 dis <- eff %>% 
   as.data.frame() %>% 
   left_join(sight, by = c("Sample.Label" = "survey_id")) %>% 
@@ -1692,7 +1761,11 @@ dis <- eff %>%
 dis$object <- NA_integer_
 dis$object[!is.na(dis$distance)] <- seq_len(sum(!is.na(dis$distance)))
 
-saveRDS(dis, "./temp/dis.rds")
+pool_dis$object <- NA_integer_
+pool_dis$object[!is.na(dis$distance)] <- seq_len(sum(!is.na(dis$distance)))
+
+saveRDS(pool_dis, "./temp/pool_dis.rds")
+saveRDS(dis, "./temp/pool_dis.rds")
 
 ```
 
