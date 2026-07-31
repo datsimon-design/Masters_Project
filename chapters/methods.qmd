@@ -3,23 +3,42 @@ bibliography: refs.bib
 ---
 
 ## Research Process
-The research process followed a structured but iterative sequence, from initial scoping and literature review through survey design, data collection, analysis, and reporting (@fig-rp-flowchart). Each stage informed the next, with the analytical pipeline developed in parallel with data collection so that processing and estimation could begin as soon as fieldwork concluded.
+The research process followed a structured, stage-based sequence, illustrated in @fig-rp-flowchart and described below.
 
-The process was not strictly linear. When the intended vessel-based survey could not be realised within the field-season window, the design phase was revisited mid-project and the survey re-specified as a land-based, point-transect design (see [Design Revision](#revision)). This feedback loop is represented in the flowchart and reflects adaptive management of project risk rather than a departure from the planned process.
+**1. Scoping and literature review.** The project began by identifying the research gap through a systematic literature review of cetacean distribution research in the Western Mediterranean (Section [lit-review]). This established the absence of design-based survey within the BGTW and defined the central research question, aims, and objectives.
+
+**2. Survey design.** A distance-sampling survey was designed to address this gap. Candidate designs were generated and evaluated in R using the `dssd` package, the study area was stratified, and field protocols, data sheets, and observer guidelines were prepared. A vessel-based pilot study was conducted to implement and improve the field protocol.  Ethical approval was obtained at this stage.
+
+**3. Design revision.** When the intended vessel could not be deployed within the field-season window, the design was revised mid-project from vessel-based line transects to a land-based, point-transect design across the same strata (see @sec-revision).
+
+**4. Data collection.** Systematic land-based observations were conducted from three vantage points, with opportunistic photographic identification collected alongside. Environmental conditions and effort were recorded for every watch.
+
+**5. Data processing and quality control.** Field data sheets were imported through an automated cleaning pipeline in R (see @sec-pipeline), which applied validation checks and derived sighting positions from reticle readings and bearings.
+
+**6. Analysis.** Processed data were analysed in stages: encounter-rate comparison, detection-function fitting and density estimation, kernel density estimation, and comparison against opportunistic OBIS records.
+
+**7. Reporting.** Results were synthesised into this supplementary document and the accompanying journal article, with all analytical code version-controlled and publicly available ([GitHub](https://github.com/datsimon-design/Masters_Project)).
+
+Although presented sequentially, the process was iterative: the analytical pipeline was developed in parallel with data collection so that analysis could begin immediately after fieldwork, and the mid-project design revision (step 3) fed back into data collection and analysis. This parallel working provided the schedule slack that absorbed the vessel delay without compromising delivery.
 
 ![Flowchart of the research process, from initial planning and survey design through data collection, analysis, and reporting of results.](/misc/research_process_flowchart.png){height=70% #fig-rp-flowchart}
 
-A detailed Gantt chart (@fig-gantt) was developed at the proposal stage to schedule work packages against the fixed submission timeline. The schedule was deliberately layered, with literature review, methods development, and analysis preparation running in parallel with the field season rather than sequentially after it. This overlap provided the slack that absorbed the delay to vessel availability, so that the loss of vessel-based sampling did not propagate into a delay in delivery.
 
-![Detailed project Gantt chart, illustrating the layering and parallel scheduling of tasks across the project phases.](/misc/gannt_chart.png){#fig-gantt}
+A detailed Gantt chart was developed at the proposal stage to schedule work packages against the fixed submission timeline (@fig-gantt-planned). The schedule was deliberately layered, with the literature review, methods development, and analysis-pipeline preparation running in parallel with the field season rather than sequentially after it. This overlap was a deliberate risk-management measure, building slack into the timeline against the possibility of field-season disruption. That slack proved decisive: when vessel availability delayed the start of fieldwork, the realised schedule (@fig-gantt-actual) departed from the plan by only a single week, and because the analytical workflow was already in development the delay did not propagate into the downstream analysis or reporting phases. The close correspondence between the planned and realised timelines reflects both the layered design and the containment of the vessel delay to the data-collection phase.
 
-## Distance Sampling
+![Planned project Gantt chart, developed at the proposal stage, showing the intended scheduling of work packages against the fixed submission timeline. Tasks were deliberately layered, with literature review, methods development, and analysis preparation running in parallel with the field season.](/misc/gannt_planned.png){#fig-gantt-planned}
+
+![Realised project Gantt chart, showing the actual timeline. The one-week delay to fieldwork caused by vessel availability is the only substantive departure from the planned schedule (@fig-gantt-planned), and did not propagate into the analysis or reporting phases.](/misc/gannt_actual.png){#fig-gantt-actual}
+
+
+## Data collection
+### Underlying Principal - Distance Sampling
 Distance sampling is a widely established and rigorously validated methodology for the systematic estimation of animal abundance and distribution [@bucklandDistanceSamplingMethods2015; @bucklandIntroductionDistanceSampling2001]. The method is based on the principle that the probability of detecting an animal decreases with increasing distance from the observer, by modelling this detection probability, approximately unbiased estimates of population density can be derived under the method's assumptions [@bucklandDistanceSamplingMethods2015; @bucklandIntroductionDistanceSampling2001; @thomasDistanceSoftwareDesign2010]. Since its formalisation, distance sampling has been successfully adapted across a broad range of terrestrial, aerial, and aquatic survey contexts, demonstrating considerable methodological flexibility [@dawsonDesignFieldMethods2008; @dickUsingDistanceSampling2011a; @bucklandDistanceSamplingMethods2015].
 
 Within the field of marine mammal science, distance sampling has become one of the most frequently applied methods for estimating cetacean abundance and distribution [@dickUsingDistanceSampling2011a; @gnoneCetaceansMediterraneanSea2023; @raudinoAerialAbundanceEstimates2023], forming the basis of large-scale systematic surveys conducted by organisations including the `#gls("iwc")`{=typst}, `#gls("accobams")`{=typst} and `#gls("noaa")`{=typst} [@AbundanceCetaceansCalifornia; @macleodAbundanceAtlanticWhitesided2004; @stephanisSummerSpatialDistribution2008]. Shipboard line transect surveys, in particular, have been employed extensively to monitor cetacean populations across a range of geographic scales, from oceanic basins to coastal and riverine habitats [@AbundanceCetaceansCalifornia; @lerczakCalculatingSightingDistances1998; @dawsonDesignFieldMethods2008; @dickUsingDistanceSampling2011a; @gnoneCetaceansMediterraneanSea2023; @thomasDistanceSoftwareDesign2010]. 
 
-
-## Survey design
+<!-- Give a rational why the method was implemented like this -->
+### Boat-based - Survey design
 The study was originally designed as a vessel-based line-transect survey — the first dedicated systematic cetacean survey within the `#gls("bgtw")`{=typst} — following established distance-sampling methodology [@bucklandIntroductionDistanceSampling2001; @thomasDesigningLineTransect2023]. Although logistical constraints ultimately required a shift to land-based sampling, the strata defined during this design were retained for the land-based survey, and the proposed design is therefore described here.
 
 To meet the basic assumptions for a good survey design mentioned by Thomas et al. [-@thomasDesigningLineTransect2023] the starting point of the survey was chosen randomly using a random seed for every transect design within the `dssd` package [@marshallDssdDistanceSampling2025]. To minimise the time travelling between survey legs (off-effort time) an equal spaced zigzag design was chosen. The zigzag design was laid out so there are only a minimal number of apexes, to avoid biases caused by responsive movement of the species [@dawsonDesignFieldMethods2008].
@@ -35,19 +54,19 @@ By comparing systematic outputs against existing opportunistic datasets (OBIS, h
 
 
 
-## Photo Identification (Photo-ID)
+### Photo Identification (Photo-ID)
 Alongside the systematic distance-sampling data, opportunistic photo identification data were collected, to further assess species composition and distribution within the `#gls("bgtw")`{=typst}. Small cetaceans, such as short-beaked common dolphins (*Delphinus delphis*), striped dolphins (*Stenella coeruleoalba*) and bottlenose dolphins (*Tursiops truncatus*) are the most commonly encountered species in the `#gls("bgtw")`{=typst} [@canales-caceresDistributionBehaviourStriped2023; @gnoneCetaceansMediterraneanSea2023; @olaya-ponzonePhotoIdentificationCatalogueDelphinus2025; @olaya-ponzoneMixedspeciesDolphinGroups2025; @olaya-ponzoneSpatioTemporalPatternsLimited2026; @olaya-ponzoneVesselInducedBehavioural2025]. 
 Because of the expected species in this region, the method to capture `#gls("pid")`{=typst} was therefore adapted and applied to small cetaceans [@wuersigMethodsPhotoidentificationSmall1990; @roselPhotoidentificationCapturemarkrecaptureTechniques2011].
 
 Images were captured using a Canon EOS R50 with a Canon 100–400 mm telephoto lens, following a protocol (@app-protocol) modified to incorporate `#gls("pid")`{=typst} best practice [@roselPhotoidentificationCapturemarkrecaptureTechniques2011; @karczmarskiIndividualIdentificationPhotographic2022]. Photo-ID records were organised, filtered, ranked, and matched across encounters using the DISCOVERY software [@chanApplicationMultispeciesPhotoID2022; @chanIndoPacificHumpbackDolphins2017; @chanUnknownComponentWellknown2022], which supports the creation and maintenance of individual identification catalogues. Photo-ID outputs are provided as supplementary material (@app-photoid).
 
-## Design revision{#revision .unnumbered}
+### Design revision{#sec-revision}
 The study was originally designed and proposed as a vessel-based line-transect survey . However, the intended university research vessel could not be launched within the field-season window, as arrangements for its transport and craning into the marina were not completed in time. Despite the university's repeated assertions, both in the project planning, the proposal phase and in subsequent updates, that the vessel would be made available, this has not been the case. In consultation with the project supervisor, continued delay was judged unfeasible given the fixed timeframe, and the survey was consequently revised to a land-based station design covering the same three strata.
 
 This revision has two consequences for interpretation. First, the land-based stations sampled only part of the `#gls("bgtw")`{=typst}, so density and distribution estimates represent the surveyed sectors rather than the territory as a whole. Second, the change from randomly placed transects to fixed observation points alters the sampling geometry from line- to point-transect distance sampling, with implications addressed in the Discussion (see [limitations](#limits)).
 
 
-## Land-based Survey
+### Land-based Survey
 Following the logistical constraints described above, land-based cetacean surveys represent a viable and cost-effective alternative to the more expensive vessel-based surveys. The utilisation of vantage points facilitates a more profound interpretation of the observed behaviour. The behaviour state was defined using an adaptation of Neumann and Orams [-@neumannBehaviourEcologyCommon] and Hawkins and Gartside [-@hawkinsInteractiveBehavioursBottlenose2009] (Travelling, Milling, Foraging, Socialising, and Resting) (@tbl-behave). In the context of behavioural studies, land-based surveys have been a particularly effective method of data collection, as they do not influence the behaviour of cetaceans or introduce bias via the survey vessel [@mannBehavioralSamplingMethods1999].
 
 
@@ -80,7 +99,7 @@ Observations were carried out both with the naked eye and using binoculars (Fuji
 
 
 
-## Data Cleaning
+## Data Cleaning{#sec-pipeline}
 To streamline data handling and ensure reproducibility, a data-cleaning pipeline was implemented in R [@zotero-item-2907]. The pipeline automatically imported the field data sheets and applied a set of quality-control checks, validation rules that halt execution when a record violates a predefined criterion, prior to any downstream processing. Custom functions then derived sighting distances from the recorded reticle readings and bearings (see Distance calculation, @app-disR), yielding a cleaned dataset for subsequent analysis.
 
 
@@ -125,7 +144,7 @@ Because the resulting surface is a normalised probability density (integrating t
 ### Comparison with opportunistic records
 To evaluate the systematic survey against existing opportunistic data, occurrence records of *Delphinus delphis* were retrieved from the `#gls("obis")`{=typst} ([OBIS Mapper](https://mapper.obis.org/)) using the `robis` package [@provoostRobisOceanBiodiversity2022], constrained to a bounding box encompassing the study area (-5.438/-5.248; 36.05/36.195). Records lacking coordinates were excluded, and the remainder were projected to CRS 4326 and assigned to survey sectors by spatial intersection with the stratum polygons. The spatial distribution of opportunistic records was then compared with that of the systematic on-effort sightings, both visually (@fig-obis) and by tabulating record counts per sector (@tbl-obis_comp). Because opportunistic records carry no associated survey effort, the comparison was restricted to spatial coverage and was not interpreted in terms of relative abundance.
 
-### Ethics statement
+## Ethics statement
 This study was carried out under the University of Gibraltar approval, Ethics ID: 259/2026/UniGib.
 
 

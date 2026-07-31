@@ -100,30 +100,35 @@
   show figure.where(kind: "quarto-float-app"): set block(breakable: true)
   show figure.where(kind: "quarto-float-app"): set align(left)
 
+
+  //show link: set text(fill: rgb("#4A8797"))
   show link: it => {
-  if it.dest.starts-with("http") {
-    set text(fill: rgb("#4A8797"))
+  if type(it.dest) == str {
+    text(fill: rgb("#4A8797"), it)   // external URL
+    } else {
+    it                                // internal ref/label — leave default
+    }
   }
-  it
-  }
+    
 
 
   //Add the S prefic to fig and table, remove for journal article
   show figure.where(kind: "quarto-float-fig"): set figure(numbering: (..n) => "S" + str(n.at(-1)))
   show figure.where(kind: "quarto-float-tbl"): set figure(numbering: (..n) => "S" + str(n.at(-1)))
 
+    
+
   show table: it => {
   set text(size: 9pt)
   set par(leading: 0.65em, spacing: 0.65em)
-  it
+  block(stroke: (y: 0.7pt), it)   // (y:) = top AND bottom of the whole table
   }
+
   set table(
   stroke: (x, y) => (
-    top: if y == 0 { 0.7pt }        // rule above the header
-         else if y == 1 { 0.4pt }   // rule below the header
-         else { 0pt },              // no inter-row lines
+    top: if y == 1 { 0.4pt } else { 0pt },   // rule below the header only
   ),
-)
+  )
 
 
   body

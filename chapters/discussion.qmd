@@ -93,7 +93,6 @@ This study provides the first systematic, effort-corrected assessment of cetacea
 ]
 
 ```
----
 
 ```{=typst}
 #[

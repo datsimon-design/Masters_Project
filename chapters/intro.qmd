@@ -21,10 +21,8 @@ The central question this study addresses is: *What is the spatial distribution,
 **Aim 2** - Evaluate the difference in outputs between systematic and opportunistic survey approaches within the BGTW.  
 *Objective 2:* Compile opportunistic *Delphinus delphis* records from OBIS and compare their spatial distribution against the systematic sightings.
 
-**Aim 3** - Supplement the systematic survey with opportunistic photographic identification of cetaceans present within the BGTW.  
-*Objective 3:* Collect photo-identification images opportunistically during survey effort to support species assessment.
 
-**Aim 4** - Critically assess the adequacy of existing conservation and management measures for cetaceans in the BGTW and propose evidence-based recommendations.  
+**Aim 3** - Critically assess the adequacy of existing conservation and management measures for cetaceans in the BGTW and propose evidence-based recommendations.  
 *Objective 4:* Synthesise the findings of Aims 1-3 into evidence-based conservation recommendations for the territory.
 
 
@@ -43,23 +41,14 @@ A systematic review was conducted to provide an overview of the current research
 \ 
 ```
 
-The search returned 51,180 records. Because Google Scholar returns results in relevance-ranked order and does not permit bulk export, the first 2,342 records were screened against the relevance matrix (@tbl-relevance, @tbl-incl). Following the PRISMA framework (@fig-prisma), 104 publications were retained.
+Utilising the PRISMA approach provides a structured process for identifying, screening, assessing eligibility, and including relevant publications while ensuring transparency and reproducibility of the literature selection process. Publications were assessed against predefined inclusion criteria related to survey method, focal species, and geographic extent. The overall selection process is summarised in the PRISMA flow diagram (@fig-prisma).
 
-Records were screened by method and species and scored using the relevance matrix, with publications scoring three or above retained for full screening. Further publications were identified by searching the reference lists of retained papers (snowballing). Retained publications were then screened for the survey method, focal species, and geographic extent.
 
 ![The PRISMA framework was used to systematically decide if publications fit the criteria and should be included in the final dissertation.](figures/litreview/prisma.png){#fig-prisma}
 
-A screening of records was conducted to identify methods and species, and these were then scored using the relevance matrix (@tbl-relevance, @tbl-incl). Papers with scores of three or more were retained for further screening. A further series of publications was obtained through a comprehensive search of the reference lists of returned papers. The final papers were screened specifically for the method used, the species, and the area extent.
+A screening of records was conducted to identify methods and species, and these were then scored using the relevance matrix (@tbl-incl, @tbl-relevance). Papers with scores of three or more were retained for further screening. A further series of publications was obtained through a comprehensive search of the reference lists of returned papers. The final papers were screened specifically for the method used, the species, and the area extent.
 
-| **Score** | **Method** | **Species** | **Study Area** | **State of the Art** | **Outcome** |
-|:-----:|:------:|:-------:|:----------:|:----------------:|:--------|
-| 1 | ✗ | ✗ | ✗ | ✗ | Excluded |
-| 2 | ✓ | ✗ | ✗ | ✗ | Excluded |
-| 3 | ✓ | ✓ | ✗ | ✗ | Retained |
-| 4 | ✓ | ✓ | ✓ | ✗ | Retained |
-| 5 | ✓ | ✓ | ✓ | ✓ | Retained – fits all criteria |
-
-: Relevance scoring matrix used to screen publications. Criteria are applied cumulatively, such that a higher score requires all lower-ranked criteria to also be met. Publications scoring three or above were retained for further screening. {#tbl-relevance tbl-colwidths="[8,12,12,14,20,34]"}
+The search returned 51,180 records. Because Google Scholar returns results in relevance-ranked order and does not permit bulk export, the first 2,342 records were screened against the relevance matrix (@tbl-incl, @tbl-relevance). Following the PRISMA framework (@fig-prisma), 104 publications were retained (see Excel Workbook for full details).
 
 | Criterion | Description | 
 |:-------|:------|
@@ -71,15 +60,33 @@ A screening of records was conducted to identify methods and species, and these 
 : Inclusion criteria applied at each level of the relevance matrix. {#tbl-incl tbl-colwidths="[20,80]"}
 
 
+| **Score** | **Method** | **Species** | **Study Area** | **State of the Art** | **Outcome** |
+|:-----:|:------:|:-------:|:----------:|:----------------:|:--------|
+| 1 | ✗ | ✗ | ✗ | ✗ | Excluded |
+| 2 | ✓ | ✗ | ✗ | ✗ | Excluded |
+| 3 | ✓ | ✓ | ✗ | ✗ | Retained |
+| 4 | ✓ | ✓ | ✓ | ✗ | Retained |
+| 5 | ✓ | ✓ | ✓ | ✓ | Retained – fits all criteria |
+
+: Relevance scoring matrix used to screen publications. Criteria are applied cumulatively, such that a higher score requires all lower-ranked criteria to also be met. Publications scoring three or above were retained for further screening. {#tbl-relevance tbl-colwidths="[8,12,12,14,20,34]"}
+
+
 ### Synthesis Review
 **Geographic distribution of effort.** Among the 58 records assignable to a Mediterranean subregion, the Western Mediterranean was most frequently represented (n = 22), ahead of Mediterranean-wide studies (n = 14) and the Northwestern Mediterranean (n = 13), with comparatively little work in the eastern basin (Eastern and Northeastern Mediterranean, n = 5 and n = 4, respectively, @fig-lit_map). This concentration partly reflects the search terms, but is consistent with a genuine regional research focus driven by the Alboran Sea's recognised importance for the focal species [@canadasModelbasedAbundanceEstimates2023; @arcangeliTestingIndicatorsTrend2023; @panigadaACCOBAMSSurveyInitiative2024]. This effort is dominated by regional- and basin-scale designs. Fine-scale, design-based coverage of the Bay of Gibraltar and `#gls("bgtw")`{=typst} sector is largely absent, reinforcing the gap this study addresses.
 
+### Synthesis Review
+**Global context and scope.** Land-based and shore-based distance sampling has been applied to cetaceans in a range of settings worldwide, particularly in enclosed or coastal waters where vessel-based survey is impractical or costly—for example [@raudinoAerialAbundanceEstimates2023; @giacomaAreLandBased2013; @keenDeterminingMarineMammal2020]. These studies establish the method's applicability to precisely the survey conditions encountered here: fixed elevated vantage points overlooking bounded coastal waters with high vessel traffic. The methodological transferability is therefore not in question; rather, the contribution of the present study is *geographic*. Because the aim was to address a specific spatial gap in the Mediterranean, and within it the British Gibraltar Territorial Waters, the review was scoped to the Mediterranean basin to characterise where design-based survey effort has and has not been directed.
+
+**Geographic distribution of effort.** Within the Mediterranean, research effort is markedly uneven. Among the 58 records assignable to a subregion, the Western Mediterranean was most frequently represented (n = 22), ahead of Mediterranean-wide studies (n = 14) and the Northwestern Mediterranean (n = 13), with comparatively little work in the eastern basin (Eastern and Northeastern Mediterranean, n = 5 and n = 4, respectively; @fig-lit_map). This concentration partly reflects the search terms, but is consistent with a genuine regional research focus driven by the Alboran Sea's recognised importance for the focal species [@canadasModelbasedAbundanceEstimates2023; @arcangeliTestingIndicatorsTrend2023; @panigadaACCOBAMSSurveyInitiative2024]. Crucially, however, this effort is dominated by regional- and basin-scale designs[@panigadaACCOBAMSSurveyInitiative2024; @OBISMapper]: fine-scale, design-based coverage of the BGTW, specifically the eastern sector is largely absent [@olaya-ponzoneVesselInducedBehavioural2025; @olaya-ponzoneSpatioTemporalPatternsLimited2026]. The geographic gap this study addresses therefore sits within an otherwise well-studied region, not a data-poor basin, but a specific, bounded, and heavily utilised territory that broad-scale survey has passed over.
+
 ![The overview map provides a synoptic representation of the studies and the countries in which they were conducted. The focus map (inset) delineates the Mediterranean region into distinct subregions. WM: Western Mediterranean; NWM: Northwestern Mediterranean; NEM: Northeastern Mediterranean; EM: Eastern Mediterranean; M: Mediterranean not specified.](figures/litreview/world_combined.png){#fig-lit_map}
 
-**Taxonomic and methodological focus.** Research effort was concentrated on bottlenose dolphin (*Tursiops truncatus*), the most frequently studied single species (n = 21), followed by short-beaked common dolphin (*Delphinus delphis*, n = 10) and striped dolphin (*Stenella coeruleoalba*, n = 6). Striped and common dolphin also featured prominently within multi-species assemblage studies (@fig-lit_heat). Methodologically, line-transect distance sampling was the most common single approach, followed by photo-identification mark–recapture and spatial distribution modelling, with aerial line-transect surveys frequently combined with distance sampling. Land-based survey, by contrast, was applied in only a small number of studies. The combination of this methodological under-use with the absence of fine-scale coverage of the `#gls("bgtw")`{=typst} defines a two-fold gap, of method and of place, that the present study addresses.
+**Taxonomic and methodological focus.** Research effort was concentrated on bottlenose dolphin (*Tursiops truncatus*), the most frequently studied single species (n = 21), likely reflecting its coastal, resident distribution and comparatively large body size, which facilitate detection and repeated observation [@crespo-picazoBottlenoseDolphinsTursiops2021]. It was followed by short-beaked common dolphin (*Delphinus delphis*, n = 10), a focus plausibly driven by its Endangered status in the Mediterranean and consequent conservation priority [@IUCNUK20121RLTST134817215A195829089en1]. Followed by striped dolphin (*Stenella coeruleoalba*, n = 6), both striped and common dolphin also featured prominently within multi-species studies (@fig-lit_heat). Methodologically, line-transect distance sampling was the dominant approach (n = 99), followed by spatial distribution modelling (n = 53) and photo-identification mark–recapture (n = 34), with aerial line-transect surveys frequently combined with distance sampling. Land-based survey, by contrast, was applied in only a small number of studies. The combination of this methodological under-use with the absence of fine-scale coverage of the `#gls("bgtw")`{=typst} defines a two-fold gap—of method and of place—that the present study addresses.
 
 ![Species-by-method matrix quantifying the number of publications applying each survey method to each focal species. Species and methods were extracted from the papers compiled in the critical review.](figures/litreview/heatmap.png){#fig-lit_heat}
 
 **Temporal trend.** Publication output increased over the review period, from few studies before 2000 to a marked rise across 2015–2024, reflecting the growth of coordinated monitoring programmes and improvements in survey and analytical methods over this interval (@fig-time).
 
-![Number of retained publications by year of publication.](figures/litreview/histogram.png){#fig-time}
+**Temporal trend.** Publication output increased markedly over the review period, from few studies before 2000 to a pronounced rise across 2015–2024 (@fig-time). This growth reflects several converging drivers. Coordinated basin-scale monitoring programmes expanded over this interval, most notably the ACCOBAMS Survey Initiative, which delivered the first synoptic Mediterranean-wide cetacean survey and associated funding for regional effort [@panigadaACCOBAMSSurveyInitiative2024]. Rising conservation concern accompanied a succession of unfavourable IUCN reassessments for Mediterranean cetaceans over the same period—including the Endangered listing of the Mediterranean common dolphin [@IUCNUK20121RLTST134817215A195829089en1]. As well as the reclassification of the Mediterranean fin whale from Vulnerable to Endangered [@disciaraBalaenopteraPhysalusMediterranean], which sharpened the imperative for robust distribution and abundance data. Methodological and analytical advances contributed in parallel: the maturation of design-based distance-sampling software [@thomasDistanceSoftwareDesign2010; @millerDistanceSampling2019] and of spatial and habitat-based modelling approaches [@millerDistanceSampling2019] lowered the barrier to rigorous survey design and analysis. Together these trends indicate a field with growing capacity and urgency, yet—as the geographic and methodological distributions above show—one whose effort remains unevenly directed.
+
+![Temporal distribution of the 104 publications retained in the systematic review, by year of publication. Publication output rose markedly from around 2015, consistent with the expansion of coordinated Mediterranean monitoring programmes and increasing conservation attention over this period.](figures/litreview/histogram.png){#fig-time}

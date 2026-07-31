@@ -1,4 +1,4 @@
-## Appendix A: Surveying Protocol
+## Appendix A: Surveying Protocol{#sec-appA}
 :::{#app-protocol}
 
 ```{=typst}

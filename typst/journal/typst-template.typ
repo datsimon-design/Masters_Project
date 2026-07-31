@@ -198,15 +198,14 @@
   show table: it => {
   set text(size: 9pt)
   set par(leading: 0.65em, spacing: 0.65em)
-  it
+  block(stroke: (y: 0.7pt), it)   // (y:) = top AND bottom of the whole table
   }
+
   set table(
   stroke: (x, y) => (
-    top: if y == 0 { 0.7pt }        // rule above the header
-         else if y == 1 { 0.4pt }   // rule below the header
-         else { 0pt },              // no inter-row lines
+    top: if y == 1 { 0.4pt } else { 0pt },   // rule below the header only
   ),
-)
+  )
 
   body
 }
