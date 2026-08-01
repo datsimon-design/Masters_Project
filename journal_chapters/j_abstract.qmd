@@ -1,0 +1,22 @@
+
+```{=typst}
+#align(center)[
+  #block(
+    width: 85%,
+    inset: (x: 18pt, y: 14pt),
+    fill: rgb("#F1F6FA"),
+    radius: 5pt,
+    stroke: (left: 3pt + rgb("#2A6F7F")),
+  )[
+    #align(left)[
+      #set par(justify: true)
+
+```
+
+Your abstract text goes here.
+
+```{=typst}
+    ]
+  ]
+]
+```

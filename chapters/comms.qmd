@@ -2,11 +2,27 @@
 This website was created to provide an interactive platform to explore the data collected during the project phase. It includes an interactive sighting map and supplementary information about the recorded species. This website is aimed at an audience that sits between the lay audience, targeted by the advisory poster (@fig-poster), and the academic audience, targeted by the journal article. It provides a tool that can be easily understood and interacted with. It provides a more engaging way to interact with the spatial data collected in this study.  
 The website can be found under to following [link](https://simongendrisch.shinyapps.io/mastershiny/).
 
-::: {.callout-note appearance="minimal"}
-# Website link
-https://simongendrisch.shinyapps.io/mastershiny/
-:::
+```{=typst}
+#align(center)[
+  #block(
+    width: 85%,
+    inset: (x: 18pt, y: 14pt),
+    fill: rgb("#F1F6FA"),
+    radius: 5pt,
+    stroke: (left: 3pt + rgb("#2A6F7F")),
+  )[
+    #align(left)[
+      #set par(justify: true)
 
+```
+### Website Link {.unnumbered}
+https://simongendrisch.shinyapps.io/mastershiny/
+
+```{=typst}
+    ]
+  ]
+]
+```
 
 ## Advisory poster
 The idea behind the advisory poster came from what was seen in the field: a lot of boats were observed during the project that did not comply with the Cetacean Protocol implemented by the Department of the Environment [@2018Cetacean_Protocol]. This might be down to a lack of enforcement, but possibly also a lack of easily accessible information.
@@ -17,5 +33,5 @@ The poster is aimed at recreational boat owners and is meant to provide a simple
 
 ![Process of creating the advisory poster from sketch to first digital drafts.](/misc/infographic_sketch.jpg){#fig-sketch}
 
-![Final advisory poster, designed for a lay audience and to be hang up at marinas.](/misc/Infrographic_final.png){#fig-poster}
+![Final advisory poster, designed for a lay audience and to be hung up at marinas.](/misc/Infrographic_final.png){#fig-poster}
 

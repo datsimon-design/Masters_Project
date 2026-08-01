@@ -20,6 +20,8 @@ csl: "SoMESHarvard.csl"
 
 # Abstract{.unnumbered}
 
+{{< include ./journal_chapters/j_abstract.qmd >}}
+
 {{< pagebreak >}}
 
 # Introduction
