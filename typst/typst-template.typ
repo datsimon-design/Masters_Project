@@ -42,6 +42,15 @@
 
   #pagebreak()
 
+  #text(weight: "bold")[MSc Research Project licence 
+
+  This work has been deposited in the University of Gibraltar Parasol Library and Institutional Repository in line with University Regulations.  
+
+  Use of this work is licensed under a Creative Commons Attribution-Non commercial-No derivatives 4.0 International Licence (CC-BY-NC-ND).
+  ]
+
+  #pagebreak()
+
   ]
 
   

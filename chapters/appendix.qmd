@@ -26,14 +26,45 @@ Survey checklist created for this project and for future applications of this pr
 
 {{< pagebreak >}}
 
-## Appendix C: Photo-ID examples
+## Appendix C: Photo-ID examples{#app-photoid_sec}
+![Example of how nicks and notches were used to identify the same individual in different encounters.](/misc/indiv_match.png){#app-indivmatch}
+
 ![Matching process inside DISCOVERY within one encounter. The aim is to identify individual within one group and choose the best image of each individual in order to match it to the existing catalog.](/misc/photo_ID_match.png){#app-photoid}
 
 ![One individual in the photo-ID catalog. With the ID 10001 captured on the 8th of May 2026. This catalog can be used to match multiple individuals and refine the density and distribution results.](/misc/photo_ID_cat.png){#app-photo_cat}
 
 {{< pagebreak >}}
 
-## Appendix D: Distance calculations in R
+## Appendix D: R Script excerpts
+:::{#app-QCinR}
+```r
+# QC ---------------------------------------------------
+stopifnot(
+  "❗ Missing start time" = !any(is.na(detection$start_time)),
+  "❗ Missing date" = !any(is.na(detection$date)),
+  "❗ Missing transect ID" = !any(is.na(detection$transect_id))
+)
+
+if (any(is.na(detection$vert_angle) & is.na(detection$reticles)))
+   warning("⚠️  ", sum(is.na(detection$vert_angle) & is.na(detection$reticles)),
+     " rows missing both vert_angle AND reticles — distance cannot be calculated for those observations!")
+
+if (any(is.na(detection$POI)))
+  warning("⚠️  ", sum(is.na(detection$POI)),
+          " rows have missing POIs! Make sure to check if those were recorded!")
+
+cat("✅ Quality control checked!")
+
+Sys.sleep(3)
+
+```
+
+Example of quality control checks for missing values in the data import step in R. The script checks for missing information and stops the data cleaning process so that the user can validate the data before proceeding.
+
+:::
+
+
+
 ::: {#app-disR}
 ```r
 # Calculate Distance from reticles and observer height; factor needs to be adjusted for each binocular----------------
