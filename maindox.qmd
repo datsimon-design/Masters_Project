@@ -57,7 +57,7 @@ crossref:
 ```
 
 # Generative AI (GenAI) Use{.unnumbered}
-This is just a short test summary of how AI was used. See Declaration of Originality and use of Gen AI for more details.
+Generative AI was used to help with the structuring, and scientific writing of this work. It was also used to troubleshoot analysis and setup code. See [Declaration of Originality and use of Gen AI](#origin) for more details.
 
 # List of Content{.unnumbered}
 ```{=typst}
@@ -70,6 +70,15 @@ This is just a short test summary of how AI was used. See Declaration of Origina
   weight: "bold",
   size: 1.1em,
   )
+
+  #show outline.entry: it => link(
+  it.element.location(),
+  it.indented(none, {
+    let p = it.prefix()          // the formatted heading number, if any
+    if p != none { p; h(0.4em) } // run it in, with a small gap
+    it.inner()                    // title + fill + page
+  }),
+)
 
   #outline(
     title: []
@@ -99,6 +108,25 @@ This is just a short test summary of how AI was used. See Declaration of Origina
 
 # List of Appendices{.unnumbered}
 ```{=typst}
+#show outline.entry: it => context {
+  let el = it.element
+  let is-app = el.func() == figure and el.at("kind", default: none) == "quarto-float-app"
+
+  if is-app {
+    let loc = el.location()
+    let prefix = {
+      [Appendix ]
+      numbering("A", counter(heading).at(loc).at(1, default: 1))
+      "."
+      str(counter(figure.where(kind: "quarto-float-app")).at(loc).first())
+      [.]
+    }
+    link(loc, it.indented(prefix, it.inner()))
+  } else {
+    link(el.location(), it.indented(it.prefix(), it.inner()))
+  }
+}
+
 #outline(
   title: [],
   target: figure.where(kind: "quarto-float-app"),
@@ -201,13 +229,13 @@ This is just a short test summary of how AI was used. See Declaration of Origina
     #grid(
       columns: (1fr, auto),
       align: (bottom + left, bottom + right),
-      text(weight: "bold", size: 12pt)[C1.1#h(0.6em)Declaration of Originality],
+      text(weight: "bold", size: 12pt)[C1.1#h(0.6em)Declaration of Originality / Use of Gen AI],
       image("/misc/Logo-Red-Crest-Side.png", width: 3cm),
     )
     #v(-4pt)
     #line(length: 100%, stroke: 0.5pt + gray)
   ],
-  )[  #heading(level: 1)[Declaration of Originality / Use of Gen AI]
+  )[  #heading(level: 1)[Declaration of Originality / Use of Gen AI]<origin>
       #let decl_title  = doc_title
       //#let decl_title  = "Test Title"
       #let decl_author = doc_authors.at(0)
@@ -288,14 +316,21 @@ This is just a short test summary of how AI was used. See Declaration of Origina
       decl_head[Use of Generative Artificial Intelligence (AI)],
       decl_cell[I used AI as follows: \ \ 
                 *ChatGPT:* \ 
-                - Used for troubleshooting of code
+                - Used for troubleshooting of analysis R code
+                - Help to understand Typst and Quarto Code 
                 - Spellchecking of the document
                 - Used to make the paragraphs sound "scientific" and cohesive
                 \ 
                 *Claude:* \ 
                 - Troubleshooting of code
+                - Help to understand Typst and Quarto Code 
                 - Providing a useful and comprehensive structure of the journal article
                 - Used to make the paragraphs sound "scientific" and cohesive
+                \ 
+                *Grammarly:* \ 
+                - Spell and Grammar Check
+                \ 
+                AI *was not* used to create the Interactive Website or the Advisory Poster.
 
       
       ],

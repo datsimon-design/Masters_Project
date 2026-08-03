@@ -78,6 +78,8 @@
 
   set heading(numbering: "1.")
 
+  set math.equation(numbering: "(1)")
+
 
   
 
@@ -106,8 +108,22 @@
 
   show figure.where(kind: image): set figure.caption(position: bottom)
 
+
+  // Appendix Styling
   show figure.where(kind: "quarto-float-app"): set block(breakable: true)
   show figure.where(kind: "quarto-float-app"): set align(left)
+
+  show heading.where(level: 2): it => {
+  counter(figure.where(kind: "quarto-float-app")).update(0)
+  it
+  }
+
+  // number app-floats as <appendix letter>.<index within appendix>: A.1, A.2, B.1 …
+  show figure.where(kind: "quarto-float-app"): set figure(numbering: n => context {
+    numbering("A", counter(heading).get().at(1, default: 1))
+    "."
+    str(n)
+  })
 
 
   //show link: set text(fill: rgb("#4A8797"))

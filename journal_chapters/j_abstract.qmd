@@ -13,7 +13,9 @@
 
 ```
 
-Your abstract text goes here.
+Cetaceans are often regarded as indicator species, their spatial distribution and abundance is essential for understanding the ecosystem they live in. Land-based distance sampling is cost-effective and easy to implement method that allows reproducible and unbiased assessment of species composition, density and abundance estimates. This study implements a land-based distance sampling approach. So far there has been no implementation of such assessment within the waters surrounding Gibraltar. This study provides a baseline framework of a cost-effective method to provide unbiased spatial distribution estimates of key indicator species from land-based vantage points. This study found a spatial concentration of common dolphins (*Delphinus delphis*) around the southern tip of the Gibraltar peninsula. 
+
+IMMA implementations
 
 ```{=typst}
     ]
