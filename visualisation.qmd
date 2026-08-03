@@ -1699,9 +1699,15 @@ pool_sectors_m2$area_m2 <- as.numeric(st_area(pool_sectors_m2))
 sectors_m2 <- as.data.frame(sectors_m2) %>% 
   select(-geometry) %>% 
   rename("Region.Label" = name)
+sectors_m2 <- left_join(sectors_m2, clean_names, by = c("Region.Label" = "spot_name")) %>% 
+  select("Region.Label" = spot_clean, area_m2)
+
+
 pool_sectors_m2 <- as.data.frame(pool_sectors_m2) %>% 
   select(-geometry) %>% 
   rename("Region.Label" = name)
+pool_sectors_m2 <- left_join(pool_sectors_m2, clean_names, by = c("Region.Label" = "spot_name")) %>% 
+  select("Region.Label" = spot_clean, area_m2)
 
 sight <- data %>% 
   filter(on_effort == TRUE) %>% 
@@ -1709,6 +1715,8 @@ sight <- data %>%
   filter(species %in% c("common_dolphin", "delphinidae")) %>% 
   transmute(survey_id, distance, size = group_size, species)
   
+
+effort_log <- left_join(effort_log, clean_names, by = c("spot_name" = "spot_name"))
 
 eff <- effort_log %>% 
   mutate(date = dmy(date)) %>% 
@@ -1718,7 +1726,7 @@ eff <- effort_log %>%
   select(-geometry)%>% 
   filter(spot_name %in% active_spots$spot_name) %>% 
   mutate(Effort = sector_deg/360) %>% 
-  select("Region.Label" = spot_name,
+  select("Region.Label" = spot_clean,
          "Sample.Label" = survey_id,
          "height" = observer_height,
          Effort,
@@ -1733,7 +1741,7 @@ pool_eff <- effort_log %>%
   select(-geometry)%>% 
   filter(spot_name %in% active_spots$spot_name) %>% 
   mutate(Effort = sector_deg/360) %>% 
-  select("Region.Label" = spot_name,
+  select("Region.Label" = spot_clean,
          "Sample.Label" = survey_id,
          "height" = observer_height,
          Effort,
@@ -1765,7 +1773,7 @@ pool_dis$object <- NA_integer_
 pool_dis$object[!is.na(dis$distance)] <- seq_len(sum(!is.na(dis$distance)))
 
 saveRDS(pool_dis, "./temp/pool_dis.rds")
-saveRDS(dis, "./temp/pool_dis.rds")
+saveRDS(dis, "./temp/dis.rds")
 
 ```
 

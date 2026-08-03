@@ -502,7 +502,7 @@ dis <- readRDS(here("temp", "dis.rds"))
 
 
 # Europa Point ------
-europa <- dis %>% filter(Region.Label == "Europa")
+europa <- dis %>% filter(Region.Label == "Europa Point")
 
 eu.hn <- ds(data=europa %>% filter(!is.na(size)), key="hn", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=4500)
@@ -534,7 +534,7 @@ model_europa <- summarize_ds_models(eu.hn, eu.hr, eu.gl, eu.ss, eu.wh, eu.ws, ou
 bf.europa <- summary(eu.ss)
 
 # Sandy Bay ------
-sandy <- dis %>% filter(Region.Label == "SandyBay")
+sandy <- dis %>% filter(Region.Label == "Sandy Bay")
 
 sb.hn <- ds(data=sandy %>% filter(!is.na(size)), key="hn", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=12000)
@@ -566,7 +566,7 @@ model_sandy <- summarize_ds_models(sb.hn, sb.hr, sb.gl, sb.ss, sb.wh, sb.ws, out
 bf.sandy <- summary(sb.hr)
 
 # Prince George ------
-prince <- dis %>% filter(Region.Label == "PrinceGeorge")
+prince <- dis %>% filter(Region.Label == "Prince George")
 
 pg.hn <- ds(data=prince %>% filter(!is.na(size)), key="hn", adjustment= NULL,
               transect="point", convert_units=conversion.factor, truncation=8000)
@@ -677,9 +677,9 @@ names(pool_abun_tbl) <- c("Station", "n of Groups",
  #|include: false
 
 d.models <- list(
-  PrinceGeorge = bf.prince,
-  Europa       = bf.europa,
-  SandyBay     = bf.sandy
+  "Prince George" = bf.prince,
+  "Europa Point"       = bf.europa,
+  "Sandy Bay"     = bf.sandy
 )
 
 extract_model <- function(model, station){
@@ -910,7 +910,7 @@ pg.AIC %>%
 
 
 ### Per Station Fitting
-The covariates sea state, glare, wind speed and wave height were tested individually with the best-fitting detection function. Owing to the small sample size, only one covariate was included at a time, as the data were insufficient to support models containing multiple covariates. Model selection was performed separately for each sampling location based on `#gls("aic")`{=typst}, with the model yielding the lowest `#gls("aic")`{=typst} selected as the best-fitting detection function. Goodness-of-fit tests did not reveal any significant lack of fit for the fitted detection functions. Three separate model selection tables were produced, one for each sampling location: Europa Point (@tbl-model_europa), Sandy Bay (@tbl-model_sandy), and Prince George (@tbl-model_prince). The inclusion of covariates resulted in only minor improvements in model fit at Sandy Bay and Prince George (@tbl-model_sandy; @tbl-model_prince), whereas greater differences in AIC were observed among the candidate models at Europa Point (@tbl-model_europa).
+The covariates sea state, glare, wind speed and wave height were tested individually with the best-fitting detection function. Owing to the small sample size, only one covariate was included at a time, as the data were insufficient to support models containing multiple covariates. Model selection was performed separately for each sampling location based on `#gls("aic")`{=typst}, with the model yielding the lowest `#gls("aic")`{=typst} selected as the best-fitting detection function. Goodness-of-fit tests did not reveal any significant lack of fit for the fitted detection functions. Three separate model selection tables were produced, one for each sampling location: Europa Point (@tbl-model_europa), Sandy Bay (@tbl-model_sandy), and Prince George (@tbl-model_prince). The inclusion of covariates resulted in only minor improvements in model fit at Sandy Bay and Prince George (@tbl-model_sandy, @tbl-model_prince), whereas greater differences in AIC were observed among the candidate models at Europa Point (@tbl-model_europa).
 
 
 ```{r}
@@ -1019,7 +1019,7 @@ tt(abun_tbl,
 The detection-corrected density gradient confirmed earlier findings (@fig-SPUE) of higher SPUE at Europa Point compared to the other vantage points.
 
 ### Pooled estimates
-For the pooled detection function, the highest group abundance estimate was also observed in the southern sector, with `r round(pool_abun_tbl[[3]][1], 2)` groups. Similarly, the highest individual abundance estimate occurred in the southern sector, with `r round(pool_abun_tbl[[8]][1], 2)` individuals (@tbl-pool_abun).
+For the pooled detection function, the highest group abundance estimate was also observed in the southern sector, with `r round(pool_abun_tbl[[3]][1], 0)` groups. Similarly, the highest individual abundance estimate occurred in the southern sector, with `r round(pool_abun_tbl[[8]][1], 0)` individuals (@tbl-pool_abun).
 
 ```{r}
 #| label: tbl-pool_abun

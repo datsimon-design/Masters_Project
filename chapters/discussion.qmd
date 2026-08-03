@@ -59,6 +59,7 @@ Finally, land-based distance sampling has rarely been adapted to small cetaceans
 # Conclusion
 This study provides the first systematic, effort-corrected assessment of cetacean distribution and relative density within the `#gls("bgtw")`{=typst}. The delphinid assemblage was dominated by short-beaked common dolphin, and occurrence was spatially structured, concentrating at the southern tip of the peninsula. Encounter rates further revealed an eastern sector that is both ecologically notable and almost absent from the existing opportunistic record. Comparison with opportunistic data confirmed that the existing record is spatially biased and cannot substitute for design-based survey. While the land-based design carries clear constraints—partial spatial coverage, sample-size limits, and detectability biases toward larger, conspicuous animals-it delivers a reproducible, low-cost framework that opportunistic recording alone cannot provide. Observed non-compliance with existing vessel protocols indicates that current protection is limited by implementation rather than legislation. The resulting estimates establish a provisional baseline for a data-poor `#gls("imma")`{=typst} under significant and increasing anthropogenic pressure. Continued systematic survey across multiple seasons, integrated with photo-identification and environmental covariates, is strongly recommended to determine whether these spatial patterns persist and to support spatially targeted management.
 
+{{< pagebreak >}}
 
 # SWOT Analysis
 

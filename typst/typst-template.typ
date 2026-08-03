@@ -111,6 +111,7 @@
 
 
   //show link: set text(fill: rgb("#4A8797"))
+  
   show link: it => {
   if type(it.dest) == str {
     text(fill: rgb("#4A8797"), it)   // external URL

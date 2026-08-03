@@ -44,6 +44,7 @@ crossref:
   (key: "cv", short: "CV", long: "Coefficient of Variance"),
   (key: "imma", short: "IMMA", long: "Important Marine Mammal Area"),
   (key: "accobams", short: "ACCOBAMS", long: "Agreement on the Conservation of Cetaceans of the Black Sea, Mediterranean Sea and contiguous Atlantic area"),
+  (key: "wgs", short: "WGS", long: "World Geodetic System"),
 )
 #register-glossary(abbreviations)
 ```
