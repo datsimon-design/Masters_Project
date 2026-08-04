@@ -2,7 +2,7 @@
 ```{=typst}
 #align(center)[
   #block(
-    width: 85%,
+    width: 110%,
     inset: (x: 18pt, y: 14pt),
     fill: rgb("#F1F6FA"),
     radius: 5pt,
@@ -10,12 +10,13 @@
   )[
     #align(left)[
       #set par(justify: true)
+      #set par(leading: 0.7em)
+      #set text(font: "Source Sans 3", size: 11pt)
 
 ```
 
-Cetaceans are often regarded as indicator species, their spatial distribution and abundance is essential for understanding the ecosystem they live in. Land-based distance sampling is cost-effective and easy to implement method that allows reproducible and unbiased assessment of species composition, density and abundance estimates. This study implements a land-based distance sampling approach. So far there has been no implementation of such assessment within the waters surrounding Gibraltar. This study provides a baseline framework of a cost-effective method to provide unbiased spatial distribution estimates of key indicator species from land-based vantage points. This study found a spatial concentration of common dolphins (*Delphinus delphis*) around the southern tip of the Gibraltar peninsula. 
+Cetaceans are widely regarded as indicator species; their spatial distribution and abundance are essential for understanding the ecosystem they live in. The waters around Gibraltar lie within a designated Important Marine Mammal Area (IMMA) at the Atlantic–Mediterranean boundary, yet no systematic assessment of cetacean distribution exists there. This study implements land-based distance sampling, a cost-effective, reproducible method adapted for fixed observation stations, in order to estimate the species composition, spatial distribution, density, and abundance of cetaceans around Gibraltar. A total of 174 standardised 10-minute watches were completed, corresponding to 27 hours of on-effort observation, during which 126 cetacean sightings were recorded. The highest density of common dolphins (*Delphinus delphis*) occurred in the southern sector, off the southern tip of the peninsula, at 4.66 individuals per km² (95% CI: 2.81–7.73), with an estimated 546 individuals within the surveyed area (95% CI: 329–906). Estimated density in the southern sector was 19 times higher than the eastern sector and 15 times higher than the western sector. This concentration of dolphins in a heavily trafficked area raises significant conservation and management concerns, particularly as the Mediterranean common dolphin is classified as Endangered under the IUCN Red List. Systematic survey revealed a markedly different spatial distribution from opportunistic records, which concentrated along the western side of Gibraltar and largely under-represented the eastern waters. These findings highlight the need for systematic assessments in this undersampled area and targeted protection and management measures in areas of high dolphin density.
 
-IMMA implementations
 
 ```{=typst}
     ]

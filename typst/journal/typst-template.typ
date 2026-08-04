@@ -34,7 +34,7 @@
 
     #image("/typst/journal/Logo-Red-Crest-Side.png", width: 70%)
 
-    #v(10em)
+    #v(8em)
 
     #datetime.today().display("[month]/[year]")
 

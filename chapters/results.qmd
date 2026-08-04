@@ -790,14 +790,14 @@ trunc_sens <- purrr::map_dfr(w_grid, function(w) {
 
 <!-- remove dups from journal -->
 
-The following will expand on the results from the journal article.
+The following will expand on the results from the journal article, including the results from the two vessel surveys.
 
 ## Survey Results
 Overall, `r  full_sum$sightings` cetacean sightings were recorded between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`, point transect sampling was conducted including pilot studies and both vessel- and land-based surveys (@fig-totalmap). A total of two vessel-based surveys were conducted, accounting for `r spell_nr(full_source$boat)` of these sightings: `r spell_nr(boat_species$common_dolphin)` sightings of common dolphins (*Delphinus delphis*) and `r spell_nr(boat_species$striped_dolphin)` sightings of striped dolphins (*Stenella coeruleoalba*) and `r spell_nr(boat_species$delphinidae)` sighting where the species could not be identified. The group size for vessel-based sightings ranged from `r spell_nr(min(boat$group_size, na.rm = TRUE))` to `r spell_nr(max(boat$group_size, na.rm = TRUE))` (mean = `r round(mean(boat$group_size, na.rm = TRUE), 2)`, median = `r round(median(boat$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(boat$group_size, na.rm = TRUE), 2)`).
 
 ![Geographic location of cetacean sightings recorded from boat-based surveys (in squares) and land-based surveys (in circles) during this project period. Where n represents the number of sightings recorded using each method.](figures/method_map.png){#fig-totalmap}
 
-In total `r total_land$surveys` land-based surveys were conducted, resulting in `r round(sum(er$hours), 2)` total on-effort hours and 58 off-effort hours over `r length(unique(effort$date))` survey days. `r length(data$survey_id)` cetacean sightings were recorded in this sampling period, of which `r sum(data$on_effort)` were on-effort and `r spell_nr(sum(!data$on_effort))` off-effort. Of these, `r by_familiy$odontoceti` sightings were Odontoceti, including `r by_species$common_dolphin` sightings of common dolphins, `r by_species$delphinidae` sightings of unidentified dolphins where the species could not certainly be defined and `r spell_nr(by_familiy$mysteciti)` Mysticeti sightings of  Fin whales (*Balaenoptera physalus*). `r spell_nr(by_species$unidentified)` sightings the species could not be reliably determined and were recorded as unidentified (@fig-sight_map, @fig-perspecies_map). The group size for land-based sightings ranged from `r min(data$group_size, na.rm = TRUE)` to `r max(data$group_size, na.rm = TRUE)` (mean = `r round(mean(data$group_size, na.rm = TRUE), 2)`, median = `r round(median(data$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(data$group_size, na.rm = TRUE), 2)`). 
+In total `r total_land$surveys` land-based surveys were conducted, resulting in `r round(sum(er$hours), 2)` total on-effort hours and 58 off-effort hours over `r length(unique(effort$date))` survey days. `r length(data$survey_id)` cetacean sightings were recorded in this sampling period, of which `r sum(data$on_effort)` were on-effort and `r spell_nr(sum(!data$on_effort))` off-effort. Of these, `r by_familiy$odontoceti` sightings were Odontoceti, including `r by_species$common_dolphin` sightings of common dolphins, `r by_species$delphinidae` sightings of unidentified dolphins where the species could not certainly be defined and `r spell_nr(by_familiy$mysteciti)` Mysticeti sightings of  Fin whales (*Balaenoptera physalus*). `r spell_nr(by_species$unidentified)` sightings the species could not be reliably determined and were recorded as unidentified (Figure 5, @fig-perspecies_map). The group size for land-based sightings ranged from `r min(data$group_size, na.rm = TRUE)` to `r max(data$group_size, na.rm = TRUE)` (mean = `r round(mean(data$group_size, na.rm = TRUE), 2)`, median = `r round(median(data$group_size, na.rm = TRUE), 2)`, SD = ±`r round(sd(data$group_size, na.rm = TRUE), 2)`). 
 
 
 ![All sightings collected from the land-based survey between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")` by species. Delphinidae (A), Common Dolphins (B), Fin whales (C) and unidentified sightings respectively.](/figures/per_species.png){#fig-perspecies_map}
@@ -863,7 +863,7 @@ Kernel density estimation (KDE) was used to assess the spatial distribution and 
 ![The Kernel Density Estimation (KDE) of the sightings collected from land-based surveys between `r format(min(full$date.x), "%d %b %Y")` and `r format(max(full$date.x), "%d %b %Y")`. The KDE was calculated using group size as a weight variable. The highest density was found around the south western tip of the peninsula (approximately 36.09–36.11 °N, 5.34–5.37 °W; ~5 km²). Color of grid represents the density Utilisazion distribution.](figures/density_map.png){#fig-kde_map}
 
 
-## Comparison with the OBIS dataset
+## Systematic vs. opportunistic sampling
 Comparison with opportunistic records revealed a pronounced spatial mismatch between the two data sources (@fig-obis, @tbl-obis_comp). Non-systematic *Delphinus delphis* records retrieved from OBIS (n = 200) were strongly concentrated in the western sector (n = 141), with only four records in the eastern sector. Systematic surveys showed the opposite eastern coverage: despite the eastern sector being almost absent from the opportunistic record, 39 on-effort sightings were recorded there. This divergence illustrates the spatial bias inherent to platform-of-opportunity data, in which recording effort tracks vessel routes and observer access—concentrated here in the heavily trafficked western bay—rather than the underlying distribution of animals [@bucklandIntroductionDistanceSampling2001; @dawsonDesignFieldMethods2008]. Because opportunistic records carry no associated survey effort, these counts reflect where animals were *reported* rather than their relative density, and the systematic and opportunistic totals are not directly comparable. The systematic per-sector counts are likewise unstandardised and should be read alongside the effort-corrected encounter rates presented above (@tbl-spue_report). Notably, 45 OBIS records fell outside the three surveyed sectors, further indicating that existing records are spatially unrepresentative of the territory as a whole.
 
 ![Opportunistic *Delphinus delphis* records from OBIS (squares) overlaid on the on-effort sightings recorded in the present study (circles), within the study area. Opportunistic records are concentrated in the western bay, while the eastern sector—almost absent from the opportunistic record, was covered only by systematic survey.](/figures/obis_comp.png){#fig-obis}
@@ -880,14 +880,15 @@ tt(obis_comp) %>%
 
 
 ## Detection model fitting{#model_fit}
-The distribution of sighting distances was examined separately for each sampling location (@fig-dis_spot) to inform truncation and detection-function fitting. Sandy Bay and Prince George showed the distance distribution characteristic of point-transect sampling, in which detections are sparse close to the observer and rise to a peak before declining, reflecting the increase in surveyed area with radius alongside decreasing detectability [@bucklandDistanceSamplingMethods2015]. Europa Point departed from this pattern: sightings were concentrated close to the observer and the distribution was positively skewed, with few detections at greater range. This is consistent with its lower observation height (18 m a.s.l.), which restricts the effective detection range and truncates the usable distance band.
+As discussed in the journal article per station sample size was insufficient to support robust detection function fitting and reliable density and abundance estimates. 
+The distribution of sighting distances was examined separately for each sampling location (Figure 10) to inform truncation and detection-function fitting. Sandy Bay and Prince George showed the distance distribution characteristic of point-transect sampling, in which detections are sparse close to the observer and rise to a peak before declining, reflecting the increase in surveyed area with radius alongside decreasing detectability [@bucklandDistanceSamplingMethods2015]. Europa Point departed from this pattern: sightings were concentrated close to the observer and the distribution was positively skewed, with few detections at greater range. This is consistent with its lower observation height (18 m a.s.l.), which restricts the effective detection range and truncates the usable distance band.
 
 ```{r}
 #| label: tbl-AICs
 #| tbl-cap: "AIC comparison of the different key functions for Europa Point (a) and Sandy Bay (b) and Prince George (c)."
 #| layout-ncol: 3
 #| tbl-subcap: ["Europa Point", "Sandy Bay", "Prince George"]
-#| subref-labels: upper-alpha
+#| subref-labels: Alpha
 
 eu.AIC %>% 
   rownames_to_column(var = "Model") %>% 
@@ -983,7 +984,7 @@ Due to the limited number of observations per sampling location, independent det
 ### Abundance disclaimer
 Abundance estimates are reported below for the three surveyed sectors(@tbl-per_spot_abun, @tbl-pool_abun). These are derived by scaling the sector-specific density estimates to the area of each surveyed sector, and therefore represent the estimated number of animals present within the areas actually covered by the land-based survey. They are not extrapolated to the full extent of the `#gls("bgtw")`{=typst}: because the fixed observation stations sampled only part of the territory and cetacean density was found to be strongly spatially structured, the surveyed sectors cannot be assumed representative of the unsurveyed area, and a design-based abundance for the territory as a whole is not supported by the realised survey design. The estimates below should therefore be interpreted as sector-level abundances for the surveyed areas rather than as a total population estimate for the `#gls("bgtw")`{=typst}.
 
-### Per spot estimates
+### Per sector estimates
 Using the best fitting detection function, per spot, the relative abundance of dolphins was calculated. The highest group density was estimated to be `r round(dens_tbl[[3]][2], 2)` per km² in the southern sector (surveyed from Europa Point). The highest individual density was also estimated to be in the southern sector with `r round(dens_tbl[[8]][2], 2)` per km² (@tbl-per_spot_dens).
 
 ```{r}
@@ -1019,7 +1020,7 @@ tt(abun_tbl,
 The detection-corrected density gradient confirmed earlier findings (@fig-SPUE) of higher SPUE at Europa Point compared to the other vantage points.
 
 ### Pooled estimates
-For the pooled detection function, the highest group abundance estimate was also observed in the southern sector, with `r round(pool_abun_tbl[[3]][1], 0)` groups. Similarly, the highest individual abundance estimate occurred in the southern sector, with `r round(pool_abun_tbl[[8]][1], 0)` individuals (@tbl-pool_abun).
+For the pooled detection function, the highest group abundance estimate was also observed in the southern sector, with `r round(pool_abun_tbl[[3]][1], 0)` groups. Similarly, the highest individual abundance estimate occurred in the southern sector, with `r round(pool_abun_tbl[[8]][1], 0)` individuals (@tbl-pool_abun). Detailed interpretation is continued in the journal article.
 
 ```{r}
 #| label: tbl-pool_abun
@@ -1040,7 +1041,7 @@ To assess the influence of the right-truncation distance on the density estimate
 
 ```{r, sensitivty table}
 #| label: tbl-sens
-#| tbl-cap: "Sensitivity of the pooled density estimates to the right-truncation distance. The pooled detection function (hazard-rate key function with height as a covariate) was refitted at each truncation distance (w), holding model structure constant. For each truncation, the number of retained on-effort detections (n), the estimated density per sector (D̂), individuals km⁻²; Europa Point, Prince George, Sandy Bay, and the overall total), the coefficient of variation of the estimate (CV), and the Cramér–von Mises goodness-of-fit p-value (CvM p) are reported. The selected truncation distance (8,000 m) is emphasised."
+#| tbl-cap: "Sensitivity of the pooled density estimates to the right-truncation distance. The pooled detection function (hazard-rate key function with height as a covariate) was refitted at each truncation distance (w), holding model structure constant. For each truncation, the number of retained on-effort detections (n), the estimated density per sector (D̂), individuals km⁻²; Europa Point, Prince George, Sandy Bay, and the overall total), the coefficient of variation of the estimate (CV), and the Cramér–von Mises goodness-of-fit p-value (CvM p) are reported. The selected truncation distance (8,000 m) is highlighted."
 
 
 tt(trunc_sens, digits = 2) %>% 

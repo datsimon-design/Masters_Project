@@ -1,7 +1,7 @@
 ---
-title: "Investigating Spatial Distribution of Cetacean in the British Gibraltar Territorial Waters (BGTW)"
-author: "Simon Gendrisch"   
-keywords: [Cetacean, BGTW, Spatial Distribution, Kernel Density Estimation, Distance Sampling, Land Based Surveys]
+title: "Cetacean Spatial Distribution in the British Gibraltar Territorial Waters: A Systematic Baseline from Land-based Distance Sampling"
+author: "Simon Gendrisch"
+keywords: [Cetacean, Delphinus delphis, Gibraltar, Cetacean Distribution, Land-based Surveys, Distance Sampling, Marine Mammal Conservation, Kernel Density Estimation]
 
 format: 
 
@@ -54,17 +54,9 @@ csl: "SoMESHarvard.csl"
 #[
 ```
 
-# Acknowledgements 
+# Acknowledgements{.unnumbered}
 
 {{< include ./journal_chapters/j_acknowl.qmd >}}
-
-{{< pagebreak >}}
-
-# Science Communication output
-
-{{< include ./chapters/comms.qmd >}}
-
-{{< pagebreak >}}
 
 # Generative AI (GenAI) Use{.unnumbered}
 This is just a short summary of how AI was used. See Declaration of Originality and use of Gen AI for more details.
@@ -77,8 +69,15 @@ Please see Supplementary Material with Appendices for further information relate
 
 {{< pagebreak >}}
 
+# Science Communication output
 
-# References{.unnumbered}
+{{< include ./chapters/comms.qmd >}}
+
+{{< pagebreak >}}
+
+
+
+# References
 ::: {#refs}
 :::
 
