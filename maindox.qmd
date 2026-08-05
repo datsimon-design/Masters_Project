@@ -331,13 +331,53 @@ Generative AI was used to help with the structuring, and scientific writing of t
                 - Spell and Grammar Check
                 \ 
                 AI *was not* used to create the Interactive Website or the Advisory Poster.
-
-      
       ],
-      
-
     )
     ]
+
+    #page(header: [
+    #set text(size: 9pt)
+    #grid(
+      columns: (1fr, auto),
+      align: (bottom + left, bottom + right),
+      text(weight: "bold", size: 12pt)[C1.2#h(0.6em)Submission Checklist],
+      image("/misc/Logo-Red-Crest-Side.png", width: 3cm),
+    )
+    #v(-4pt)
+    #line(length: 100%, stroke: 0.5pt + gray)
+  ])[
+    #let decl_date = datetime.today().display("[day]/[month]/[year]")
+
+    #set text(size:12pt)
+    #show table.cell: set text(size: 12pt)
+    
+    #table(columns: (6fr,1fr),
+           stroke: none,
+           inset: 6pt,
+           
+           table.header[#text(weight: "bold", size: 14pt)[Submission Checklist]],
+           [],[],
+           [Journal Article (with completed signed declaration form)\ #emph[submitted electronically via Canvas]], [#text(size:16pt)[\u{2612}]],
+           [Supplemental Information\ #emph[submitted electronically via Canvas]], [#text(size:16pt)[\u{2612}]],
+           [Excel Workbook Appendix with data tables tabs:\ #emph[submitted electronically via Canvas]], [#text(size:16pt)[\u{2612}]],
+           [Your laboratory record book:\ #emph[submitted electronically via Canvas]], [#text(size:16pt)[\u{2612}]],
+           [Science Communication output], [#text(size:16pt)[\u{2612}]],
+           [Research Profile], [#text(size:16pt)[\u{2612}]],
+           [], [],
+           
+           )
+    
+    #v(9em)
+
+    *Student Name:* Simon Gendrisch \ 
+    *ID Number:* 206708 \ 
+    *Student Signature:* #image("/misc/Unterschrift.png", width: 20%) \ 
+    *Date:* #decl_date \ 
+    #line(length: 100%, stroke: 0.5pt + gray)
+
+    #align(right)[#image("/misc/Logo-Red-Crest-Side.png", width: 6cm)]
+
+  ]
 
 ]
 
