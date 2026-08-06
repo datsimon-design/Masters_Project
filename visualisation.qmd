@@ -910,6 +910,33 @@ as.data.frame(effort_log) %>%
   ) +
   my_theme_trans() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+watches_time <- effort_log %>% 
+  drop_na(observation_start) %>% 
+  mutate(
+    time_bin = paste0(
+      sprintf("%02d", hour(observation_start)),
+      ":",
+      ifelse(minute(observation_start) < 30, "00", "30")
+    )
+  ) %>%
+  count(time_bin) %>% 
+  rename("n_of_watches" = n) 
+
+watches_day <- watches_time %>% 
+  ggplot(aes(x = time_bin, y = n_of_watches))+
+  geom_col(fill = lightblue) +
+  my_theme_trans() +
+  labs(
+    x = "Time of day",
+    y = "n of Watches",
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  scale_x_discrete(
+    breaks = levels(factor(spue_time$time_bin))[c(TRUE, FALSE)]
+  )
+  
+
 ```
 
 
@@ -930,18 +957,83 @@ sighting_day <- sight_time %>%
   geom_col(fill = darkblue) +
   my_theme_trans() +
   labs(
-    x = "Time",
+    x = "Time of day",
     y = "n of Sightings",
   ) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_discrete(
+    breaks = levels(factor(spue_time$time_bin))[c(TRUE, FALSE)]
+  )
 
 sighting_day
   
 ```
 
 ```{r}
-ggsave(filename = "./figures/sighting_day.png", sighting_day, width = 1920, height = 1520, dpi = 200, units = "px")
+
+sight_watches <- wrap_plots(sighting_day, watches_day)+
+  plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = "bold", size = 14))
+
 ```
+
+
+```{r}
+ggsave(filename = "./figures/sighting_day.png", sight_watches, width = 2420, height = 1520, dpi = 200, units = "px")
+```
+
+SPUE per hour
+
+```{r}
+make_bin <- function(t) {
+  paste0(sprintf("%02d", hour(t)), ":",
+         ifelse(minute(t) < 30, "00", "30"))
+}
+
+watches_time <- effort_log %>%
+  drop_na(observation_start) %>%
+  mutate(time_bin = make_bin(observation_start)) %>%
+  count(time_bin, name = "n_watches")
+
+sight_time <- data %>%
+  filter(on_effort) %>%                 # ONLY on-effort sightings, to match effort
+  mutate(time_bin = make_bin(start_time)) %>%
+  count(time_bin, name = "n_sightings")
+
+spue_time <- watches_time %>%           # start from EFFORT (all watched bins)
+  left_join(sight_time, by = "time_bin") %>%
+  mutate(
+    n_sightings = tidyr::replace_na(n_sightings, 0),   # watched but nothing seen -> 0
+    spue = n_sightings / n_watches
+  ) %>%
+  arrange(time_bin)
+```
+
+```{r}
+spue_day <- spue_time %>%
+  ggplot(aes(x = time_bin, y = spue)) +
+  geom_col(fill = purple) +
+  # convey how much effort backs each bar:
+  geom_text(aes(label = n_watches), vjust = -0.4, size = 2.5, colour = "grey40") +
+  my_theme_trans() +
+  labs(x = "Time of day", y = "Sightings per watch (SPUE)") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+spue_day
+```
+
+```{r}
+full_spue <- (sighting_day + watches_day) / spue_day+
+  plot_annotation(tag_levels = "A") &
+  theme(plot.tag = element_text(face = "bold", size = 14))
+
+```
+
+```{r}
+ggsave(filename = "./figures/sighting_day.png", full_spue, width = 2520, height = 2520, dpi = 300, units = "px")
+```
+
+
+
 
 ### Does tide have an influence? 
 

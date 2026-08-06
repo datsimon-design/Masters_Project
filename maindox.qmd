@@ -208,7 +208,7 @@ Generative AI was used to help with the structuring, and scientific writing of t
 
 {{< pagebreak >}}
 
-# Appendix
+# Appendices
 
 {{< include ./chapters/appendix.qmd >}}
 

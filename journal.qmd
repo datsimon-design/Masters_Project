@@ -59,7 +59,7 @@ csl: "SoMESHarvard.csl"
 {{< include ./journal_chapters/j_acknowl.qmd >}}
 
 # Generative AI (GenAI) Use{.unnumbered}
-This is just a short summary of how AI was used. See Declaration of Originality and use of Gen AI for more details.
+Generative AI was used to help with the structuring, and scientific writing of this work. It was also used to troubleshoot analysis and setup code. See Declaration of Originality and use of Gen AI for more details.
 
 # Conflict of Interest{.unnumbered}
 The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.

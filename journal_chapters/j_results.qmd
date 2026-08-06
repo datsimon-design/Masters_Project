@@ -799,7 +799,7 @@ The overview of sightings (@tbl-overview) revealed variation in minimum and maxi
 overview_tbl
 ```
 
-Most of the sightings were recorded at Europa Point, covering mainly the southern side (n = `r max(per_spot$sightings)`). Sighting frequency varied over the course of the day, showing a trimodal distribution with peaks in the late morning and mid-afternoon and a reduction around midday (Figure S16). 
+Most of the sightings were recorded at Europa Point, covering mainly the southern side (n = `r max(per_spot$sightings)`). Sighting frequency varied over the course of the day, showing a bimodal distribution with peaks in the morning and afternoon and a reduction around midday (Figure S16 C).
 
 
 ## Spatial Distribution
